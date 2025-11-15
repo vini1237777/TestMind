@@ -66,6 +66,7 @@ export default function HomePage() {
 
   const handleGenerate = (featureName: string, description: string) => {
     const cases = generateTestCases(featureName, description);
+    setTestCases(cases);
     if (!cases.length) return;
 
     const newSuite: TestSuite = {
@@ -91,8 +92,8 @@ export default function HomePage() {
         <h1 className="mt-3 ml-3">TestMind</h1>
       </nav>
 
-      <section className="flex flex-col gap-4 w-full max-w-md mt-10 mb-10">
-        <label className="text-sm font-medium">Feature Name</label>
+      <div className="flex flex-col gap-4 w-full max-w-md mt-10 mb-10">
+        <label className="text-sm font-medium">Feature Description</label>
         <input
           type="text"
           placeholder="Feature Name"
@@ -116,114 +117,115 @@ export default function HomePage() {
         >
           Generate Test Cases
         </button>
-      </section>
-      <section className="w-full max-w-2xl mt-8 mb-8">
-        {testCases.length === 0 ? (
-          <p className="text-gray-500">
-            No test cases yet. Click <strong>Generate Test Cases</strong>.
-          </p>
-        ) : (
-          <ul className="flex flex-col gap-4">
-            {testCases?.map((tc) => (
-              <li
-                key={tc?.id}
-                className="border border-gray-200 rounded p-3 shadow-sm"
-              >
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="font-mono text-xs">{tc.id}</span>
-                  <span className="uppercase text-xs text-gray-500">
-                    {tc.type}
-                  </span>
-                </div>
-                <h3 className="font-semibold mb-1">{tc.title}</h3>
-                <div className="mb-1">
-                  <p className="font-semibold text-sm">Steps:</p>
-                  <ol className="list-decimal list-inside text-sm text-gray-700">
-                    {tc.steps.map((step, i) => (
-                      <li key={i}>{step}</li>
-                    ))}
-                  </ol>
-                </div>
-                <p className="text-sm">
-                  <span className="font-semibold">Expected:</span> {tc.expected}
-                </p>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-      <section className="w-full max-w-4xl mt-8 flex gap-6">
-        <aside className="w-1/3 border-r pr-4">
-          <h2 className="font-semibold mb-2 text-sm">Test Suites</h2>
-          {testSuites.length === 0 ? (
-            <p className="text-gray-500 text-sm">
-              No suites yet. Generate your first one.
+        <section className="w-full max-w-2xl mt-8 mb-8">
+          {testCases.length === 0 ? (
+            <p className="text-gray-500">
+              No test cases yet. Click <strong>Generate Test Cases</strong>.
             </p>
           ) : (
-            <ul className="flex flex-col gap-2">
-              {testSuites.map((suite) => (
+            <ul className="flex flex-col gap-4">
+              {testCases?.map((tc) => (
                 <li
-                  key={suite.id}
-                  onClick={() => setSelectedSuiteId(suite.id)}
-                  className={
-                    suite.id === selectedSuiteId
-                      ? "p-2 rounded cursor-pointer bg-amber-50 border border-amber-200"
-                      : "p-2 rounded cursor-pointer hover:bg-gray-50 border"
-                  }
+                  key={tc?.id}
+                  className="border border-gray-200 rounded p-3 shadow-sm"
                 >
-                  {suite.name} - {new Date(suite.createdAt).toLocaleString()}
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="font-mono text-xs">{tc.id}</span>
+                    <span className="uppercase text-xs text-gray-500">
+                      {tc.type}
+                    </span>
+                  </div>
+                  <h3 className="font-semibold mb-1">{tc.title}</h3>
+                  <div className="mb-1">
+                    <p className="font-semibold text-sm">Steps:</p>
+                    <ol className="list-decimal list-inside text-sm text-gray-700">
+                      {tc.steps.map((step, i) => (
+                        <li key={i}>{step}</li>
+                      ))}
+                    </ol>
+                  </div>
+                  <p className="text-sm">
+                    <span className="font-semibold">Expected:</span>{" "}
+                    {tc.expected}
+                  </p>
                 </li>
               ))}
             </ul>
           )}
-        </aside>
-
-        <section className="w-2/3 pl-4">
-          {!selectedSuiteId ? (
-            <p className="text-gray-500 text-sm">
-              Select a suite from the left to view test cases.
-            </p>
-          ) : (
-            selectedSuite && (
-              <>
-                <h2 className="font-semibold mb-1">{selectedSuite.name}</h2>
-                <p className="text-xs text-gray-500 mb-4">
-                  {new Date(selectedSuite.createdAt).toLocaleString()}
-                </p>
-
-                <ul className="flex flex-col gap-4">
-                  {selectedSuite.testCases?.map((tc) => (
-                    <li
-                      key={tc?.id}
-                      className="border border-gray-200 rounded p-3 shadow-sm mb-8"
-                    >
-                      <div className="flex justify-between text-sm mb-1">
-                        <span className="font-mono text-xs">{tc.id}</span>
-                        <span className="uppercase text-xs text-gray-500">
-                          {tc.type}
-                        </span>
-                      </div>
-                      <h3 className="font-semibold mb-1">{tc.title}</h3>
-                      <div className="mb-1">
-                        <p className="font-semibold text-sm">Steps:</p>
-                        <ol className="list-decimal list-inside text-sm text-gray-700">
-                          {tc.steps.map((step, i) => (
-                            <li key={i}>{step}</li>
-                          ))}
-                        </ol>
-                      </div>
-                      <p className="text-sm">
-                        <span className="font-semibold">Expected:</span>{" "}
-                        {tc.expected}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )
-          )}
         </section>
-      </section>
+        <section className="w-full max-w-4xl mt-8 flex gap-6">
+          <aside className="w-1/3 border-r pr-4">
+            <h2 className="font-semibold mb-2 text-sm">Test Suites</h2>
+            {testSuites.length === 0 ? (
+              <p className="text-gray-500 text-sm">
+                No suites yet. Generate your first one.
+              </p>
+            ) : (
+              <ul className="flex flex-col gap-2">
+                {testSuites.map((suite) => (
+                  <li
+                    key={suite.id}
+                    onClick={() => setSelectedSuiteId(suite.id)}
+                    className={
+                      suite.id === selectedSuiteId
+                        ? "p-2 rounded cursor-pointer bg-amber-50 border border-amber-200"
+                        : "p-2 rounded cursor-pointer hover:bg-gray-50 border"
+                    }
+                  >
+                    {suite.name} - {new Date(suite.createdAt).toLocaleString()}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </aside>
+
+          <section className="w-2/3 pl-4">
+            {!selectedSuiteId ? (
+              <p className="text-gray-500 text-sm">
+                Select a suite from the left to view test cases.
+              </p>
+            ) : (
+              selectedSuite && (
+                <>
+                  <h2 className="font-semibold mb-1">{selectedSuite.name}</h2>
+                  <p className="text-xs text-gray-500 mb-4">
+                    {new Date(selectedSuite.createdAt).toLocaleString()}
+                  </p>
+
+                  <ul className="flex flex-col gap-4">
+                    {selectedSuite.testCases?.map((tc) => (
+                      <li
+                        key={tc?.id}
+                        className="border border-gray-200 rounded p-3 shadow-sm mb-8"
+                      >
+                        <div className="flex justify-between text-sm mb-1">
+                          <span className="font-mono text-xs">{tc.id}</span>
+                          <span className="uppercase text-xs text-gray-500">
+                            {tc.type}
+                          </span>
+                        </div>
+                        <h3 className="font-semibold mb-1">{tc.title}</h3>
+                        <div className="mb-1">
+                          <p className="font-semibold text-sm">Steps:</p>
+                          <ol className="list-decimal list-inside text-sm text-gray-700">
+                            {tc.steps.map((step, i) => (
+                              <li key={i}>{step}</li>
+                            ))}
+                          </ol>
+                        </div>
+                        <p className="text-sm">
+                          <span className="font-semibold">Expected:</span>{" "}
+                          {tc.expected}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )
+            )}
+          </section>
+        </section>
+      </div>
     </main>
   );
 }
