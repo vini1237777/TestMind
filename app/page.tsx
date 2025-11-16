@@ -1,23 +1,8 @@
 "use client";
 
 import { useState } from "react";
-
-type TestCase = {
-  id: string;
-  type: "happy" | "negative" | "edge";
-  title: string;
-  steps: string[];
-  expected: string;
-};
-
-type TestSuite = {
-  id: string;
-  name: string;
-  featureName: string;
-  description: string;
-  createdAt: string;
-  testCases: TestCase[];
-};
+import { TestCase, TestSuite } from "./types/testmind";
+import { EventEmitter } from "node:stream";
 
 export default function HomePage() {
   const [featureName, setFeatureName] = useState<string>("");
@@ -25,6 +10,8 @@ export default function HomePage() {
   const [testCases, setTestCases] = useState<TestCase[]>([]);
   const [testSuites, setTestSuites] = useState<TestSuite[]>([]);
   const [selectedSuiteId, setSelectedSuiteId] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [error, setError] = useState<string | null>("");
 
   function generateTestCases(
     featureName: string,
@@ -64,24 +51,53 @@ export default function HomePage() {
     ];
   }
 
-  const handleGenerate = (featureName: string, description: string) => {
-    const cases = generateTestCases(featureName, description);
-    setTestCases(cases);
-    if (!cases.length) return;
+  const handleGenerate = async (featureName: string, description: string) => {
+    setError(null);
+    setIsGenerating(true);
 
-    const newSuite: TestSuite = {
-      id: crypto.randomUUID(),
-      name: featureName || "Untitled suite",
-      featureName,
-      description,
-      createdAt: new Date().toISOString(),
-      testCases: cases,
-    };
+    try {
+      const res = await fetch("/api/generate-test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ featureName, description }),
+      });
 
-    setTestSuites((prev) => [newSuite, ...prev]);
-    setSelectedSuiteId(newSuite.id);
-    setFeatureName("");
-    setDescription("");
+      if (!res.ok) {
+        const errorBody = await res?.json().catch(() => null);
+        setError(errorBody?.error || "Failed to generate test cases");
+        return;
+      }
+
+      const data = await res?.json();
+
+      const cases: TestCase[] = data.testCases || [];
+
+      if (!cases?.length) {
+        setError("No test cases returned by AI.");
+        return;
+      }
+
+      setTestCases(testCases);
+
+      const newSuite: TestSuite = {
+        id: crypto.randomUUID(),
+        name: featureName || "Untitled suite",
+        featureName,
+        description,
+        createdAt: new Date().toISOString(),
+        testCases: cases,
+      };
+
+      setTestSuites((prev) => [newSuite, ...prev]);
+      setSelectedSuiteId(newSuite.id);
+      setFeatureName("");
+      setDescription("");
+    } catch (err) {
+      console.error(err);
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const selectedSuite = testSuites.find((s) => s.id === selectedSuiteId);
@@ -113,10 +129,11 @@ export default function HomePage() {
           onClick={() => {
             handleGenerate(featureName, description);
           }}
-          disabled={!featureName.trim() || !description.trim()}
+          disabled={!featureName.trim() || !description.trim() || isGenerating}
         >
-          Generate Test Cases
+          {isGenerating ? "Generating..." : "Generate Test Cases"}{" "}
         </button>
+        {error && <p className="text-sm text-red-600">{error}</p>}
         <section className="w-full max-w-2xl mt-8 mb-8">
           {testCases.length === 0 ? (
             <p className="text-gray-500">
