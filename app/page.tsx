@@ -56,7 +56,7 @@ export default function HomePage() {
     setIsGenerating(true);
 
     try {
-      const res = await fetch("/api/generate-test", {
+      const res = await fetch("/api/generate-tests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ featureName, description }),
