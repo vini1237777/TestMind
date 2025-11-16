@@ -1,72 +1,117 @@
 import { TestCase } from "@/app/types/testmind";
 import { NextRequest, NextResponse } from "next/server";
-
-function generateTestCases(
-  featureName: string,
-  description: string
-): TestCase[] {
-  if (!featureName.trim() || !description.trim()) return [];
-
-  return [
-    {
-      id: "TC_1",
-      type: "happy",
-      title: `Verify that "${featureName}" works as described`,
-      steps: [
-        "Set up preconditions based on the feature description.",
-        "Perform the main user flow.",
-        "Verify that the expected success behavior happens.",
-      ],
-      expected: "Feature behaves correctly for valid input.",
-    },
-    {
-      id: "TC_2",
-      type: "negative",
-      title: `Check edge cases for "${featureName}"`,
-      steps: [
-        "Try boundary values or unusual inputs.",
-        "Observe system response.",
-      ],
-      expected: "System should not break and should show clear errors.",
-    },
-    {
-      id: "TC_3",
-      type: "negative",
-      title: `Ensure "${featureName}" handles invalid input gracefully`,
-      steps: ["Provide invalid or empty values.", "Trigger the feature."],
-      expected: "User sees helpful error messages; no crashes.",
-    },
-  ];
-}
+import OpenAI from "openai";
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error("Missing OPENAI_API_KEY");
+    }
 
+    const client = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY!,
+    });
+
+    const body = await req.json();
     const { featureName, description } = body;
 
-    if (!featureName?.trim() || !description?.trim()) {
+    const feature = String(featureName || "").trim();
+    const desc = String(description || "").trim();
+
+    if (!feature || !desc) {
       return NextResponse.json(
-        {
-          error: "Feature name and description are required",
-        },
-        {
-          status: 400,
-        }
+        { error: "Feature name and description are required." },
+        { status: 400 }
       );
     }
 
-    const testCases: TestCase[] = generateTestCases(featureName, description);
+    const prompt = `
+    You are a senior QA engineer designing test cases for a web application.
+    
+    Your goal:
+    - Convert the following feature into a realistic, well-structured set of test cases.
+    - Include a mix of happy, negative, and edge cases.
+    - Focus on real user behavior, data variations, and validation.
+    
+    Feature Name:
+    ${featureName}
+    
+    Feature Description:
+    ${description}
+    
+    Requirements for test cases:
+    - Always generate between 4 and 8 test cases.
+    - Use a mix of "happy", "negative", and "edge" types.
+    - "happy" = valid inputs, expected successful flow.
+    - "negative" = invalid inputs, errors, security, validation failures.
+    - "edge" = boundary conditions, extreme values, weird but possible scenarios.
+    - Make every "title" very clear and specific.
+    - "steps" should be concrete, step-by-step user or system actions.
+    - "expected" should clearly describe the correct behavior or system result.
+    - Assume this is a modern web app with forms, buttons, API calls, and validation.
+    
+    Response format (IMPORTANT):
+    - Respond with a single JSON object.
+    - NO explanation, NO prose, NO comments outside JSON.
+    - The JSON MUST have this exact schema:
+    
+    {
+      "testCases": [
+        {
+          "id": "TC_1",
+          "type": "happy",
+          "title": "Clear descriptive title here",
+          "steps": [
+            "Step 1: ...",
+            "Step 2: ...",
+            "Step 3: ..."
+          ],
+          "expected": "Clear description of what should happen."
+        }
+      ]
+    }
+    
+    Constraints:
+    - "id" should be sequential like "TC_1", "TC_2", "TC_3", etc.
+    - "type" must be one of: "happy", "negative", "edge".
+    - Do NOT add any extra fields.
+    - Do NOT wrap the JSON in backticks or markdown.
+    - Do NOT add any text before or after the JSON.
+    `;
+
+    const completion = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      response_format: { type: "json_object" },
+      messages: [{ role: "user", content: prompt }],
+    });
+
+    const raw = completion.choices[0].message.content;
+
+    if (!raw) {
+      return NextResponse.json(
+        { error: "No response from AI." },
+        { status: 500 }
+      );
+    }
+
+    const parsed = JSON.parse(raw);
+
+    if (!Array.isArray(parsed.testCases)) {
+      return NextResponse.json(
+        { error: "AI returned invalid test case format." },
+        { status: 500 }
+      );
+    }
+
+    const testCases: TestCase[] = parsed.testCases;
+
     return NextResponse.json({ testCases }, { status: 200 });
-  } catch (err) {
-    console.error("Error in /api/generate-tests", err);
+  } catch (error: unknown) {
+    console.error("AI Error:", error);
+
     return NextResponse.json(
-      {
-        error: "Something went wrong while generating test cases",
-      },
-      {
-        status: 500,
-      }
+      { error: "Failed to generate test cases." },
+      { status: 500 }
     );
   }
 }
