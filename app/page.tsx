@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { TestCase, TestSuite } from "./types/testmind";
-import { EventEmitter } from "node:stream";
 
 export default function HomePage() {
   const [featureName, setFeatureName] = useState<string>("");
@@ -11,45 +10,7 @@ export default function HomePage() {
   const [testSuites, setTestSuites] = useState<TestSuite[]>([]);
   const [selectedSuiteId, setSelectedSuiteId] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [error, setError] = useState<string | null>("");
-
-  function generateTestCases(
-    featureName: string,
-    description: string
-  ): TestCase[] {
-    if (!featureName.trim() || !description.trim()) return [];
-
-    return [
-      {
-        id: "TC_1",
-        type: "happy",
-        title: `Verify that "${featureName}" works as described`,
-        steps: [
-          "Set up preconditions based on the feature description.",
-          "Perform the main user flow.",
-          "Verify that the expected success behavior happens.",
-        ],
-        expected: "Feature behaves correctly for valid input.",
-      },
-      {
-        id: "TC_2",
-        type: "negative",
-        title: `Check edge cases for "${featureName}"`,
-        steps: [
-          "Try boundary values or unusual inputs.",
-          "Observe system response.",
-        ],
-        expected: "System should not break and should show clear errors.",
-      },
-      {
-        id: "TC_3",
-        type: "negative",
-        title: `Ensure "${featureName}" handles invalid input gracefully`,
-        steps: ["Provide invalid or empty values.", "Trigger the feature."],
-        expected: "User sees helpful error messages; no crashes.",
-      },
-    ];
-  }
+  const [error, setError] = useState<string | null>(null);
 
   const handleGenerate = async (featureName: string, description: string) => {
     setError(null);
@@ -77,7 +38,7 @@ export default function HomePage() {
         return;
       }
 
-      setTestCases(testCases);
+      setTestCases(cases);
 
       const newSuite: TestSuite = {
         id: crypto.randomUUID(),
@@ -103,12 +64,12 @@ export default function HomePage() {
   const selectedSuite = testSuites.find((s) => s.id === selectedSuiteId);
 
   return (
-    <main className="flex flex-col gap-4 items-center max-w-3xl mx-auto">
+    <main className="flex flex-col gap-4 items-center max-w-5xl mx-auto px-4 space-y-6">
       <nav className="w-screen bg-amber-200 h-12">
         <h1 className="mt-3 ml-3">TestMind</h1>
       </nav>
 
-      <div className="flex flex-col gap-4 w-full max-w-md mt-10 mb-10">
+      <section className="flex flex-col gap-4 w-full max-w-md mt-10 mb-10">
         <label className="text-sm font-medium">Feature Description</label>
         <input
           type="text"
@@ -125,7 +86,7 @@ export default function HomePage() {
           className="p-2 border border-gray-300 rounded"
         />
         <button
-          className="bg-amber-400 p-2 rounded hover:bg-amber-500 cursor-pointer"
+          className="bg-amber-400 p-2 rounded hover:bg-amber-500 cursor-pointer w-full sm:w-auto"
           onClick={() => {
             handleGenerate(featureName, description);
           }}
@@ -141,6 +102,10 @@ export default function HomePage() {
             </p>
           ) : (
             <ul className="flex flex-col gap-4">
+              <h2 className="text-lg font-semibold">
+                Latest Generated Test Cases
+              </h2>
+
               {testCases?.map((tc) => (
                 <li
                   key={tc?.id}
@@ -179,6 +144,9 @@ export default function HomePage() {
               </p>
             ) : (
               <ul className="flex flex-col gap-2">
+                <h2 className="text-lg font-semibold mb-2">
+                  Saved Test Suites
+                </h2>
                 {testSuites.map((suite) => (
                   <li
                     key={suite.id}
@@ -242,7 +210,7 @@ export default function HomePage() {
             )}
           </section>
         </section>
-      </div>
+      </section>
     </main>
   );
 }
