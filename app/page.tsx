@@ -217,12 +217,14 @@ export default function HomePage() {
                         {new Date(selectedSuite.createdAt).toLocaleString()}
                       </p>
                     </div>
-                    <button
-                      onClick={() => handleDownloadSuite(selectedSuite)}
-                      className="text-xs px-3 py-1 rounded border border-gray-300 hover:bg-gray-50"
-                    >
-                      Download JSON
-                    </button>
+                    <div className="ml-32 mb-2">
+                      <button
+                        onClick={() => handleDownloadSuite(selectedSuite)}
+                        className="text-xs px-3 py-1 rounded border border-gray-300 hover:bg-gray-50"
+                      >
+                        Download JSON
+                      </button>
+                    </div>
                   </div>
 
                   <ul className="flex flex-col gap-4">
