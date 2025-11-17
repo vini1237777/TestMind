@@ -279,19 +279,31 @@ export default function HomePage() {
                               >
                                 {isExpanded ? "Hide details" : "View details"}
                               </button>
-                              <h3 className="font-semibold mb-1">{tc.title}</h3>
-                              <div className="mb-1">
-                                <p className="font-semibold text-sm">Steps:</p>
-                                <ol className="list-decimal list-inside text-sm text-gray-700">
-                                  {tc.steps.map((step, i) => (
-                                    <li key={i}>{step}</li>
-                                  ))}
-                                </ol>
-                              </div>
-                              <p className="text-sm">
-                                <span className="font-semibold">Expected:</span>{" "}
-                                {tc.expected}
-                              </p>
+                              {isExpanded ? (
+                                <>
+                                  <h3 className="font-semibold mb-1">
+                                    {tc.title}
+                                  </h3>
+                                  <div className="mb-1">
+                                    <p className="font-semibold text-sm">
+                                      Steps:
+                                    </p>
+                                    <ol className="list-decimal list-inside text-sm text-gray-700">
+                                      {tc.steps.map((step, i) => (
+                                        <li key={i}>{step}</li>
+                                      ))}
+                                    </ol>
+                                  </div>
+                                  <p className="text-sm">
+                                    <span className="font-semibold">
+                                      Expected:
+                                    </span>{" "}
+                                    {tc.expected}
+                                  </p>
+                                </>
+                              ) : (
+                                <></>
+                              )}
                             </li>
                           );
                         })}
