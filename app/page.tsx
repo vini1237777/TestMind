@@ -3,6 +3,13 @@
 import { useState } from "react";
 import { TestCase, TestSuite } from "./types/testmind";
 
+const tabs = [
+  { label: "All", value: "all" },
+  { label: "Happy", value: "happy" },
+  { label: "Negative", value: "negative" },
+  { label: "Edge", value: "edge" },
+];
+
 export default function HomePage() {
   const [featureName, setFeatureName] = useState<string>("");
   const [description, setDescription] = useState<string>("");
@@ -11,6 +18,11 @@ export default function HomePage() {
   const [selectedSuiteId, setSelectedSuiteId] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [filterType, setFilterType] = useState<
+    "all" | "happy" | "negative" | "edge"
+  >("all");
+
+  const [expandedCaseId, setExpandedCaseId] = useState<string | null>(null);
 
   const handleGenerate = async (featureName: string, description: string) => {
     setError(null);
@@ -61,15 +73,38 @@ export default function HomePage() {
     }
   };
 
+  const handleDownloadSuite = (suite: TestSuite) => {
+    const blob = new Blob([JSON.stringify(suite, null, 2)], {
+      type: "application/json",
+    });
+
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${suite.name || "test-suite"}.json`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  };
+
   const selectedSuite = testSuites.find((s) => s.id === selectedSuiteId);
 
+  const filteredCases =
+    selectedSuite && selectedSuite.testCases
+      ? selectedSuite.testCases.filter((tc) =>
+          filterType === "all" ? true : tc.type === filterType
+        )
+      : [];
+
   return (
-    <main className="flex flex-col gap-4 items-center max-w-5xl mx-auto px-4 space-y-6">
-      <nav className="w-screen bg-amber-200 h-12">
+    <main className="flex flex-col gap-4 items-center space-y-6 mr-10 ml-10">
+      <nav className="bg-amber-200 h-12 w-screen">
         <h1 className="mt-3 ml-3">TestMind</h1>
       </nav>
 
-      <section className="flex flex-col gap-4 w-full max-w-md mt-10 mb-10">
+      <section className="flex flex-col gap-4 max-w-5xl mt-10 mb-10">
         <label className="text-sm font-medium">Feature Description</label>
         <input
           type="text"
@@ -150,7 +185,10 @@ export default function HomePage() {
                 {testSuites.map((suite) => (
                   <li
                     key={suite.id}
-                    onClick={() => setSelectedSuiteId(suite.id)}
+                    onClick={() => {
+                      setSelectedSuiteId(suite.id);
+                      setFilterType("all");
+                    }}
                     className={
                       suite.id === selectedSuiteId
                         ? "p-2 rounded cursor-pointer bg-amber-50 border border-amber-200"
@@ -172,39 +210,94 @@ export default function HomePage() {
             ) : (
               selectedSuite && (
                 <>
-                  <h2 className="font-semibold mb-1">{selectedSuite.name}</h2>
-                  <p className="text-xs text-gray-500 mb-4">
-                    {new Date(selectedSuite.createdAt).toLocaleString()}
-                  </p>
+                  <div className="flex items-center mb-2">
+                    <div>
+                      <h2 className="font-semibold">{selectedSuite.name}</h2>
+                      <p className="text-xs text-gray-500">
+                        {new Date(selectedSuite.createdAt).toLocaleString()}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleDownloadSuite(selectedSuite)}
+                      className="text-xs px-3 py-1 rounded border border-gray-300 hover:bg-gray-50"
+                    >
+                      Download JSON
+                    </button>
+                  </div>
 
                   <ul className="flex flex-col gap-4">
-                    {selectedSuite.testCases?.map((tc) => (
-                      <li
-                        key={tc?.id}
-                        className="border border-gray-200 rounded p-3 shadow-sm mb-8"
-                      >
-                        <div className="flex justify-between text-sm mb-1">
-                          <span className="font-mono text-xs">{tc.id}</span>
-                          <span className="uppercase text-xs text-gray-500">
-                            {tc.type}
-                          </span>
-                        </div>
-                        <h3 className="font-semibold mb-1">{tc.title}</h3>
-                        <div className="mb-1">
-                          <p className="font-semibold text-sm">Steps:</p>
-                          <ol className="list-decimal list-inside text-sm text-gray-700">
-                            {tc.steps.map((step, i) => (
-                              <li key={i}>{step}</li>
-                            ))}
-                          </ol>
-                        </div>
-                        <p className="text-sm">
-                          <span className="font-semibold">Expected:</span>{" "}
-                          {tc.expected}
-                        </p>
-                      </li>
-                    ))}
+                    <div className="mb-3 flex flex-wrap gap-2">
+                      {tabs.map((tab) => (
+                        <button
+                          key={tab.value}
+                          onClick={() =>
+                            setFilterType(
+                              tab.value as unknown as
+                                | "all"
+                                | "happy"
+                                | "negative"
+                                | "edge"
+                            )
+                          }
+                          className={
+                            filterType === tab.value
+                              ? "px-3 py-1 rounded-full text-xs font-medium bg-amber-500 text-white"
+                              : "px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200"
+                          }
+                        >
+                          {tab.label}
+                        </button>
+                      ))}
+                    </div>
+                    <ul className="flex flex-col gap-4">
+                      {filteredCases?.map((tc) => {
+                        const isExpanded = expandedCaseId === tc.id;
+
+                        return (
+                          <li
+                            key={tc?.id}
+                            className="border border-gray-200 rounded p-3 shadow-sm mb-8"
+                          >
+                            <div className="flex justify-between text-sm mb-1">
+                              <span className="font-mono text-xs">{tc.id}</span>
+                              <span className="uppercase text-xs text-gray-500">
+                                {tc.type}
+                              </span>
+                            </div>
+                            <button
+                              onClick={() =>
+                                setExpandedCaseId(isExpanded ? null : tc.id)
+                              }
+                              className="text-xs px-2 py-1 rounded border hover:bg-gray-50"
+                            >
+                              {isExpanded ? "Hide details" : "View details"}
+                            </button>
+                            <h3 className="font-semibold mb-1">{tc.title}</h3>
+                            <div className="mb-1">
+                              <p className="font-semibold text-sm">Steps:</p>
+                              <ol className="list-decimal list-inside text-sm text-gray-700">
+                                {tc.steps.map((step, i) => (
+                                  <li key={i}>{step}</li>
+                                ))}
+                              </ol>
+                            </div>
+                            <p className="text-sm">
+                              <span className="font-semibold">Expected:</span>{" "}
+                              {tc.expected}
+                            </p>
+                          </li>
+                        );
+                      })}
+                    </ul>
                   </ul>
+                  {filteredCases.length === 0 ? (
+                    <p className="text-sm text-gray-500">
+                      No {filterType === "all" ? "" : filterType} test cases in
+                      this suite.
+                    </p>
+                  ) : (
+                    <ul>...</ul>
+                  )}
                 </>
               )
             )}

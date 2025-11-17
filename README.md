@@ -1,37 +1,94 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TestMind — AI-Powered Test Suite Generator
 
-## Getting Started
+TestMind is an AI-assisted tool that converts plain feature descriptions into structured test suites.  
+It’s designed as an internal-style QA tool for teams that want to quickly generate happy, negative, and edge case scenarios for web or mobile applications.
 
-First, run the development server:
+Live Demo: https://test-mind.vercel.app/
+Tech Stack: Next.js · TypeScript · Tailwind CSS · OpenAI API
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+---
+
+## Features
+
+- AI-generated test suites  
+  Give a feature name + description and let AI generate realistic test cases.
+
+- Structured test cases  
+  Each test case includes:
+
+  - `id` (TC_1, TC_2…)
+  - `type` (`happy | negative | edge`)
+  - `title`
+  - `steps[]`
+  - `expected` result
+
+- Test suite history  
+  Every AI generation is saved as a test suite. You can:
+
+  - See all saved suites in a sidebar
+  - Click to view their test cases
+
+- Latest run preview  
+  The most recently generated test cases are shown in a dedicated section.
+
+- Responsive dashboard layout  
+  Works on mobile and desktop — stacked layout on small screens, sidebar + detail view on larger ones.
+
+---
+
+## How it works
+
+1. User enters:
+   - Feature Name
+   - Feature Description
+2. Frontend calls the API endpoint: `POST /api/generate-tests`
+3. Backend:
+   - Builds a detailed QA prompt
+   - Calls OpenAI (`gpt-4o-mini`) with JSON response format
+   - Parses the JSON into the `TestCase[]` type
+4. Frontend:
+   - Displays latest test cases
+   - Saves them as a `TestSuite` in local state
+   - Shows suites & details in a simple dashboard
+
+---
+
+## Tech Stack
+
+- Frontend / Fullstack
+
+  - Next.js (App Router)
+  - React + TypeScript
+  - Tailwind CSS
+
+- AI
+
+  - OpenAI SDK
+  - `gpt-4o-mini` with JSON structured output
+
+- Other
+  - Vercel deployment
+  - Environment-based API key management
+
+---
+
+## Core Types
+
+```ts
+export type TestCase = {
+  id: string;
+  type: "happy" | "negative" | "edge";
+  title: string;
+  steps: string[];
+  expected: string;
+};
+
+export type TestSuite = {
+  id: string;
+  name: string;
+  featureName: string;
+  description: string;
+  createdAt: string;
+  testCases: TestCase[];
+};
 ```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-# TestMind
