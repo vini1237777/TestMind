@@ -220,7 +220,7 @@ export default function HomePage() {
                           {new Date(selectedSuite.createdAt).toLocaleString()}
                         </p>
                       </div>
-                      <div className="ml-32 mb-2">
+                      <div className="ml-4 mb-2">
                         <button
                           onClick={() => handleDownloadSuite(selectedSuite)}
                           className="text-xs px-3 py-1 rounded border border-gray-300 hover:bg-gray-50"
