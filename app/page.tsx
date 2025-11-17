@@ -99,7 +99,7 @@ export default function HomePage() {
       : [];
 
   return (
-    <main className="flex flex-col gap-4 items-center space-y-6 mr-10 ml-10">
+    <main className="flex flex-col gap-4 items-center space-y-6 mx-5 px-5">
       <nav className="bg-amber-200 h-12 w-screen">
         <h1 className="mt-3 ml-3">TestMind</h1>
       </nav>
