@@ -103,7 +103,7 @@ export default function HomePage() {
       <nav className="w-full bg-amber-200 h-12 flex items-center px-4">
         <h1 className="font-semibold">TestMind</h1>
       </nav>
-      <section className="flex flex-col gap-4 max-w-5xl mt-10 mb-10 pl-6 pr-6">
+      <section className="flex flex-col gap-4 max-w-5xl mt-10 mb-10 ml-6 mr-6">
         <label className="text-sm font-medium">Feature Description</label>
         <input
           type="text"
