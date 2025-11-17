@@ -101,7 +101,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen">
       <nav className="w-full bg-amber-200 h-12 flex items-center px-4">
-        <h1 className="font-semibold">TestMind</h1>
+        <h1 className="font-semibold">TestMind v3</h1>
       </nav>
       <main className="max-w-5xl mx-auto px-4 py-8 w-full">
         <section className="flex flex-col gap-4 max-w-5xl mt-10 mb-10 ml-6 mr-6">
