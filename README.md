@@ -1,9 +1,9 @@
 # TestMind — AI-Powered Test Suite Generator
 
 TestMind is an AI-assisted tool that converts plain feature descriptions into structured test suites.  
-It’s designed as an internal-style QA tool for teams that want to quickly generate happy, negative, and edge case scenarios for web or mobile applications.
+It is designed as an internal-style QA tool for teams that want to quickly generate happy, negative, and edge case scenarios for web or mobile applications.
 
-Live Demo: https://test-mind.vercel.app/
+Live Demo: https://test-mind.vercel.app/  
 Tech Stack: Next.js · TypeScript · Tailwind CSS · OpenAI API
 
 ---
@@ -11,12 +11,12 @@ Tech Stack: Next.js · TypeScript · Tailwind CSS · OpenAI API
 ## Features
 
 - AI-generated test suites  
-  Give a feature name + description and let AI generate realistic test cases.
+  Provide a feature name and description, and TestMind generates realistic test cases using AI.
 
 - Structured test cases  
   Each test case includes:
 
-  - `id` (TC_1, TC_2…)
+  - `id` (TC_1, TC_2, …)
   - `type` (`happy | negative | edge`)
   - `title`
   - `steps[]`
@@ -26,13 +26,13 @@ Tech Stack: Next.js · TypeScript · Tailwind CSS · OpenAI API
   Every AI generation is saved as a test suite. You can:
 
   - See all saved suites in a sidebar
-  - Click to view their test cases
+  - Click a suite to view its test cases
 
 - Latest run preview  
   The most recently generated test cases are shown in a dedicated section.
 
 - Responsive dashboard layout  
-  Works on mobile and desktop — stacked layout on small screens, sidebar + detail view on larger ones.
+  Works on mobile and desktop — stacked layout on small screens, sidebar + detail view on larger screens.
 
 ---
 
@@ -47,9 +47,9 @@ Tech Stack: Next.js · TypeScript · Tailwind CSS · OpenAI API
    - Calls OpenAI (`gpt-4o-mini`) with JSON response format
    - Parses the JSON into the `TestCase[]` type
 4. Frontend:
-   - Displays latest test cases
+   - Displays the latest test cases
    - Saves them as a `TestSuite` in local state
-   - Shows suites & details in a simple dashboard
+   - Shows suites and details in a simple dashboard
 
 ---
 

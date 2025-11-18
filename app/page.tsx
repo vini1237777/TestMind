@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { TestCase, TestSuite } from "./types/testmind";
+import { useEffect } from "react";
 
 const tabs = [
   { label: "All", value: "all" },
@@ -24,6 +25,21 @@ export default function HomePage() {
 
   const [expandedCaseId, setExpandedCaseId] = useState<string | null>(null);
 
+  useEffect(() => {
+    const loadSuites = async () => {
+      try {
+        const res = await fetch("/api/suites");
+        if (!res.ok) return;
+        const data = await res.json();
+        setTestSuites(data.suites || []);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
+    loadSuites();
+  }, []);
+
   const handleGenerate = async (featureName: string, description: string) => {
     setError(null);
     setIsGenerating(true);
@@ -43,7 +59,7 @@ export default function HomePage() {
 
       const data = await res?.json();
 
-      const cases: TestCase[] = data.testCases || [];
+      const cases: TestCase[] = data?.testCases || [];
 
       if (!cases?.length) {
         setError("No test cases returned by AI.");
@@ -52,8 +68,10 @@ export default function HomePage() {
 
       setTestCases(cases);
 
+      const suiteIdFromDb = data?.suiteId;
+
       const newSuite: TestSuite = {
-        id: crypto.randomUUID(),
+        id: suiteIdFromDb || crypto.randomUUID(),
         name: featureName || "Untitled suite",
         featureName,
         description,
@@ -300,6 +318,36 @@ export default function HomePage() {
                                     </span>{" "}
                                     {tc.expected}
                                   </p>
+                                  {tc.samplePayload &&
+                                    Object.keys(tc.samplePayload).length >
+                                      0 && (
+                                      <div className="mt-2">
+                                        <p className="font-semibold text-sm mb-1">
+                                          Sample Payload:
+                                        </p>
+                                        <pre className="bg-gray-50 text-xs p-2 rounded border overflow-x-auto">
+                                          {JSON.stringify(
+                                            tc.samplePayload,
+                                            null,
+                                            2
+                                          )}
+                                        </pre>
+                                      </div>
+                                    )}
+                                  <button
+                                    onClick={() =>
+                                      navigator.clipboard.writeText(
+                                        JSON.stringify(
+                                          tc.samplePayload,
+                                          null,
+                                          2
+                                        )
+                                      )
+                                    }
+                                    className="mt-1 text-xs underline text-gray-600 cursor-pointer"
+                                  >
+                                    Copy payload
+                                  </button>
                                 </>
                               ) : (
                                 <></>
