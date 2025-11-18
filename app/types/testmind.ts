@@ -14,4 +14,18 @@ export type TestSuite = {
   description: string;
   createdAt: string;
   testCases: TestCase[];
+  projectId: string;
+};
+
+export type Project = {
+  id: string;
+  name: string;
+  description?: string;
+  createdAt: string;
+};
+
+export type ProjectPageProps = {
+  params: Promise<{
+    projectId: string;
+  }>;
 };

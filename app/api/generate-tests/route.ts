@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     });
 
     const body = await req.json();
-    const { featureName, description } = body;
+    const { featureName, description, projectId } = body;
 
     const feature = String(featureName || "").trim();
     const desc = String(description || "").trim();
@@ -122,6 +122,7 @@ export async function POST(req: NextRequest) {
       description: desc,
       createdAt: new Date().toISOString(),
       testCases,
+      projectId: projectId || "",
     };
 
     const db = await getDb();
