@@ -4,6 +4,7 @@ export type TestCase = {
   title: string;
   steps: string[];
   expected: string;
+  samplePayload?: Record<string, unknown>;
 };
 
 export type TestSuite = {

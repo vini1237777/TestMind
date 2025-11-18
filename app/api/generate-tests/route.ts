@@ -1,4 +1,5 @@
-import { TestCase } from "@/app/types/testmind";
+import { TestCase, TestSuite } from "@/app/types/testmind";
+import { getDb } from "@/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 
@@ -66,11 +67,21 @@ export async function POST(req: NextRequest) {
             "Step 2: ...",
             "Step 3: ..."
           ],
-          "expected": "Clear description of what should happen."
+          "expected": "Clear description of what should happen.",
+          "samplePayload": {
+           "field1": "example value",
+           "field2": 123
+          }
         }
       ]
     }
     
+   Notes about samplePayload:
+    - Represent a realistic input payload or form data for this test case.
+    - Use simple JSON-safe values (strings, numbers, booleans).
+    - Only include 3-8 fields.
+    - If the feature is not data-driven, you can leave samplePayload as an empty object {}.
+
     Constraints:
     - "id" should be sequential like "TC_1", "TC_2", "TC_3", etc.
     - "type" must be one of: "happy", "negative", "edge".
@@ -105,7 +116,22 @@ export async function POST(req: NextRequest) {
 
     const testCases: TestCase[] = parsed.testCases;
 
-    return NextResponse.json({ testCases }, { status: 200 });
+    const suite: Omit<TestSuite, "id"> = {
+      name: feature || "untitled suite",
+      featureName: feature,
+      description: desc,
+      createdAt: new Date().toISOString(),
+      testCases,
+    };
+
+    const db = await getDb();
+
+    const result = await db.collection("test_suites").insertOne(suite);
+
+    return NextResponse.json(
+      { suiteId: result.insertedId.toString(), testCases },
+      { status: 200 }
+    );
   } catch (error: unknown) {
     console.error("AI Error:", error);
 
