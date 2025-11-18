@@ -19,6 +19,7 @@ export async function GET() {
       description: doc.description,
       createdAt: doc.createdAt,
       testCases: doc.testCases,
+      projectId: doc.projectId?.toString() ?? "",
     }));
 
     return NextResponse.json({ suites }, { status: 200 });
