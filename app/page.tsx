@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { TestCase, TestSuite } from "./types/testmind";
 import { useEffect } from "react";
+import toast from "react-hot-toast";
 
 const tabs = [
   { label: "All", value: "all" },
@@ -336,13 +337,17 @@ export default function HomePage() {
                                     )}
                                   <button
                                     onClick={() =>
-                                      navigator.clipboard.writeText(
-                                        JSON.stringify(
-                                          tc.samplePayload,
-                                          null,
-                                          2
+                                      navigator.clipboard
+                                        .writeText(
+                                          JSON.stringify(
+                                            tc.samplePayload,
+                                            null,
+                                            2
+                                          )
                                         )
-                                      )
+                                        .then(() =>
+                                          toast.success("Copied Successfully!")
+                                        )
                                     }
                                     className="mt-1 text-xs underline text-gray-600 cursor-pointer"
                                   >
