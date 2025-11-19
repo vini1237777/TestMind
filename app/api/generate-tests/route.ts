@@ -1,5 +1,7 @@
-import { TestCase, TestSuite } from "@/app/types/testmind";
-import { getDb } from "@/lib/mongodb";
+import { createSuite, TestSuiteDb } from "@/app/actions/suites";
+import TestSuite from "@/app/models/TestSuite";
+import { TestCase } from "@/app/types/testmind";
+import { connectDB } from "@/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 
@@ -14,7 +16,7 @@ export async function POST(req: NextRequest) {
     });
 
     const body = await req.json();
-    const { featureName, description, projectId } = body;
+    const { featureName, description, projectId, suiteId } = body;
 
     const feature = String(featureName || "").trim();
     const desc = String(description || "").trim();
@@ -22,6 +24,13 @@ export async function POST(req: NextRequest) {
     if (!feature || !desc) {
       return NextResponse.json(
         { error: "Feature name and description are required." },
+        { status: 400 }
+      );
+    }
+
+    if (!projectId) {
+      return NextResponse.json(
+        { error: "projectId is required." },
         { status: 400 }
       );
     }
@@ -116,21 +125,49 @@ export async function POST(req: NextRequest) {
 
     const testCases: TestCase[] = parsed.testCases;
 
-    const suite: Omit<TestSuite, "id"> = {
-      name: feature || "untitled suite",
+    await connectDB();
+
+    if (suiteId) {
+      const updated = await TestSuite.findByIdAndUpdate(
+        suiteId,
+        {
+          name: feature,
+          featureName: feature,
+          description: desc,
+          testCases,
+          createdAt: new Date(),
+        },
+        { new: true }
+      ).lean<TestSuiteDb>();
+
+      if (updated) {
+        return NextResponse.json(
+          {
+            suiteId: updated._id.toString(),
+            testCases: (updated.testCases as TestCase[]) || [],
+            projectId: updated.projectId.toString(),
+            createdAt:
+              updated.createdAt?.toISOString?.() ?? new Date().toISOString(),
+          },
+          { status: 200 }
+        );
+      }
+    }
+
+    const suite = await createSuite({
+      projectId,
       featureName: feature,
       description: desc,
-      createdAt: new Date().toISOString(),
       testCases,
-      projectId: projectId || "",
-    };
-
-    const db = await getDb();
-
-    const result = await db.collection("test_suites").insertOne(suite);
+    });
 
     return NextResponse.json(
-      { suiteId: result.insertedId.toString(), testCases },
+      {
+        suiteId: suite.id,
+        testCases: suite.testCases,
+        projectId: suite.projectId,
+        createdAt: suite.createdAt,
+      },
       { status: 200 }
     );
   } catch (error: unknown) {

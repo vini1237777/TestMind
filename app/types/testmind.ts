@@ -29,3 +29,18 @@ export type ProjectPageProps = {
     projectId: string;
   }>;
 };
+
+export type SuitePageProps = {
+  params: Promise<{
+    projectId: string;
+    suiteId: string;
+  }>;
+};
+
+export type Feature = {
+  id: string;
+  projectId: string;
+  name: string;
+  description: string;
+  createdAt: string;
+};

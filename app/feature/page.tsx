@@ -122,7 +122,7 @@ export default function Feature() {
     <div className="min-h-screen">
       <main className="max-w-5xl mx-auto px-4 py-8 w-full">
         <section className="flex flex-col gap-4 max-w-5xl mt-10 mb-10 ml-6 mr-6">
-          <label className="text-sm font-medium">Feature Description</label>
+          <label className="text-sm font-medium">Feature Name</label>
           <input
             type="text"
             placeholder="Feature Name"
@@ -130,7 +130,7 @@ export default function Feature() {
             onChange={(e) => setFeatureName(e.target.value)}
             className="p-2 border border-gray-300 rounded"
           />
-          <label className="text-sm font-medium">Description Name</label>
+          <label className="text-sm font-medium">Feature Description</label>
           <textarea
             placeholder="Description"
             value={description}

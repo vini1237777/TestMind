@@ -1,25 +1,29 @@
-import { TestSuite } from "@/app/types/testmind";
-import { getDb } from "@/lib/mongodb";
-import { NextResponse } from "next/server";
+import TestSuite from "@/app/models/TestSuite";
+import { connectDB } from "@/lib/mongodb";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  await connectDB();
+
   try {
-    const db = await getDb();
+    const projectId = req.nextUrl.searchParams.get("projectId");
+    if (!projectId) {
+      return NextResponse.json(
+        { error: "Missing projectId parameter" },
+        { status: 400 }
+      );
+    }
 
-    const docs = await db
-      .collection("test_suites")
-      .find({})
-      .sort({ createdAt: -1 })
-      .toArray();
+    const docs = await TestSuite.find().sort({ createdAt: -1 }).lean();
 
-    const suites: TestSuite[] = docs.map((doc) => ({
-      id: doc._id.toString(),
-      name: doc.name,
-      featureName: doc.featureName,
-      description: doc.description,
-      createdAt: doc.createdAt,
-      testCases: doc.testCases,
-      projectId: doc.projectId?.toString() ?? "",
+    const suites = docs.map((doc) => ({
+      id: typeof doc._id === "string" ? doc._id : doc._id?.toString(),
+      name: doc?.name || "",
+      featureName: doc?.featureName || "",
+      description: doc?.description || "",
+      createdAt: doc?.createdAt || "",
+      testCases: doc?.testCases || [],
+      projectId: doc?.projectId?.toString() || "",
     }));
 
     return NextResponse.json({ suites }, { status: 200 });
