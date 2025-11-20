@@ -74,6 +74,9 @@ export default function ProjectPageClient({
         projectId={project.id}
         open={openFeatureModal}
         onClose={() => setOpenFeatureModal(false)}
+        lastFeedbackSummary={localSuites[0]?.lastFeedbackSummary || ""}
+        lastFeedbackScore={localSuites[0]?.lastFeedbackScore || null}
+        lastReviewedAt={localSuites[0]?.lastReviewedAt || null}
         onCreated={(newSuite) => {
           setLocalSuites((prev) =>
             prev.some((s) => s.id === newSuite.id) ? prev : [newSuite, ...prev]

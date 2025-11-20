@@ -69,8 +69,8 @@ export async function createSuite(data: {
   description: string;
   testCases: TestCase[];
   lastFeedbackSummary?: string;
-  lastFeedbackScore?: number;
-  lastReviewedAt?: string;
+  lastFeedbackScore?: number | null;
+  lastReviewedAt?: string | null;
 }): Promise<TestSuite> {
   const {
     projectId,
