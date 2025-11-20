@@ -393,9 +393,12 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
                   <p className="text-xs font-semibold mb-1">
                     Improvement Suggestions:
                   </p>
-                  <ul className="list-disc list-inside text-xs text-gray-700">
-                    {feedback.suggestions.map((item, idx) => (
-                      <li key={idx}>{item}</li>
+                  <ul className="flex flex-col gap-1 text-xs text-gray-700">
+                    {feedback.suggestions.map((s, i) => (
+                      <li key={i} className="flex items-start gap-1">
+                        <span className="text-green-600">✔</span>
+                        {s}
+                      </li>
                     ))}
                   </ul>
                 </div>
