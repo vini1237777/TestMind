@@ -375,11 +375,16 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
                   <p className="text-xs font-semibold mb-1">
                     Missing / Weak Areas:
                   </p>
-                  <ul className="list-disc list-inside text-xs text-gray-700">
+                  <div className="flex flex-wrap gap-2">
                     {feedback.missingAreas.map((item, idx) => (
-                      <li key={idx}>{item}</li>
+                      <span
+                        key={idx}
+                        className="px-2 py-1 bg-red-100 text-red-700 rounded text-xs"
+                      >
+                        {item}
+                      </span>
                     ))}
-                  </ul>
+                  </div>
                 </div>
               )}
 
