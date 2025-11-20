@@ -364,6 +364,16 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
                 <ScoreBadge score={feedback.score} />
                 <p className="text-xs text-gray-600">AI Coverage Score</p>
               </div>
+              {feedback && (
+                <p className="text-[12px] mb-2">
+                  <span className="font-semibold">Coverage:</span>{" "}
+                  {feedback.score >= 85
+                    ? "Strong (good coverage with minor improvements)"
+                    : feedback.score >= 60
+                    ? "Moderate (covers basics but missing important edge/negative cases)"
+                    : "Weak (significant gaps in test coverage)"}
+                </p>
+              )}
 
               <p className="text-xs mb-2">
                 <span className="font-semibold">Summary:</span>{" "}
