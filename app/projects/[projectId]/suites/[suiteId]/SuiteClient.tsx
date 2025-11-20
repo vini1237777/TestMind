@@ -513,6 +513,12 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
                     <p className="text-[11px] text-gray-500">
                       {new Date(selectedSuite.createdAt).toLocaleString()}
                     </p>
+
+                    {feedback && (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-50 text-[10px] font-medium text-emerald-700 border border-emerald-200">
+                        AI Reviewed
+                      </span>
+                    )}
                   </div>
 
                   <button
