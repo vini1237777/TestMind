@@ -210,6 +210,49 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
     }
   };
 
+  const handleAcceptSuggested = async (testCase: TestCase, index: number) => {
+    if (!selectedSuiteId) return;
+
+    try {
+      const res = await fetch("/api/suites/add-cases", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          suiteId: selectedSuiteId,
+          testCases: [testCase],
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.error || "Failed to add test case");
+        return;
+      }
+
+      toast.success("Test case added!");
+
+      const suitesRes = await fetch(
+        `/api/suites?projectId=${feature.projectId}`
+      );
+      const suitesData = await suitesRes.json();
+
+      setTestSuites(suitesData.suites || []);
+      const updated = feedback!.suggestedTestCases.filter(
+        (_, i) => i !== index
+      );
+      setFeedback({ ...feedback!, suggestedTestCases: updated });
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed adding test case.");
+    }
+  };
+
+  const handleRejectSuggested = (index: number) => {
+    const updated = feedback!.suggestedTestCases.filter((_, i) => i !== index);
+    setFeedback({ ...feedback!, suggestedTestCases: updated });
+  };
+
   const selectedSuite =
     testSuites.find((s) => s.id === selectedSuiteId) || null;
 
@@ -272,7 +315,7 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
             <button
               onClick={handleSaveFeature}
               disabled={isSavingFeature || !hasChanges || !name.trim()}
-              className="bg-amber-500 text-white text-xs px-3 py-2 rounded
+              className="bg-amber-500 text-white text-xs px-3 rounded
                 hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSavingFeature ? "Saving..." : "Save Feature"}
@@ -286,7 +329,7 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
                 !name.trim() ||
                 !description.trim()
               }
-              className="bg-amber-500 text-white text-xs px-3 py-2 rounded
+              className="bg-amber-500 text-white text-xs px-3 rounded
                 hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isGenerating ? "Generating..." : "Generate Test Cases"}
@@ -309,9 +352,109 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
             {feedbackError && (
               <p className="text-xs text-red-600 mt-1">{feedbackError}</p>
             )}
+            {error && <p className="text-xs text-red-600">{error}</p>}
           </div>
 
-          {error && <p className="text-xs text-red-600">{error}</p>}
+          {feedback && (
+            <div className="mt-6 border-t pt-4">
+              <h3 className="text-sm font-semibold mb-2">AI Feedback Review</h3>
+
+              <p className="text-xs mb-1">
+                <span className="font-semibold">Coverage Score:</span>{" "}
+                {feedback.score} / 100
+              </p>
+
+              <p className="text-xs mb-2">
+                <span className="font-semibold">Summary:</span>{" "}
+                {feedback.summary}
+              </p>
+
+              {feedback.missingAreas.length > 0 && (
+                <div className="mb-2">
+                  <p className="text-xs font-semibold mb-1">
+                    Missing / Weak Areas:
+                  </p>
+                  <ul className="list-disc list-inside text-xs text-gray-700">
+                    {feedback.missingAreas.map((item, idx) => (
+                      <li key={idx}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {feedback.suggestions.length > 0 && (
+                <div className="mb-2">
+                  <p className="text-xs font-semibold mb-1">
+                    Improvement Suggestions:
+                  </p>
+                  <ul className="list-disc list-inside text-xs text-gray-700">
+                    {feedback.suggestions.map((item, idx) => (
+                      <li key={idx}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+          {feedback?.suggestedTestCases &&
+            feedback.suggestedTestCases.length > 0 && (
+              <div className="mt-6 border-t pt-4">
+                <h3 className="font-semibold text-sm mb-2">
+                  AI Suggested Test Cases
+                </h3>
+
+                <ul className="flex flex-col gap-4">
+                  {feedback.suggestedTestCases.map((tc, idx) => (
+                    <li
+                      key={idx}
+                      className="border rounded p-3 shadow-sm bg-gray-50 text-sm"
+                    >
+                      <div className="flex justify-between mb-1">
+                        <span className="uppercase text-xs text-gray-600">
+                          {tc.type}
+                        </span>
+                      </div>
+
+                      <h4 className="font-semibold">{tc.title}</h4>
+
+                      <p className="mt-1 font-semibold text-xs">Steps:</p>
+                      <ol className="list-decimal list-inside text-xs">
+                        {tc.steps.map((s, i) => (
+                          <li key={i}>{s}</li>
+                        ))}
+                      </ol>
+
+                      <p className="mt-2 text-xs">
+                        <span className="font-semibold">Expected:</span>{" "}
+                        {tc.expected}
+                      </p>
+
+                      {tc.samplePayload && (
+                        <pre className="mt-2 bg-white p-2 border rounded text-xs overflow-x-auto">
+                          {JSON.stringify(tc.samplePayload, null, 2)}
+                        </pre>
+                      )}
+
+                      <div className="flex gap-2 mt-3">
+                        <button
+                          className="px-3 py-1 text-xs bg-amber-500 text-white rounded hover:bg-amber-600"
+                          onClick={() => handleAcceptSuggested(tc, idx)}
+                        >
+                          Accept
+                        </button>
+
+                        <button
+                          className="px-3 py-1 text-xs bg-gray-300 rounded hover:bg-gray-400"
+                          onClick={() => handleRejectSuggested(idx)}
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
         </section>
 
         <div className="flex gap-6">
@@ -466,50 +609,6 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
                   <p className="text-xs text-gray-500">
                     No {filterType} test cases in this suite.
                   </p>
-                )}
-
-                {feedback && (
-                  <div className="mt-6 border-t pt-4">
-                    <h3 className="text-sm font-semibold mb-2">
-                      AI Feedback Review
-                    </h3>
-
-                    <p className="text-xs mb-1">
-                      <span className="font-semibold">Coverage Score:</span>{" "}
-                      {feedback.score} / 100
-                    </p>
-
-                    <p className="text-xs mb-2">
-                      <span className="font-semibold">Summary:</span>{" "}
-                      {feedback.summary}
-                    </p>
-
-                    {feedback.missingAreas.length > 0 && (
-                      <div className="mb-2">
-                        <p className="text-xs font-semibold mb-1">
-                          Missing / Weak Areas:
-                        </p>
-                        <ul className="list-disc list-inside text-xs text-gray-700">
-                          {feedback.missingAreas.map((item, idx) => (
-                            <li key={idx}>{item}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-
-                    {feedback.suggestions.length > 0 && (
-                      <div className="mb-2">
-                        <p className="text-xs font-semibold mb-1">
-                          Improvement Suggestions:
-                        </p>
-                        <ul className="list-disc list-inside text-xs text-gray-700">
-                          {feedback.suggestions.map((item, idx) => (
-                            <li key={idx}>{item}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
                 )}
               </>
             )}
