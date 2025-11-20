@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import type { FeedbackResult } from "@/app/types/testmind";
 import { Feature, TestCase, TestSuite } from "@/app/types/testmind";
 import { updateFeature } from "@/app/actions/features";
+import ScoreBadge from "@/app/components/ScoreBadge";
 
 const tabs = [
   { label: "All", value: "all" },
@@ -359,10 +360,10 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
             <div className="mt-6 border-t pt-4">
               <h3 className="text-sm font-semibold mb-2">AI Feedback Review</h3>
 
-              <p className="text-xs mb-1">
-                <span className="font-semibold">Coverage Score:</span>{" "}
-                {feedback.score} / 100
-              </p>
+              <div className="flex items-center gap-2 mb-2">
+                <ScoreBadge score={feedback.score} />
+                <p className="text-xs text-gray-600">AI Coverage Score</p>
+              </div>
 
               <p className="text-xs mb-2">
                 <span className="font-semibold">Summary:</span>{" "}
