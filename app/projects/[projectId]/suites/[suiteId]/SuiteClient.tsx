@@ -42,6 +42,8 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
   const [feedback, setFeedback] = useState<FeedbackResult | null>(null);
   const [feedbackError, setFeedbackError] = useState<string | null>(null);
 
+  const [lastReviewedAt, setLastReviewedAt] = useState<string | null>(null);
+
   const handleBack = () => {
     router.push(`/projects/${feature.projectId}`);
   };
@@ -74,6 +76,8 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
       }
 
       setFeedback(data as FeedbackResult);
+
+      setLastReviewedAt(new Date().toISOString());
     } catch (err) {
       console.error(err);
       setFeedbackError("Something went wrong while getting feedback.");
@@ -528,6 +532,12 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
                       <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-50 text-[10px] font-medium text-emerald-700 border border-emerald-200">
                         AI Reviewed
                       </span>
+                    )}
+                    {lastReviewedAt && (
+                      <p className="text-[10px] text-gray-500 mt-1">
+                        Last reviewed at:{" "}
+                        {new Date(lastReviewedAt).toLocaleString()}
+                      </p>
                     )}
                   </div>
 
