@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import type { TestCase, FeedbackResult } from "@/app/types/testmind";
+import TestSuite from "@/app/models/TestSuite";
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,10 +14,11 @@ export async function POST(req: NextRequest) {
     });
 
     const body = await req.json();
-    const { featureName, description, testCases } = body as {
+    const { featureName, description, testCases, suiteId } = body as {
       featureName: string;
       description: string;
       testCases: TestCase[];
+      suiteId: string;
     };
 
     const feature = String(featureName || "").trim();
@@ -101,7 +103,6 @@ Rules:
 
     const parsed = JSON.parse(raw) as FeedbackResult;
 
-    // basic sanity fallback
     const feedback: FeedbackResult = {
       score:
         typeof parsed.score === "number"
@@ -116,6 +117,12 @@ Rules:
         ? parsed.suggestedTestCases
         : [],
     };
+
+    await TestSuite.findByIdAndUpdate(suiteId, {
+      lastFeedbackScore: feedback.score,
+      lastFeedbackSummary: feedback.summary,
+      lastReviewedAt: new Date(),
+    });
 
     return NextResponse.json(feedback, { status: 200 });
   } catch (error) {

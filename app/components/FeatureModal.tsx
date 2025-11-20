@@ -10,11 +10,17 @@ export default function FeatureModal({
   open,
   onClose,
   onCreated,
+  lastFeedbackSummary,
+  lastFeedbackScore,
+  lastReviewedAt,
 }: {
   projectId: string;
   open: boolean;
   onClose: () => void;
   onCreated?: (suite: TestSuite) => void;
+  lastFeedbackSummary: string;
+  lastFeedbackScore: number;
+  lastReviewedAt: string;
 }) {
   const [featureName, setFeatureName] = useState("");
   const [description, setDescription] = useState("");
@@ -41,6 +47,9 @@ export default function FeatureModal({
         featureName: trimmedName,
         description: trimmedDesc,
         testCases: [],
+        lastFeedbackSummary,
+        lastFeedbackScore,
+        lastReviewedAt,
       });
 
       toast.success("Feature / suite created");

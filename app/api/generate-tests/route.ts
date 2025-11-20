@@ -16,7 +16,15 @@ export async function POST(req: NextRequest) {
     });
 
     const body = await req.json();
-    const { featureName, description, projectId, suiteId } = body;
+    const {
+      featureName,
+      description,
+      projectId,
+      suiteId,
+      lastFeedbackSummary,
+      lastFeedbackScore,
+      lastReviewedAt,
+    } = body;
 
     const feature = String(featureName || "").trim();
     const desc = String(description || "").trim();
@@ -136,6 +144,9 @@ export async function POST(req: NextRequest) {
           description: desc,
           testCases,
           createdAt: new Date(),
+          lastFeedbackSummary,
+          lastFeedbackScore,
+          lastReviewedAt,
         },
         { new: true }
       ).lean<TestSuiteDb>();
@@ -148,6 +159,9 @@ export async function POST(req: NextRequest) {
             projectId: updated.projectId.toString(),
             createdAt:
               updated.createdAt?.toISOString?.() ?? new Date().toISOString(),
+            lastFeedbackSummary,
+            lastFeedbackScore,
+            lastReviewedAt,
           },
           { status: 200 }
         );
@@ -159,6 +173,9 @@ export async function POST(req: NextRequest) {
       featureName: feature,
       description: desc,
       testCases,
+      lastFeedbackSummary,
+      lastFeedbackScore,
+      lastReviewedAt,
     });
 
     return NextResponse.json(
@@ -167,6 +184,9 @@ export async function POST(req: NextRequest) {
         testCases: suite.testCases,
         projectId: suite.projectId,
         createdAt: suite.createdAt,
+        lastFeedbackSummary,
+        lastFeedbackScore,
+        lastReviewedAt,
       },
       { status: 200 }
     );

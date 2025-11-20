@@ -24,6 +24,9 @@ export async function GET(req: NextRequest) {
       createdAt: doc?.createdAt || "",
       testCases: doc?.testCases || [],
       projectId: doc?.projectId?.toString() || "",
+      lastFeedbackSummary: doc?.lastFeedbackSummary,
+      lastFeedbackScore: doc?.lastFeedbackScore,
+      lastReviewedAt: doc?.lastReviewedAt,
     }));
 
     return NextResponse.json({ suites }, { status: 200 });

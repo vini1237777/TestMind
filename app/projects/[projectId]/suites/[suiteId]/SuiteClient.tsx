@@ -42,7 +42,11 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
   const [feedback, setFeedback] = useState<FeedbackResult | null>(null);
   const [feedbackError, setFeedbackError] = useState<string | null>(null);
 
-  const [lastReviewedAt, setLastReviewedAt] = useState<string | null>(null);
+  const [lastReviewedAt, setLastReviewedAt] = useState<string>("");
+  const [lastFeedbackScore, setLastFeedbackScore] = useState<number | null>(
+    null
+  );
+  const [lastFeedbackSummary, setLastFeedbackSummary] = useState<string>("");
 
   const handleBack = () => {
     router.push(`/projects/${feature.projectId}`);
@@ -78,6 +82,8 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
       setFeedback(data as FeedbackResult);
 
       setLastReviewedAt(new Date().toISOString());
+      setLastFeedbackScore(data.score);
+      setLastFeedbackSummary(data.summary);
     } catch (err) {
       console.error(err);
       setFeedbackError("Something went wrong while getting feedback.");
@@ -159,6 +165,9 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
           description: description.trim(),
           projectId: feature.projectId,
           suiteId: selectedSuiteId,
+          lastFeedbackScore: feature.lastFeedbackScore || null,
+          lastFeedbackSummary: feature.lastFeedbackSummary || "",
+          lastReviewedAt: feature.lastReviewedAt || "",
         }),
       });
 
@@ -198,6 +207,9 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
           projectId: feature.projectId,
           createdAt: createdAt || new Date().toISOString(),
           testCases,
+          lastFeedbackSummary,
+          lastFeedbackScore,
+          lastReviewedAt,
         };
 
         return [newSuite, ...prev];
@@ -508,6 +520,11 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
                     <div className="text-[10px] text-gray-500">
                       {new Date(suite.createdAt).toLocaleString()}
                     </div>
+                    {suite?.lastFeedbackScore != null && (
+                      <div className="text-[10px] text-emerald-700 mt-1">
+                        AI Score: {suite.lastFeedbackScore}/100
+                      </div>
+                    )}
                   </li>
                 ))}
               </ul>
