@@ -28,6 +28,9 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     description: s?.description ?? "",
     projectId: s?.projectId ?? "",
     createdAt: s?.createdAt ?? "",
+    lastFeedbackScore: s?.lastFeedbackScore ?? null,
+    lastFeedbackSummary: s?.lastFeedbackSummary ?? "",
+    lastReviewedAt: s?.lastReviewedAt ?? null,
     testCases: (s?.testCases || []).map((tc: TestCase) => ({
       id: tc?.id ?? "",
       type: tc?.type ?? "",

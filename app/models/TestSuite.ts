@@ -12,6 +12,9 @@ const TestCaseSchema = new Schema(
     steps: [{ type: String, required: true }],
     expected: { type: String, required: true },
     samplePayload: { type: Schema.Types.Mixed, default: {} },
+    lastFeedbackScore: { type: Number, default: null },
+    lastFeedbackSummary: { type: String, default: "" },
+    lastReviewedAt: { type: Date, default: null },
   },
   { _id: false }
 );

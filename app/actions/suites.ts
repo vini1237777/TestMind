@@ -14,17 +14,23 @@ export type TestSuiteDb = {
   description?: string;
   testCases: (TestCase & { _id?: Types.ObjectId })[];
   createdAt?: Date;
+  lastFeedbackScore: number;
+  lastReviewedAt: string | null;
+  lastFeedbackSummary: string;
 };
 
 function mapSuite(doc: TestSuiteDb): TestSuite {
   return {
     id: doc._id.toString(),
     projectId: doc.projectId.toString(),
-    name: doc.name,
-    featureName: doc.featureName,
-    description: doc.description ?? "",
-    createdAt: doc.createdAt?.toISOString() ?? new Date().toISOString(),
-    testCases: (doc.testCases || []).map((tc) => ({
+    name: doc?.name,
+    featureName: doc?.featureName,
+    description: doc?.description ?? "",
+    createdAt: doc?.createdAt?.toISOString() ?? new Date().toISOString(),
+    lastFeedbackScore: doc?.lastFeedbackScore ?? null,
+    lastReviewedAt: doc?.lastReviewedAt ?? null,
+    lastFeedbackSummary: doc?.lastFeedbackSummary ?? "",
+    testCases: (doc?.testCases || []).map((tc) => ({
       id: tc.id,
       type: tc.type,
       title: tc.title,
@@ -62,8 +68,19 @@ export async function createSuite(data: {
   featureName: string;
   description: string;
   testCases: TestCase[];
+  lastFeedbackSummary?: string;
+  lastFeedbackScore?: number;
+  lastReviewedAt?: string;
 }): Promise<TestSuite> {
-  const { projectId, featureName, description, testCases } = data;
+  const {
+    projectId,
+    featureName,
+    description,
+    testCases,
+    lastFeedbackSummary,
+    lastFeedbackScore,
+    lastReviewedAt,
+  } = data;
 
   if (!projectId) throw new Error("projectId is required");
   if (!featureName.trim()) throw new Error("featureName is required");
@@ -76,6 +93,9 @@ export async function createSuite(data: {
     featureName,
     description,
     testCases,
+    lastFeedbackSummary: lastFeedbackSummary || "",
+    lastFeedbackScore: lastFeedbackScore || null,
+    lastReviewedAt: lastReviewedAt || null,
   })) as TestSuiteDb;
 
   revalidatePath(`/projects/${data.projectId}`);

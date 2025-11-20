@@ -8,6 +8,7 @@ export type TestCase = {
 };
 
 export type TestSuite = {
+  lastFeedbackSummary?: string;
   id: string;
   name: string;
   featureName: string;
@@ -15,6 +16,8 @@ export type TestSuite = {
   createdAt: string;
   testCases: TestCase[];
   projectId: string;
+  lastFeedbackScore?: number | null;
+  lastReviewedAt?: string | null;
 };
 
 export type Project = {
@@ -43,6 +46,9 @@ export type Feature = {
   name: string;
   description: string;
   createdAt: string;
+  lastFeedbackScore?: number | null;
+  lastReviewedAt?: string | null;
+  lastFeedbackSummary?: string | null;
 };
 
 export type FeedbackResult = {
