@@ -19,8 +19,8 @@ export default function FeatureModal({
   onClose: () => void;
   onCreated?: (suite: TestSuite) => void;
   lastFeedbackSummary: string;
-  lastFeedbackScore: number;
-  lastReviewedAt: string;
+  lastFeedbackScore: number | null;
+  lastReviewedAt: string | null;
 }) {
   const [featureName, setFeatureName] = useState("");
   const [description, setDescription] = useState("");
