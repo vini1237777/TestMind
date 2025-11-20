@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-
+import type { FeedbackResult } from "@/app/types/testmind";
 import { Feature, TestCase, TestSuite } from "@/app/types/testmind";
 import { updateFeature } from "@/app/actions/features";
 
@@ -37,8 +37,48 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
   const [error, setError] = useState<string | null>(null);
   const [isDirty, setIsDirty] = useState(false);
 
+  const [isReviewing, setIsReviewing] = useState(false);
+  const [feedback, setFeedback] = useState<FeedbackResult | null>(null);
+  const [feedbackError, setFeedbackError] = useState<string | null>(null);
+
   const handleBack = () => {
     router.push(`/projects/${feature.projectId}`);
+  };
+
+  const handleFeedbackReview = async () => {
+    if (!selectedSuite || !selectedSuite.testCases.length) {
+      toast.error("No test cases found for this suite.");
+      return;
+    }
+
+    setFeedbackError(null);
+    setIsReviewing(true);
+
+    try {
+      const res = await fetch("/api/feedback-review", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          featureName: name.trim(),
+          description: description.trim(),
+          testCases: selectedSuite.testCases,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setFeedbackError(data.error || "Failed to get AI feedback.");
+        return;
+      }
+
+      setFeedback(data as FeedbackResult);
+    } catch (err) {
+      console.error(err);
+      setFeedbackError("Something went wrong while getting feedback.");
+    } finally {
+      setIsReviewing(false);
+    }
   };
 
   const hasChanges =
@@ -251,6 +291,24 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
             >
               {isGenerating ? "Generating..." : "Generate Test Cases"}
             </button>
+            <div className="flex gap-3 mt-2">
+              <button
+                onClick={handleFeedbackReview}
+                disabled={
+                  isReviewing ||
+                  !selectedSuite ||
+                  !selectedSuite.testCases.length
+                }
+                className="bg-gray-800 text-white text-xs px-3 py-2 rounded
+                hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isReviewing ? "Reviewing..." : "Run AI Feedback Review"}
+              </button>
+            </div>
+
+            {feedbackError && (
+              <p className="text-xs text-red-600 mt-1">{feedbackError}</p>
+            )}
           </div>
 
           {error && <p className="text-xs text-red-600">{error}</p>}
@@ -408,6 +466,50 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
                   <p className="text-xs text-gray-500">
                     No {filterType} test cases in this suite.
                   </p>
+                )}
+
+                {feedback && (
+                  <div className="mt-6 border-t pt-4">
+                    <h3 className="text-sm font-semibold mb-2">
+                      AI Feedback Review
+                    </h3>
+
+                    <p className="text-xs mb-1">
+                      <span className="font-semibold">Coverage Score:</span>{" "}
+                      {feedback.score} / 100
+                    </p>
+
+                    <p className="text-xs mb-2">
+                      <span className="font-semibold">Summary:</span>{" "}
+                      {feedback.summary}
+                    </p>
+
+                    {feedback.missingAreas.length > 0 && (
+                      <div className="mb-2">
+                        <p className="text-xs font-semibold mb-1">
+                          Missing / Weak Areas:
+                        </p>
+                        <ul className="list-disc list-inside text-xs text-gray-700">
+                          {feedback.missingAreas.map((item, idx) => (
+                            <li key={idx}>{item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {feedback.suggestions.length > 0 && (
+                      <div className="mb-2">
+                        <p className="text-xs font-semibold mb-1">
+                          Improvement Suggestions:
+                        </p>
+                        <ul className="list-disc list-inside text-xs text-gray-700">
+                          {feedback.suggestions.map((item, idx) => (
+                            <li key={idx}>{item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
                 )}
               </>
             )}
