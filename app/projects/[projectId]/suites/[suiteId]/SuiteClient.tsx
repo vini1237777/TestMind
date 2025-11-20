@@ -249,16 +249,29 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
 
       toast.success("Test case added!");
 
-      const suitesRes = await fetch(
-        `/api/suites?projectId=${feature.projectId}`
+      // ✅ Local state update only – no API re-fetch
+      setTestSuites((prev) =>
+        prev.map((suite) =>
+          suite.id === selectedSuiteId
+            ? {
+                ...suite,
+                testCases: [...(suite.testCases || []), testCase],
+              }
+            : suite
+        )
       );
-      const suitesData = await suitesRes.json();
 
-      setTestSuites(suitesData.suites || []);
-      const updated = feedback!.suggestedTestCases.filter(
-        (_, i) => i !== index
+      // ✅ Accepted wale suggestion ko list se hata do
+      setFeedback((prev) =>
+        prev
+          ? {
+              ...prev,
+              suggestedTestCases: prev.suggestedTestCases.filter(
+                (_, i) => i !== index
+              ),
+            }
+          : prev
       );
-      setFeedback({ ...feedback!, suggestedTestCases: updated });
     } catch (err) {
       console.error(err);
       toast.error("Failed adding test case.");
