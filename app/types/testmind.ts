@@ -44,3 +44,11 @@ export type Feature = {
   description: string;
   createdAt: string;
 };
+
+export type FeedbackResult = {
+  score: number;
+  summary: string;
+  missingAreas: string[];
+  suggestions: string[];
+  suggestedTestCases: TestCase[];
+};
