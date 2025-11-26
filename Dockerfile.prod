@@ -15,11 +15,13 @@
     FROM gcr.io/distroless/nodejs20-debian11
     WORKDIR /app
     ENV NODE_ENV=production
+    ENV HOSTNAME=0.0.0.0
+    ENV PORT=8080
     
     COPY --from=builder /app/.next/standalone ./
     COPY --from=builder /app/.next/static ./.next/static
     
   EXPOSE 8080
-  
-    CMD ["server.js"]
+
+    CMD ["node","server.js"]
     
