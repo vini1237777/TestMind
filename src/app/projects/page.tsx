@@ -15,9 +15,7 @@ export default function ProjectsPage() {
       try {
         const res = await fetch("/api/projects");
         if (res?.status === 429) {
-          toast.error(
-            res.statusText + "." + " " + "Please try again after sometime"
-          );
+          toast.error("Too Many Requests. Please try again after sometime");
         }
         if (!res.ok) return;
 
