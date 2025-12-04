@@ -2,8 +2,6 @@ import { createSuite, TestSuiteDb } from "@/src/app/actions/suites";
 import TestSuite from "@/src/app/models/TestSuite";
 import { TestCase } from "@/src/app/types/testmind";
 import { getCache, setCache } from "@/src/lib/cache";
-
-import { getPostCache, setPostCache } from "@/src/lib/cacheLLMOutput";
 import { connectDB } from "@/src/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
@@ -113,71 +111,6 @@ export async function POST(req: NextRequest) {
     - Do NOT add any text before or after the JSON.
     `;
 
-    const cachedLLMTestCasesRes = await getPostCache(body);
-    if (cachedLLMTestCasesRes) {
-      const cachedTestCases = await cachedLLMTestCasesRes.json();
-      await connectDB();
-
-      if (suiteId) {
-        const updated = await TestSuite.findByIdAndUpdate(
-          suiteId,
-          {
-            name: feature,
-            featureName: feature,
-            description: desc,
-            testCases: cachedTestCases,
-            createdAt: new Date(),
-            lastFeedbackSummary,
-            lastFeedbackScore,
-            lastReviewedAt,
-          },
-          { new: true }
-        ).lean<TestSuiteDb>();
-
-        if (updated) {
-          return NextResponse.json(
-            {
-              suiteId: updated._id.toString(),
-              testCases: (updated.testCases as TestCase[]) || [],
-              projectId: updated.projectId.toString(),
-              createdAt:
-                updated.createdAt?.toISOString?.() ?? new Date().toISOString(),
-              lastFeedbackSummary,
-              lastFeedbackScore,
-              lastReviewedAt,
-            },
-            { status: 200 }
-          );
-        }
-      }
-
-      const suite = await createSuite({
-        projectId,
-        featureName: feature,
-        description: desc,
-        testCases: cachedTestCases,
-        lastFeedbackSummary,
-        lastFeedbackScore,
-        lastReviewedAt,
-      });
-
-      const cached = await getCache(req.url);
-      if (cached) return cached;
-
-      return NextResponse.json(
-        {
-          suiteId: suite.id,
-          testCases: suite.testCases,
-          projectId: suite.projectId,
-          createdAt: suite.createdAt,
-          lastFeedbackSummary,
-          lastFeedbackScore,
-          lastReviewedAt,
-        },
-        { status: 200 }
-      );
-    }
-
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
       response_format: { type: "json_object" },
@@ -203,8 +136,6 @@ export async function POST(req: NextRequest) {
     }
 
     const testCases: TestCase[] = parsed.testCases;
-
-    await setPostCache(body, testCases);
 
     await connectDB();
 
