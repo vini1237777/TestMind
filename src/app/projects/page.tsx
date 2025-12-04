@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Project } from "../types/testmind";
 import ProjectModal from "../components/ProjectModal";
+import toast from "react-hot-toast";
 
 export default function ProjectsPage() {
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
@@ -13,7 +14,13 @@ export default function ProjectsPage() {
     const loadProjects = async () => {
       try {
         const res = await fetch("/api/projects");
+        if (res?.status === 429) {
+          toast.error(
+            res.statusText + "." + " " + "Please try again after sometime"
+          );
+        }
         if (!res.ok) return;
+
         const data = await res.json();
         setProjects(data.projects || []);
       } catch (e) {
