@@ -6,7 +6,7 @@ const redis = Redis.fromEnv();
 
 const ratelimit = new Ratelimit({
   redis,
-  limiter: Ratelimit.fixedWindow(5, "60 s"),
+  limiter: Ratelimit.fixedWindow(10, "60 s"),
 });
 
 export const config = { matcher: "/api/:path*" };
