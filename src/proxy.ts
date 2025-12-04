@@ -13,7 +13,7 @@ export const config = { matcher: "/api/:path*" };
 
 export default async function proxy(req: NextRequest) {
   const ip =
-    req.ip ??
+    req.headers.get("x-real-ip") ??
     req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
     "unknown";
 
