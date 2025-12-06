@@ -74,7 +74,7 @@ export async function getSuiteById(id: string): Promise<TestSuite | null> {
   await connectDB();
 
   const doc = await TestSuiteModel.findById(id).lean<TestSuiteDb | null>();
-  await setCache(id, doc, 300);
+  await setCache(id, doc ? mapSuite(doc) : null, 300);
   return doc ? mapSuite(doc) : null;
 }
 
