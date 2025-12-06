@@ -29,7 +29,7 @@ export default function Feature() {
   useEffect(() => {
     const loadSuites = async () => {
       try {
-        const res = await fetch("/api/suites");
+        const res = await fetch("/api/suites", { next: { revalidate: 60 } });
         if (!res.ok) return;
         const data = await res.json();
         setTestSuites(data.suites || []);

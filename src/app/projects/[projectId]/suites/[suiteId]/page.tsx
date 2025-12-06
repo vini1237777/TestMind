@@ -2,6 +2,8 @@ import { SuitePageProps } from "@/src/app/types/testmind";
 import SuiteClient from "./SuiteClient";
 import { getSuiteById } from "@/src/app/actions/suites";
 
+export const revalidate = 60;
+
 export default async function SuitePage({ params }: SuitePageProps) {
   const suiteId = (await params).suiteId;
 
