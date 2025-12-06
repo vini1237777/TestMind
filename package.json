@@ -5,8 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "pm2-runtime ecosystem.config.js",
-    "start:next": "next start -p $PORT",
+    "start": "pm2-runtime node_modules/next/dist/bin/next -- start -p 8080",
     "lint": "eslint"
   },
   "dependencies": {
