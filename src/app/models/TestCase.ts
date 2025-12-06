@@ -9,5 +9,7 @@ const TestCaseSchema = new Schema({
   samplePayload: Schema.Types.Mixed,
 });
 
+TestCaseSchema.index({ id: 1, createdAt: -1 });
+
 export const TestCase =
   mongoose.models.TestCase || mongoose.model("TestCase", TestCaseSchema);

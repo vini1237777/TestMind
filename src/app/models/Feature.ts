@@ -11,6 +11,8 @@ const FeatureSchema = new Schema(
   }
 );
 
+FeatureSchema.index({ projectId: 1, createdAt: -1 });
+
 const Feature = models.Feature || model("Feature", FeatureSchema);
 
 export default Feature;

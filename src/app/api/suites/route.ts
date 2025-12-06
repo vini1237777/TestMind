@@ -9,13 +9,13 @@ export async function GET(req: NextRequest) {
   await connectDB();
 
   try {
-    const projectId = req.nextUrl.searchParams.get("projectId");
-    if (!projectId) {
-      return NextResponse.json(
-        { error: "Missing projectId parameter" },
-        { status: 400 }
-      );
-    }
+    // const projectId = req.nextUrl.searchParams.get("projectId");
+    // if (!projectId) {
+    //   return NextResponse.json(
+    //     { error: "Missing projectId parameter" },
+    //     { status: 400 }
+    //   );
+    // }
 
     const docs = await TestSuite.find().sort({ createdAt: -1 }).lean();
 
