@@ -1,8 +1,7 @@
 export const apps = [
   {
     name: "testmind",
-    script: "npm",
-    args: "start",
+    script: "server.js",
     instances: "max",
     exec_mode: "cluster",
     env: {
