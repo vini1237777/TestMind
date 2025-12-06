@@ -1,7 +1,6 @@
 import { createSuite, TestSuiteDb } from "@/src/app/actions/suites";
 import TestSuite from "@/src/app/models/TestSuite";
 import { TestCase } from "@/src/app/types/testmind";
-import { getCache, setCache } from "@/src/lib/cache";
 import { connectDB } from "@/src/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
@@ -11,9 +10,6 @@ export async function POST(req: NextRequest) {
     if (!process.env.OPENAI_API_KEY) {
       throw new Error("Missing OPENAI_API_KEY");
     }
-
-    const cached = await getCache(req.url);
-    if (cached) return cached;
 
     const client = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY!,
@@ -177,16 +173,6 @@ export async function POST(req: NextRequest) {
       featureName: feature,
       description: desc,
       testCases,
-      lastFeedbackSummary,
-      lastFeedbackScore,
-      lastReviewedAt,
-    });
-
-    await setCache(req.url, {
-      suiteId: suite.id,
-      testCases: suite.testCases,
-      projectId: suite.projectId,
-      createdAt: suite.createdAt,
       lastFeedbackSummary,
       lastFeedbackScore,
       lastReviewedAt,
