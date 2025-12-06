@@ -99,7 +99,9 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
   useEffect(() => {
     const loadSuites = async () => {
       try {
-        const res = await fetch(`/api/suites?projectId=${feature.projectId}`);
+        const res = await fetch(`/api/suites?projectId=${feature.projectId}`, {
+          next: { revalidate: 60 },
+        });
         if (!res.ok) return;
 
         const response = await res.json();
@@ -249,7 +251,6 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
 
       toast.success("Test case added!");
 
-      // ✅ Local state update only – no API re-fetch
       setTestSuites((prev) =>
         prev.map((suite) =>
           suite.id === selectedSuiteId
@@ -261,7 +262,6 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
         )
       );
 
-      // ✅ Accepted wale suggestion ko list se hata do
       setFeedback((prev) =>
         prev
           ? {

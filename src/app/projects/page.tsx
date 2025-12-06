@@ -13,7 +13,9 @@ export default function ProjectsPage() {
   useEffect(() => {
     const loadProjects = async () => {
       try {
-        const res = await fetch("/api/projects");
+        const res = await fetch("/api/projects", {
+          next: { revalidate: 60 },
+        });
         if (res?.status === 429) {
           toast.error("Too Many Requests. Please try again after sometime");
         }

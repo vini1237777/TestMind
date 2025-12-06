@@ -3,6 +3,8 @@ import { ProjectPageProps, TestCase } from "@/src/app/types/testmind";
 import { getProjectById } from "@/src/app/actions/projects";
 import { getSuitesByProject } from "@/src/app/actions/suites";
 
+export const revalidate = 60;
+
 export default async function ProjectPage({ params }: ProjectPageProps) {
   const projectId = (await params).projectId;
 
