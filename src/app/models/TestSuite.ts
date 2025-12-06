@@ -28,6 +28,8 @@ const TestSuiteSchema = new Schema({
   testCases: { type: [TestCaseSchema], default: [] },
 });
 
+TestSuiteSchema.index({ projectId: 1, createdAt: -1 });
+
 const TestSuite = models.TestSuite || model("TestSuite", TestSuiteSchema);
 
 export default TestSuite;
