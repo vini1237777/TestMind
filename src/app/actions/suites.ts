@@ -5,6 +5,7 @@ import { connectDB } from "@/src/lib/mongodb";
 import TestSuiteModel from "@/src/app/models/TestSuite";
 import type { TestSuite, TestCase } from "@/src/app/types/testmind";
 import { revalidatePath } from "next/cache";
+import { getCache, setCache } from "@/src/lib/cache";
 
 export type TestSuiteDb = {
   _id: Types.ObjectId;
@@ -44,22 +45,36 @@ function mapSuite(doc: TestSuiteDb): TestSuite {
 export async function getSuitesByProject(
   projectId: string
 ): Promise<TestSuite[]> {
+  const cached = await getCache(projectId);
+
+  if (cached) {
+    const res = await cached.json();
+    return res;
+  }
+
   await connectDB();
 
   const docs = await TestSuiteModel.find({ projectId })
     .sort({ createdAt: -1 })
     .lean<TestSuiteDb[]>();
-
+  await setCache(projectId, docs, 300);
   return docs.map(mapSuite);
 }
 
 export async function getSuiteById(id: string): Promise<TestSuite | null> {
   if (!id || id === "undefined") return null;
 
+  const cached = await getCache(id);
+
+  if (cached) {
+    const res = await cached.json();
+    return res;
+  }
+
   await connectDB();
 
   const doc = await TestSuiteModel.findById(id).lean<TestSuiteDb | null>();
-
+  await setCache(id, doc, 300);
   return doc ? mapSuite(doc) : null;
 }
 
