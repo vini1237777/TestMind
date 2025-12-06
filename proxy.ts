@@ -9,8 +9,6 @@ const ratelimit = new Ratelimit({
   limiter: Ratelimit.fixedWindow(10, "60 s"),
 });
 
-export const config = { matcher: "/api/:path*" };
-
 export default async function proxy(req: NextRequest) {
   const ip =
     req.headers.get("x-real-ip") ??
@@ -25,3 +23,5 @@ export default async function proxy(req: NextRequest) {
 
   return NextResponse.next();
 }
+
+export const config = { matcher: "/api/:path*" };
