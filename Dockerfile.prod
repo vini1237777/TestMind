@@ -26,8 +26,10 @@
 
     
     EXPOSE 8080
+    
+    CMD ["pm2-runtime", "ecosystem.config.js"]
 
-    CMD ["npm","run","start"]
+
     
 
     

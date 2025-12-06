@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "pm2-runtime ecosystem.config.js",
+    "start": "node server.js",
+    "start:pm2": "pm2-runtime ecosystem.config.js",
     "lint": "eslint"
   },
   "dependencies": {
