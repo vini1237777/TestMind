@@ -57,7 +57,7 @@ export async function getSuitesByProject(
   const docs = await TestSuiteModel.find({ projectId })
     .sort({ createdAt: -1 })
     .lean<TestSuiteDb[]>();
-  await setCache(projectId, docs, 300);
+  await setCache(projectId, docs.map(mapSuite), 300);
   return docs.map(mapSuite);
 }
 
