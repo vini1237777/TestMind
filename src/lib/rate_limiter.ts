@@ -1,26 +1,27 @@
-// lib/rateLimiter.ts
-import Redis from "ioredis";
 import { NextRequest, NextResponse } from "next/server";
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
 
-const redis = new Redis();
+const redis = Redis.fromEnv();
 
-const LIMIT = 5;
-const DURATION = 60;
+const ratelimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.fixedWindow(10, "60 s"),
+});
 
-export async function checkRateLimit(req: NextRequest) {
-  const forwardedFor = req.headers.get("x-forwarded-for");
-  const ip = forwardedFor?.split(",")[0]?.trim() || "unknown";
+export const config = { matcher: "/api/:path*" };
 
-  const key = `rate-limit:${ip}`;
+export default async function proxy(req: NextRequest) {
+  const ip =
+    req.headers.get("x-real-ip") ??
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    "unknown";
 
-  const current = await redis.incr(key);
-  if (current === 1) {
-    await redis.expire(key, DURATION);
+  const { success } = await ratelimit.limit(ip);
+
+  if (!success) {
+    return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
   }
 
-  if (current > LIMIT) {
-    return NextResponse.json("Too many requests", { status: 429 });
-  }
-
-  return null;
+  return NextResponse.next();
 }
