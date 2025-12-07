@@ -34,7 +34,7 @@ export default function ProjectPageClient({
           </p>
         </div>
         <button
-          className="text-xs px-3 py-2 rounded bg-amber-500 text-white"
+          className="text-xs px-3 py-2 rounded bg-amber-500 text-white hover:bg-amber-300"
           onClick={() => setOpenFeatureModal(true)}
         >
           + New Feature / Test Suite
@@ -50,7 +50,7 @@ export default function ProjectPageClient({
           {localSuites.map((suite) => (
             <article
               key={suite.id}
-              className="border rounded p-4 shadow-sm text-sm"
+              className="border rounded p-4 shadow-sm text-sm hover:shadow-2xl dark:hover:shadow-md dark:hover:shadow-white"
             >
               <h2 className="font-semibold mb-1">{suite.featureName}</h2>
               <p className="text-xs text-gray-500 mb-2 line-clamp-2">
@@ -61,7 +61,7 @@ export default function ProjectPageClient({
               </p>
               <Link
                 href={`/projects/${project.id}/suites/${suite.id}`}
-                className="text-xs underline text-amber-700"
+                className="text-xs underline text-amber-700 dark:hover:text-amber-400"
               >
                 View test cases
               </Link>

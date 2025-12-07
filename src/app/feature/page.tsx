@@ -292,7 +292,7 @@ export default function Feature() {
                                 onClick={() =>
                                   setExpandedCaseId(isExpanded ? null : tc.id)
                                 }
-                                className="text-xs px-2 py-1 rounded border hover:bg-gray-50"
+                                className="text-xs px-2 py-1 rounded border hover:bg-gray-50 dark:hover:bg-gray-900"
                               >
                                 {isExpanded ? "Hide details" : "View details"}
                               </button>
