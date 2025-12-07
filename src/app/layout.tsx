@@ -1,5 +1,7 @@
-import { Toaster } from "react-hot-toast";
+import { ThemeProvider } from "next-themes";
 import "./globals.css";
+import { Toaster } from "react-hot-toast";
+import Navbar from "./Navbar";
 
 export default function RootLayout({
   children,
@@ -7,13 +9,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body>
-        <Toaster />
-        <nav className="w-full bg-amber-300 h-12 flex items-center px-4">
-          <h1 className="font-semibold">TestMind</h1>
-        </nav>
-        {children}
+    <html lang="en" suppressHydrationWarning>
+      <body className="bg-white text-black dark:bg-[#020617] dark:text-white">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem={false}
+        >
+          <Toaster />
+          <Navbar />
+          <main className="min-h-screen">{children}</main>
+        </ThemeProvider>
       </body>
     </html>
   );
