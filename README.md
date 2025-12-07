@@ -3,7 +3,7 @@
 TestMind is an AI-assisted tool that converts plain feature descriptions into structured test suites.  
 It is designed as an internal-style QA tool for teams that want to quickly generate happy, negative, and edge case scenarios for web or mobile applications.
 
-Live Demo: https://test-mind.vercel.app/  
+Live Demo: https://testmind-production.up.railway.app/
 Tech Stack: Next.js · TypeScript · Tailwind CSS · OpenAI API
 
 ---
@@ -92,4 +92,3 @@ export type TestSuite = {
   testCases: TestCase[];
 };
 ```
-
