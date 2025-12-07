@@ -75,11 +75,10 @@ export default function FeatureModal({
 
   return (
     <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-      <div className="bg-white w-[480px] rounded shadow-md overflow-hidden">
+      <div className="bg-white max-w-[800px] rounded shadow-md w-[600px] overflow-hidden dark:bg-gray-900">
         <header className="px-4 py-3 border-b font-medium text-sm">
           Create New Feature / Suite
         </header>
-
         <div className="px-4 py-4 flex flex-col gap-4">
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium">Feature Name</label>
@@ -105,14 +104,14 @@ export default function FeatureModal({
 
         <footer className="flex justify-between px-4 py-2 border-t">
           <button
-            className="px-3 py-1 text-sm rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-60"
+            className="px-3 py-1 text-sm rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-60 dark:text-black cursor-pointer"
             onClick={onClose}
             disabled={isSaving}
           >
             Cancel
           </button>
           <button
-            className="px-3 py-1 text-sm rounded bg-amber-500 text-white disabled:opacity-60 disabled:cursor-not-allowed"
+            className="px-3 py-1 text-sm rounded bg-amber-500 text-white disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
             onClick={handleSave}
             disabled={isDisabled}
           >

@@ -312,10 +312,12 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
       <button onClick={handleBack} className="text-sm cursor-pointer">
         ← Back to Feature
       </button>
-      <main className="max-w-5xl mx-auto px-4 py-8 w-full">
-        <section className="border border-gray-200 bg-white shadow-sm rounded p-4 mb-8 space-y-4  dark:bg-black">
+      <main className="max-w-full mx-auto px-4 py-8 w-full">
+        <section className="border border-gray-200 bg-white shadow-sm rounded p-4 mb-8 space-y-4  dark:bg-gray-900">
           <div>
-            <p className="text-[11px] uppercase text-gray-500">Feature</p>
+            <p className="text-[11px] uppercase text-gray-500 dark:text-white">
+              Feature
+            </p>
             <input
               type="text"
               className="text-sm w-full mt-1 p-2 border rounded focus:ring-2 focus:ring-amber-500"
@@ -328,7 +330,7 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
           </div>
 
           <div>
-            <label className="text-xs font-medium text-gray-700">
+            <label className="text-xs font-medium text-gray-700 dark:text-white">
               Description
             </label>
             <textarea
@@ -573,7 +575,7 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
 
                   <button
                     onClick={() => handleDownloadSuite(selectedSuite)}
-                    className="text-xs px-3 py-1 border rounded hover:bg-gray-50"
+                    className="text-xs px-3 py-1 border rounded hover:bg-gray-50 dark:hover:bg-gray-600"
                   >
                     Download JSON
                   </button>
@@ -605,7 +607,7 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
                   return (
                     <div
                       key={tc.id}
-                      className="border rounded p-3 mb-4 shadow-sm text-sm hover:shadow-2xl dark:hover:shadow-md dark:hover:shadow-white"
+                      className="border rounded p-3 mb-4 shadow-sm text-sm dark:bg-gray-900 hover:shadow-2xl dark:hover:shadow-md dark:hover:shadow-white"
                     >
                       <div className="flex justify-between">
                         <span className="font-mono text-xs">{tc.id}</span>

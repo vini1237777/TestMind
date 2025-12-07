@@ -32,7 +32,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="w-full bg-amber-300 h-12 flex items-center justify-between px-4">
+    <nav className="w-full bg-amber-300 h-12 flex items-center justify-between px-4 dark:bg-gray-200">
       <h1
         className="font-semibold cursor-pointer hover:bg-amber-200 rounded-md p-2 dark:text-black"
         onClick={handleBack}

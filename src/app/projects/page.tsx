@@ -32,7 +32,7 @@ export default function ProjectsPage() {
   }, []);
 
   return (
-    <main className="max-w-5xl mx-auto px-4 py-8">
+    <main className="max-w-full mx-4 px-4 py-8">
       <header className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Projects</h1>
@@ -42,7 +42,7 @@ export default function ProjectsPage() {
         </div>
 
         <button
-          className="text-xs px-3 py-2 rounded bg-amber-500 text-white cursor-pointer hover:bg-amber-300"
+          className="text-xs px-3 py-2 rounded bg-amber-500 text-white cursor-pointer hover:bg-amber-300 dark:bg-gray-200 dark:text-black"
           onClick={() => setIsProjectModalOpen(true)}
         >
           + New Project
@@ -55,7 +55,7 @@ export default function ProjectsPage() {
           <span className="font-semibold">+ New Project</span> to create one.
         </p>
       ) : (
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {projects.map((project) => (
             <Link
               key={project.id}

@@ -46,11 +46,11 @@ export default function ProjectPageClient({
           No test suites yet for this project.
         </p>
       ) : (
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {localSuites.map((suite) => (
             <article
               key={suite.id}
-              className="border rounded p-4 shadow-sm text-sm hover:shadow-2xl dark:hover:shadow-md dark:hover:shadow-white"
+              className="border cursor-pointer rounded p-4 shadow-sm text-sm hover:shadow-2xl dark:hover:shadow-md dark:hover:shadow-white"
             >
               <h2 className="font-semibold mb-1">{suite.featureName}</h2>
               <p className="text-xs text-gray-500 mb-2 line-clamp-2">
