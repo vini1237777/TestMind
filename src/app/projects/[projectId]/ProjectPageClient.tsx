@@ -23,7 +23,7 @@ export default function ProjectPageClient({
 
   return (
     <>
-      <button onClick={handleBack} className="text-sm mb-4">
+      <button onClick={handleBack} className="text-sm mb-4 cursor-pointer">
         ← Back to Project
       </button>
       <header className="mb-6 flex items-center justify-between">

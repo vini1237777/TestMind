@@ -309,11 +309,11 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
 
   return (
     <div className="min-h-screen">
-      <button onClick={handleBack} className="text-xs">
+      <button onClick={handleBack} className="text-sm cursor-pointer">
         ← Back to Feature
       </button>
       <main className="max-w-5xl mx-auto px-4 py-8 w-full">
-        <section className="border border-gray-200 bg-white shadow-sm rounded p-4 mb-8 space-y-4">
+        <section className="border border-gray-200 bg-white shadow-sm rounded p-4 mb-8 space-y-4  dark:bg-black">
           <div>
             <p className="text-[11px] uppercase text-gray-500">Feature</p>
             <input
@@ -404,7 +404,7 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
                 </p>
               )}
 
-              <p className="text-xs mb-2">
+              <p className="text-xs mb-2 dark:bg-gray-800">
                 <span className="font-semibold">Summary:</span>{" "}
                 {feedback.summary}
               </p>
@@ -446,7 +446,7 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
           )}
           {feedback?.suggestedTestCases &&
             feedback.suggestedTestCases.length > 0 && (
-              <div className="mt-6 border-t pt-4">
+              <div className="mt-6 border-t pt-4  dark:bg-gray-800">
                 <h3 className="font-semibold text-sm mb-2">
                   AI Suggested Test Cases
                 </h3>
@@ -455,7 +455,7 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
                   {feedback.suggestedTestCases.map((tc, idx) => (
                     <li
                       key={idx}
-                      className="border rounded p-3 shadow-sm bg-gray-50 text-sm"
+                      className="border rounded p-3 shadow-sm bg-gray-50 text-sm dark:bg-gray-900"
                     >
                       <div className="flex justify-between mb-1">
                         <span className="uppercase text-xs text-gray-600">
@@ -478,7 +478,7 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
                       </p>
 
                       {tc.samplePayload && (
-                        <pre className="mt-2 bg-white p-2 border rounded text-xs overflow-x-auto">
+                        <pre className="mt-2 bg-white p-2 border rounded text-xs overflow-x-auto dark:bg-gray-800">
                           {JSON.stringify(tc.samplePayload, null, 2)}
                         </pre>
                       )}
@@ -505,7 +505,7 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
             )}
         </section>
 
-        <div className="flex gap-6">
+        <div className="flex gap-6  dark:bg-dark">
           <aside className="w-1/3 border-r pr-4">
             <h2 className="font-semibold text-sm mb-3">Test Suites</h2>
 
@@ -523,9 +523,9 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
                       setExpandedCaseId(null);
                       setFilterType("all");
                     }}
-                    className={`p-2 border rounded cursor-pointer text-xs ${
+                    className={`p-2 border rounded cursor-pointer text-xs  dark:bg-gray-900  ${
                       suite.id === selectedSuiteId
-                        ? "bg-amber-50 border-amber-200"
+                        ? "bg-amber-50 border-amber-200 dark:border-white"
                         : "hover:bg-gray-50"
                     }`}
                   >
@@ -630,7 +630,7 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
                           </h3>
 
                           <p className="font-semibold text-xs">Steps:</p>
-                          <ol className="list-decimal list-inside text-gray-700">
+                          <ol className="list-decimal list-inside text-gray-700 dark:text-white">
                             {tc.steps.map((step, i) => (
                               <li key={i}>{step}</li>
                             ))}
@@ -646,7 +646,7 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
                               <p className="font-semibold text-xs mb-1">
                                 Sample Payload:
                               </p>
-                              <pre className="bg-gray-50 p-2 rounded border text-xs overflow-x-auto">
+                              <pre className="bg-gray-50 p-2 rounded border text-xs overflow-x-auto dark:bg-gray-950">
                                 {JSON.stringify(tc.samplePayload, null, 2)}
                               </pre>
 
