@@ -605,7 +605,7 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
                   return (
                     <div
                       key={tc.id}
-                      className="border rounded p-3 mb-4 shadow-sm text-sm"
+                      className="border rounded p-3 mb-4 shadow-sm text-sm hover:shadow-2xl dark:hover:shadow-md dark:hover:shadow-white"
                     >
                       <div className="flex justify-between">
                         <span className="font-mono text-xs">{tc.id}</span>
@@ -618,7 +618,7 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
                         onClick={() =>
                           setExpandedCaseId(expanded ? null : tc.id)
                         }
-                        className="text-[11px] mt-2 border px-2 py-1 rounded hover:bg-gray-50"
+                        className="text-[11px] mt-2 border px-2 py-1 rounded hover:bg-gray-50 dark:hover:text-black"
                       >
                         {expanded ? "Hide" : "View"} details
                       </button>
