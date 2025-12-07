@@ -31,7 +31,7 @@ export default async function SuitePage({ params }: SuitePageProps) {
   };
 
   return (
-    <main className="max-w-5xl mx-auto px-4 py-8">
+    <main className="max-w-full mx-auto px-4 py-8">
       <SuiteClient feature={suite} />
     </main>
   );

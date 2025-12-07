@@ -52,13 +52,13 @@ export default function ProjectModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="max-w-[800px] bg-white shadow-lg rounded-md w-[600px]">
-        <h2 className="text-sm font-medium text-amber-700 border-b border-gray-300 py-3 px-4 mb-4">
+      <div className="max-w-[800px] bg-white shadow-lg rounded-md w-[600px] dark:text-white dark:bg-gray-900">
+        <h2 className="text-sm font-medium text-amber-700 border-b border-gray-300 py-3 px-4 mb-4 dark:text-white">
           Create Project
         </h2>
 
         <div className="flex flex-col gap-4 mt-4 mb-6 mx-6">
-          <label className="text-sm font-medium text-gray-800">
+          <label className="text-sm font-medium text-gray-800 dark:text-white">
             Project Name
           </label>
           <input
@@ -71,7 +71,7 @@ export default function ProjectModal({
             className="p-2 border border-gray-300 rounded focus:ring-2 focus:ring-amber-500 outline-none"
           />
 
-          <label className="text-sm font-medium text-gray-800">
+          <label className="text-sm font-medium text-gray-800 dark:text-white">
             Project Description
           </label>
           <input
@@ -100,7 +100,7 @@ export default function ProjectModal({
 
           <button
             type="button"
-            className="h-8 px-3 text-sm rounded-md bg-amber-600 text-white hover:bg-amber-700 disabled:opacity-60"
+            className="h-8 px-3 text-sm rounded-md  dark:bg-gray-600 bg-amber-600 text-white hover:bg-amber-700  disabled:opacity-60 dark:hover:bg-gray-700 dark:text-white"
             onClick={handleSave}
             disabled={isSaving}
           >
