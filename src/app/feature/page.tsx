@@ -320,11 +320,11 @@ export default function Feature() {
                                   {tc.samplePayload &&
                                     Object.keys(tc.samplePayload).length >
                                       0 && (
-                                      <div className="mt-2">
+                                      <div className="mt-2 dark:bg-gray-950">
                                         <p className="font-semibold text-sm mb-1">
                                           Sample Payload:
                                         </p>
-                                        <pre className="bg-gray-50 text-xs p-2 rounded border overflow-x-auto">
+                                        <pre className="bg-gray-50 text-xs p-2 rounded border overflow-x-auto ">
                                           {JSON.stringify(
                                             tc.samplePayload,
                                             null,
