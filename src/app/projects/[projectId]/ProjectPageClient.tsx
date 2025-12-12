@@ -41,7 +41,7 @@ export default function ProjectPageClient({
         </button>
       </header>
 
-      {localSuites.length === 0 ? (
+      {localSuites?.length === 0 ? (
         <p className="text-sm text-gray-500">
           No test suites yet for this project.
         </p>
