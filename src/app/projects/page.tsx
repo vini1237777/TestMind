@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
-
 import { Project } from "../types/testmind";
 import ProjectModal from "../components/ProjectModal";
 import CardSkeleton from "../components/CardSkeleton";
@@ -87,18 +86,18 @@ export default function ProjectsPage() {
         </p>
       ) : (
         <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {projects.map((project) => (
+          {projects?.map((project) => (
             <Link
-              key={project.id}
+              key={project?.id}
               href={`/projects/${project.id}`}
               className="border rounded p-4 hover:shadow-2xl transition text-sm dark:hover:shadow-md dark:hover:shadow-white"
             >
-              <h2 className="font-semibold mb-1">{project.name}</h2>
+              <h2 className="font-semibold mb-1">{project?.name}</h2>
               <p className="text-xs text-gray-500 mb-2 line-clamp-2">
-                {project.description}
+                {project?.description}
               </p>
               <p className="text-[11px] text-gray-400">
-                Created: {new Date(project.createdAt).toLocaleString()}
+                Created: {new Date(project?.createdAt).toLocaleString()}
               </p>
             </Link>
           ))}
