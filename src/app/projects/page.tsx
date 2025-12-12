@@ -2,54 +2,85 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
+
 import { Project } from "../types/testmind";
 import ProjectModal from "../components/ProjectModal";
-import toast from "react-hot-toast";
+import CardSkeleton from "../components/CardSkeleton";
 
 export default function ProjectsPage() {
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
+
     const loadProjects = async () => {
       try {
         const res = await fetch("/api/projects", {
-          next: { revalidate: 60 },
+          cache: "no-store",
         });
-        if (res?.status === 429) {
-          toast.error("Too Many Requests. Please try again after sometime");
+
+        if (res.status === 429) {
+          toast.error("Too many requests. Please try again later.");
+          return;
         }
-        if (!res.ok) return;
+
+        if (!res.ok) {
+          toast.error("Failed to load projects.");
+          return;
+        }
 
         const data = await res.json();
+        if (!isMounted) return;
+
         setProjects(data.projects || []);
-      } catch (e) {
-        console.error(e);
+      } catch (error) {
+        console.error(error);
+        toast.error("Something went wrong while loading projects.");
+      } finally {
+        if (!isMounted) return;
+        setHasLoaded(true);
       }
     };
 
     loadProjects();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   return (
     <main className="max-w-full mx-4 px-4 py-8">
       <header className="mb-6 flex items-center justify-between">
-        <div>
+        <div className="w-full">
           <h1 className="text-2xl font-semibold">Projects</h1>
-          <p className="text-sm text-gray-500">
-            Select a project to view its AI-generated test suites.
-          </p>
+          {!hasLoaded ? (
+            <span className="w-[92%]">
+              <Skeleton height={20} width={"50%"} />
+            </span>
+          ) : (
+            <p className="text-sm text-gray-500">
+              Select a project to view its AI-generated test suites.
+            </p>
+          )}
         </div>
 
         <button
-          className="text-xs px-3 py-2 rounded bg-amber-500 text-white cursor-pointer hover:bg-amber-300 dark:bg-gray-200 dark:text-black"
+          className="text-xs px-3 py-2 rounded bg-amber-500 text-white hover:bg-amber-300 dark:bg-gray-200 dark:text-black"
           onClick={() => setIsProjectModalOpen(true)}
         >
           + New Project
         </button>
       </header>
 
-      {projects.length === 0 ? (
+      {!hasLoaded ? (
+        <CardSkeleton />
+      ) : projects.length === 0 ? (
         <p className="text-sm text-gray-500">
           No projects yet. Click{" "}
           <span className="font-semibold">+ New Project</span> to create one.
@@ -77,9 +108,7 @@ export default function ProjectsPage() {
       <ProjectModal
         open={isProjectModalOpen}
         onClose={() => setIsProjectModalOpen(false)}
-        onCreated={(newProject) => {
-          setProjects((prev) => [newProject, ...prev]);
-        }}
+        onCreated={(newProject) => setProjects((prev) => [newProject, ...prev])}
       />
     </main>
   );
