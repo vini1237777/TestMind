@@ -3,6 +3,7 @@ import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import Navbar from "./Navbar";
 import NextTopLoader from "nextjs-toploader";
+import "react-loading-skeleton/dist/skeleton.css";
 
 export default function RootLayout({
   children,
