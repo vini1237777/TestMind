@@ -13,7 +13,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="bg-white text-black dark:bg-[#020617] dark:text-white">
-        <NextTopLoader showSpinner={true} />
+        <NextTopLoader zIndex={999999} />
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
