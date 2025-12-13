@@ -2,8 +2,9 @@ import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import Navbar from "./Navbar";
-import NextTopLoader from "nextjs-toploader";
+// import NextTopLoader from "nextjs-toploader";
 import "react-loading-skeleton/dist/skeleton.css";
+import HolyLoader from "holy-loader";
 
 export default function RootLayout({
   children,
@@ -13,7 +14,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="bg-white text-black dark:bg-[#020617] dark:text-white">
-        <NextTopLoader zIndex={999999} />
+        <HolyLoader zIndex={999999} />
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
