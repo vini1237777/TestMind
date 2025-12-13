@@ -7,6 +7,7 @@ import type { FeedbackResult } from "@/src/app/types/testmind";
 import { Feature, TestCase, TestSuite } from "@/src/app/types/testmind";
 import { updateFeature } from "@/src/app/actions/features";
 import ScoreBadge from "@/src/app/components/ScoreBadge";
+import Skeleton from "react-loading-skeleton";
 
 const tabs = [
   { label: "All", value: "all" },
@@ -47,6 +48,8 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
     null
   );
   const [lastFeedbackSummary, setLastFeedbackSummary] = useState<string>("");
+
+  const [hasLoaded, setHasLoaded] = useState<boolean>(false);
 
   const handleBack = () => {
     router.push(`/projects/${feature.projectId}`);
@@ -119,9 +122,11 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
         setTestSuites(suitesForFeature);
         if (suitesForFeature.length > 0) {
           setSelectedSuiteId(suitesForFeature[0].id);
+          setHasLoaded(true);
         }
       } catch (err) {
         console.error(err);
+        setHasLoaded(false);
       }
     };
 
@@ -512,12 +517,19 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
             <h2 className="font-semibold text-sm mb-3">Test Suites</h2>
 
             {testSuites.length === 0 ? (
-              <p className="text-xs text-gray-500">
-                No suites yet. Generate test cases.
-              </p>
+              hasLoaded ? (
+                <p className="text-xs text-gray-500">
+                  No suites yet. Generate test cases.
+                </p>
+              ) : (
+                <span className="w-[92%]">
+                  <Skeleton height={15} width={"100%"} />
+                  <Skeleton height={15} width={"70%"} />
+                </span>
+              )
             ) : (
               <ul className="flex flex-col gap-2">
-                {testSuites.map((suite) => (
+                {testSuites?.map((suite) => (
                   <li
                     key={suite.id}
                     onClick={() => {
@@ -533,7 +545,7 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
                   >
                     <div className="font-medium">{suite.name}</div>
                     <div className="text-[10px] text-gray-500">
-                      {new Date(suite.createdAt).toLocaleString()}
+                      {new Date(suite?.createdAt).toLocaleString()}
                     </div>
                     {suite?.lastFeedbackScore != null && (
                       <div className="text-[10px] text-emerald-700 mt-1">
@@ -546,140 +558,175 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
             )}
           </aside>
 
-          <section className="w-2/3 pl-4">
-            {!selectedSuite ? (
-              <p className="text-sm text-gray-500">Select a suite.</p>
-            ) : (
-              <>
-                <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <h2 className="font-semibold text-sm">
-                      {selectedSuite.name}
-                    </h2>
-                    <p className="text-[11px] text-gray-500">
-                      {new Date(selectedSuite.createdAt).toLocaleString()}
-                    </p>
-
-                    {feedback && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-50 text-[10px] font-medium text-emerald-700 border border-emerald-200">
-                        AI Reviewed
-                      </span>
-                    )}
-                    {lastReviewedAt && (
-                      <p className="text-[10px] text-gray-500 mt-1">
-                        Last reviewed at:{" "}
-                        {new Date(lastReviewedAt).toLocaleString()}
+          {hasLoaded ? (
+            <section className="w-2/3 pl-4">
+              {!selectedSuite ? (
+                <p className="text-sm text-gray-500">Select a suite.</p>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <h2 className="font-semibold text-sm">
+                        {selectedSuite.name}
+                      </h2>
+                      <p className="text-[11px] text-gray-500">
+                        {new Date(selectedSuite.createdAt).toLocaleString()}
                       </p>
-                    )}
-                  </div>
 
-                  <button
-                    onClick={() => handleDownloadSuite(selectedSuite)}
-                    className="text-xs px-3 py-1 border rounded hover:bg-gray-50 dark:hover:bg-gray-600"
-                  >
-                    Download JSON
-                  </button>
-                </div>
-
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {tabs.map((tab) => (
-                    <button
-                      key={tab.value}
-                      onClick={() =>
-                        setFilterType(
-                          tab.value as "all" | "happy" | "negative" | "edge"
-                        )
-                      }
-                      className={`px-3 py-1 text-xs rounded-full ${
-                        filterType === tab.value
-                          ? "bg-amber-500 text-white"
-                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                      }`}
-                    >
-                      {tab.label}
-                    </button>
-                  ))}
-                </div>
-
-                {filteredCases.map((tc) => {
-                  const expanded = expandedCaseId === tc.id;
-
-                  return (
-                    <div
-                      key={tc.id}
-                      className="border rounded p-3 mb-4 shadow-sm text-sm dark:bg-gray-900 hover:shadow-2xl dark:hover:shadow-md dark:hover:shadow-white"
-                    >
-                      <div className="flex justify-between">
-                        <span className="font-mono text-xs">{tc.id}</span>
-                        <span className="uppercase text-xs text-gray-500">
-                          {tc.type}
+                      {feedback && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-50 text-[10px] font-medium text-emerald-700 border border-emerald-200">
+                          AI Reviewed
                         </span>
-                      </div>
-
-                      <button
-                        onClick={() =>
-                          setExpandedCaseId(expanded ? null : tc.id)
-                        }
-                        className="text-[11px] mt-2 border px-2 py-1 rounded hover:bg-gray-50 dark:hover:text-black"
-                      >
-                        {expanded ? "Hide" : "View"} details
-                      </button>
-
-                      {expanded && (
-                        <>
-                          <h3 className="font-semibold mt-2 mb-1">
-                            {tc.title}
-                          </h3>
-
-                          <p className="font-semibold text-xs">Steps:</p>
-                          <ol className="list-decimal list-inside text-gray-700 dark:text-white">
-                            {tc.steps.map((step, i) => (
-                              <li key={i}>{step}</li>
-                            ))}
-                          </ol>
-
-                          <p className="mt-2">
-                            <span className="font-semibold">Expected:</span>{" "}
-                            {tc.expected}
-                          </p>
-
-                          {tc.samplePayload && (
-                            <div className="mt-2">
-                              <p className="font-semibold text-xs mb-1">
-                                Sample Payload:
-                              </p>
-                              <pre className="bg-gray-50 p-2 rounded border text-xs overflow-x-auto dark:bg-gray-950">
-                                {JSON.stringify(tc.samplePayload, null, 2)}
-                              </pre>
-
-                              <button
-                                onClick={() =>
-                                  navigator.clipboard
-                                    .writeText(
-                                      JSON.stringify(tc.samplePayload, null, 2)
-                                    )
-                                    .then(() => toast.success("Copied!"))
-                                }
-                                className="text-[11px] underline mt-1"
-                              >
-                                Copy payload
-                              </button>
-                            </div>
-                          )}
-                        </>
+                      )}
+                      {lastReviewedAt && (
+                        <p className="text-[10px] text-gray-500 mt-1">
+                          Last reviewed at:{" "}
+                          {new Date(lastReviewedAt).toLocaleString()}
+                        </p>
                       )}
                     </div>
-                  );
-                })}
 
-                {filteredCases.length === 0 && (
-                  <p className="text-xs text-gray-500">
-                    No {filterType} test cases in this suite.
-                  </p>
-                )}
-              </>
-            )}
-          </section>
+                    <button
+                      onClick={() => handleDownloadSuite(selectedSuite)}
+                      className="text-xs px-3 py-1 border rounded hover:bg-gray-50 dark:hover:bg-gray-600"
+                    >
+                      Download JSON
+                    </button>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {tabs.map((tab) => (
+                      <button
+                        key={tab.value}
+                        onClick={() =>
+                          setFilterType(
+                            tab.value as "all" | "happy" | "negative" | "edge"
+                          )
+                        }
+                        className={`px-3 py-1 text-xs rounded-full ${
+                          filterType === tab.value
+                            ? "bg-amber-500 text-white"
+                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        }`}
+                      >
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {filteredCases.map((tc) => {
+                    const expanded = expandedCaseId === tc.id;
+
+                    return (
+                      <div
+                        key={tc.id}
+                        className="border rounded p-3 mb-4 shadow-sm text-sm dark:bg-gray-900 hover:shadow-2xl dark:hover:shadow-md dark:hover:shadow-white"
+                      >
+                        <div className="flex justify-between">
+                          <span className="font-mono text-xs">{tc.id}</span>
+                          <span className="uppercase text-xs text-gray-500">
+                            {tc.type}
+                          </span>
+                        </div>
+
+                        <button
+                          onClick={() =>
+                            setExpandedCaseId(expanded ? null : tc.id)
+                          }
+                          className="text-[11px] mt-2 border px-2 py-1 rounded hover:bg-gray-50 dark:hover:text-black"
+                        >
+                          {expanded ? "Hide" : "View"} details
+                        </button>
+
+                        {expanded && (
+                          <>
+                            <h3 className="font-semibold mt-2 mb-1">
+                              {tc.title}
+                            </h3>
+
+                            <p className="font-semibold text-xs">Steps:</p>
+                            <ol className="list-decimal list-inside text-gray-700 dark:text-white">
+                              {tc.steps.map((step, i) => (
+                                <li key={i}>{step}</li>
+                              ))}
+                            </ol>
+
+                            <p className="mt-2">
+                              <span className="font-semibold">Expected:</span>{" "}
+                              {tc.expected}
+                            </p>
+
+                            {tc.samplePayload && (
+                              <div className="mt-2">
+                                <p className="font-semibold text-xs mb-1">
+                                  Sample Payload:
+                                </p>
+                                <pre className="bg-gray-50 p-2 rounded border text-xs overflow-x-auto dark:bg-gray-950">
+                                  {JSON.stringify(tc.samplePayload, null, 2)}
+                                </pre>
+
+                                <button
+                                  onClick={() =>
+                                    navigator.clipboard
+                                      .writeText(
+                                        JSON.stringify(
+                                          tc.samplePayload,
+                                          null,
+                                          2
+                                        )
+                                      )
+                                      .then(() => toast.success("Copied!"))
+                                  }
+                                  className="text-[11px] underline mt-1"
+                                >
+                                  Copy payload
+                                </button>
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    );
+                  })}
+
+                  {filteredCases.length === 0 && (
+                    <p className="text-xs text-gray-500">
+                      No {filterType} test cases in this suite.
+                    </p>
+                  )}
+                </>
+              )}
+            </section>
+          ) : (
+            <section className="w-2/3 pl-4">
+              <div className="flex flex-col w-full gap-2">
+                <div className="flex">
+                  <div className="w-[80%]">
+                    <Skeleton height={20} width={"50%"} />
+                    <Skeleton height={20} width={"25%"} />
+                  </div>
+                  <div className="w-[20%] mt-1.5 justify-end!">
+                    <Skeleton height={30} width={"100%"} />
+                  </div>
+                </div>
+
+                <div className="flex w-[74%] gap-5">
+                  <Skeleton height={20} width={"60px"} />
+                  <Skeleton height={20} width={"60px"} />
+                  <Skeleton height={20} width={"60px"} />
+                  <Skeleton height={20} width={"60px"} />
+                </div>
+              </div>
+              <div className="w-full mt-3">
+                <Skeleton
+                  height={80}
+                  count={10}
+                  width={"100%"}
+                  className="mb-2.5"
+                />
+              </div>
+            </section>
+          )}
         </div>
       </main>
     </div>
