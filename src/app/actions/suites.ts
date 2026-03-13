@@ -9,27 +9,35 @@ import { getCache, setCache } from "@/src/lib/cache";
 
 export type TestSuiteDb = {
   _id: Types.ObjectId;
-  projectId: Types.ObjectId;
+  projectId: Types.ObjectId | string;
   name: string;
   featureName: string;
   description?: string;
   testCases: (TestCase & { _id?: Types.ObjectId })[];
   createdAt?: Date;
-  lastFeedbackScore: number;
-  lastReviewedAt: string | null;
-  lastFeedbackSummary: string;
+  lastFeedbackScore?: number | null;
+  lastReviewedAt?: Date | string | null;
+  lastFeedbackSummary?: string;
 };
 
 function mapSuite(doc: TestSuiteDb): TestSuite {
+  const reviewedAt =
+    doc?.lastReviewedAt instanceof Date
+      ? doc.lastReviewedAt.toISOString()
+      : doc?.lastReviewedAt ?? null;
+
   return {
     id: doc._id.toString(),
-    projectId: doc.projectId.toString(),
+    projectId:
+      typeof doc.projectId === "string"
+        ? doc.projectId
+        : doc.projectId.toString(),
     name: doc?.name,
     featureName: doc?.featureName,
     description: doc?.description ?? "",
     createdAt: doc?.createdAt?.toISOString() ?? new Date().toISOString(),
     lastFeedbackScore: doc?.lastFeedbackScore ?? null,
-    lastReviewedAt: doc?.lastReviewedAt ?? null,
+    lastReviewedAt: reviewedAt,
     lastFeedbackSummary: doc?.lastFeedbackSummary ?? "",
     testCases: (doc?.testCases || []).map((tc) => ({
       id: tc.id,
@@ -57,6 +65,7 @@ export async function getSuitesByProject(
   const docs = await TestSuiteModel.find({ projectId })
     .sort({ createdAt: -1 })
     .lean<TestSuiteDb[]>();
+
   await setCache(projectId, docs.map(mapSuite), 300);
   return docs.map(mapSuite);
 }
@@ -75,6 +84,7 @@ export async function getSuiteById(id: string): Promise<TestSuite | null> {
 
   const doc = await TestSuiteModel.findById(id).lean<TestSuiteDb | null>();
   await setCache(id, doc ? mapSuite(doc) : null, 300);
+
   return doc ? mapSuite(doc) : null;
 }
 
@@ -109,7 +119,7 @@ export async function createSuite(data: {
     description,
     testCases,
     lastFeedbackSummary: lastFeedbackSummary || "",
-    lastFeedbackScore: lastFeedbackScore || null,
+    lastFeedbackScore: lastFeedbackScore ?? null,
     lastReviewedAt: lastReviewedAt || null,
   })) as TestSuiteDb;
 
@@ -130,7 +140,6 @@ export async function addTestCasesToSuite(
   }
 
   const updatedCases = [...doc.testCases, ...newCases];
-
   doc.testCases = updatedCases;
 
   await doc.save();
