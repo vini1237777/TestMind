@@ -31,12 +31,8 @@ JSON shape:
 {
   "score": 85,
   "summary": "Short summary of how good the current coverage is.",
-  "missingAreas": [
-    "What types of scenarios are missing or weak"
-  ],
-  "suggestions": [
-    "Concrete recommendations to improve this suite"
-  ],
+  "missingAreas": ["What types of scenarios are missing or weak"],
+  "suggestions": ["Concrete recommendations to improve this suite"],
   "suggestedTestCases": [
     {
       "id": "TC_extra_1",
@@ -44,9 +40,7 @@ JSON shape:
       "title": "Clear descriptive title",
       "steps": ["Step 1", "Step 2"],
       "expected": "Expected behavior here",
-      "samplePayload": {
-        "field1": "value"
-      }
+      "samplePayload": { "field1": "value" }
     }
   ]
 }

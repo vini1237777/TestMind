@@ -26,7 +26,6 @@ const TestSuiteSchema = new Schema({
   projectId: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
   testCases: { type: [TestCaseSchema], default: [] },
-
   lastFeedbackScore: { type: Number, default: null },
   lastFeedbackSummary: { type: String, default: "" },
   lastReviewedAt: { type: Date, default: null },

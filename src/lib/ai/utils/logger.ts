@@ -13,10 +13,7 @@ export function createRunLogger(scope: string) {
     },
     end(message: string, meta?: Record<string, unknown>) {
       const durationMs = Date.now() - startedAt;
-      console.log(`[${scope}] END: ${message}`, {
-        durationMs,
-        ...(meta ?? {}),
-      });
+      console.log(`[${scope}] END: ${message}`, { durationMs, ...(meta ?? {}) });
     },
   };
 }
