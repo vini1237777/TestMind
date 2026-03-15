@@ -23,11 +23,7 @@ export async function reviewSuiteService({
   });
 
   const client = getOpenAIClient();
-  const prompt = buildReviewSuitePrompt({
-    featureName,
-    description,
-    testCases,
-  });
+  const prompt = buildReviewSuitePrompt({ featureName, description, testCases });
 
   const completion = await client.chat.completions.create({
     model: "gpt-4o-mini",
@@ -36,11 +32,7 @@ export async function reviewSuiteService({
   });
 
   const raw = completion.choices[0]?.message?.content;
-
-  if (!raw) {
-    logger.error("No content returned from AI");
-    throw new Error("No response from AI.");
-  }
+  if (!raw) throw new Error("No response from AI.");
 
   const parsed = parseJson<unknown>(raw);
   const validated = FeedbackResultSchema.parse(parsed);

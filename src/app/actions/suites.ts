@@ -28,10 +28,7 @@ function mapSuite(doc: TestSuiteDb): TestSuite {
 
   return {
     id: doc._id.toString(),
-    projectId:
-      typeof doc.projectId === "string"
-        ? doc.projectId
-        : doc.projectId.toString(),
+    projectId: typeof doc.projectId === "string" ? doc.projectId : doc.projectId.toString(),
     name: doc?.name,
     featureName: doc?.featureName,
     description: doc?.description ?? "",
@@ -50,22 +47,15 @@ function mapSuite(doc: TestSuiteDb): TestSuite {
   };
 }
 
-export async function getSuitesByProject(
-  projectId: string
-): Promise<TestSuite[]> {
+export async function getSuitesByProject(projectId: string): Promise<TestSuite[]> {
   const cached = await getCache(projectId);
-
   if (cached) {
     const res = await cached.json();
     return res;
   }
 
   await connectDB();
-
-  const docs = await TestSuiteModel.find({ projectId })
-    .sort({ createdAt: -1 })
-    .lean<TestSuiteDb[]>();
-
+  const docs = await TestSuiteModel.find({ projectId }).sort({ createdAt: -1 }).lean<TestSuiteDb[]>();
   await setCache(projectId, docs.map(mapSuite), 300);
   return docs.map(mapSuite);
 }
@@ -74,17 +64,14 @@ export async function getSuiteById(id: string): Promise<TestSuite | null> {
   if (!id || id === "undefined") return null;
 
   const cached = await getCache(id);
-
   if (cached) {
     const res = await cached.json();
     return res;
   }
 
   await connectDB();
-
   const doc = await TestSuiteModel.findById(id).lean<TestSuiteDb | null>();
   await setCache(id, doc ? mapSuite(doc) : null, 300);
-
   return doc ? mapSuite(doc) : null;
 }
 
@@ -124,7 +111,6 @@ export async function createSuite(data: {
   })) as TestSuiteDb;
 
   revalidatePath(`/projects/${data.projectId}`);
-
   return mapSuite(doc);
 }
 

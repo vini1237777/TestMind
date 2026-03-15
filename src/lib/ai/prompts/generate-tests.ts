@@ -13,13 +13,7 @@ export function buildGenerateTestsPrompt({
 }: BuildGenerateTestsPromptInput) {
   const feedbackContext =
     lastFeedbackSummary || typeof lastFeedbackScore === "number"
-      ? `
-Previous review context:
-- Last feedback score: ${lastFeedbackScore ?? "N/A"}
-- Last feedback summary: ${lastFeedbackSummary ?? "N/A"}
-
-Use this context to improve coverage and avoid repeating weak areas.
-`
+      ? `\nPrevious review context:\n- Last feedback score: ${lastFeedbackScore ?? "N/A"}\n- Last feedback summary: ${lastFeedbackSummary ?? "N/A"}\n\nUse this context to improve coverage and avoid repeating weak areas.\n`
       : "";
 
   return `
@@ -61,11 +55,7 @@ Response format (IMPORTANT):
       "id": "TC_1",
       "type": "happy",
       "title": "Clear descriptive title here",
-      "steps": [
-        "Step 1: ...",
-        "Step 2: ...",
-        "Step 3: ..."
-      ],
+      "steps": ["Step 1: ...", "Step 2: ...", "Step 3: ..."],
       "expected": "Clear description of what should happen.",
       "samplePayload": { "field1": "example value", "field2": 123 }
     }
