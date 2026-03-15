@@ -12,6 +12,3 @@ export const TestCaseSchema = z.object({
 export const GenerateSuiteResponseSchema = z.object({
   testCases: z.array(TestCaseSchema).min(1).max(8),
 });
-
-export type GeneratedTestCase = z.infer<typeof TestCaseSchema>;
-export type GenerateSuiteResponse = z.infer<typeof GenerateSuiteResponseSchema>;

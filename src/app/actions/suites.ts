@@ -128,21 +128,12 @@ export async function createSuite(data: {
   return mapSuite(doc);
 }
 
-export async function addTestCasesToSuite(
-  suiteId: string,
-  newCases: TestCase[]
-): Promise<TestSuite> {
+export async function addTestCasesToSuite(suiteId: string, newCases: TestCase[]): Promise<TestSuite> {
   await connectDB();
-
   const doc = await TestSuiteModel.findById(suiteId);
-  if (!doc) {
-    throw new Error("Suite not found");
-  }
+  if (!doc) throw new Error("Suite not found");
 
-  const updatedCases = [...doc.testCases, ...newCases];
-  doc.testCases = updatedCases;
-
+  doc.testCases = [...doc.testCases, ...newCases];
   await doc.save();
-
   return mapSuite(doc.toObject());
 }

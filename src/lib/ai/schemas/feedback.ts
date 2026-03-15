@@ -8,5 +8,3 @@ export const FeedbackResultSchema = z.object({
   suggestions: z.array(z.string()).default([]),
   suggestedTestCases: z.array(TestCaseSchema).default([]),
 });
-
-export type ParsedFeedbackResult = z.infer<typeof FeedbackResultSchema>;

@@ -67,19 +67,10 @@ Response format (IMPORTANT):
         "Step 3: ..."
       ],
       "expected": "Clear description of what should happen.",
-      "samplePayload": {
-        "field1": "example value",
-        "field2": 123
-      }
+      "samplePayload": { "field1": "example value", "field2": 123 }
     }
   ]
 }
-
-Notes about samplePayload:
-- Represent a realistic input payload or form data for this test case.
-- Use simple JSON-safe values (strings, numbers, booleans).
-- Only include 3-8 fields where relevant.
-- If the feature is not data-driven, you can leave samplePayload as an empty object {}.
 
 Constraints:
 - "id" should be sequential like "TC_1", "TC_2", "TC_3", etc.
