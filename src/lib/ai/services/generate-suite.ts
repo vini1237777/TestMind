@@ -36,11 +36,7 @@ export async function generateSuiteService({
   });
 
   const raw = completion.choices[0]?.message?.content;
-
-  if (!raw) {
-    logger.error("No content returned from AI");
-    throw new Error("No response from AI.");
-  }
+  if (!raw) throw new Error("No response from AI.");
 
   const parsed = parseJson<unknown>(raw);
   const validated = GenerateSuiteResponseSchema.parse(parsed);
