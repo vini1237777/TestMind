@@ -33,8 +33,8 @@ export async function GET(req: NextRequest) {
   } catch (err) {
     console.error("AI Error:", err);
     return NextResponse.json(
-      { error: "Failed to generate test cases." },
-      { status: 500 }
+      { error: "Failed to fetch projects." },
+      { status: 500 },
     );
   }
 }
@@ -48,7 +48,7 @@ export async function POST(req: Request) {
   if (!name?.trim()) {
     return NextResponse.json(
       { error: "Project name is required" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -66,6 +66,6 @@ export async function POST(req: Request) {
         createdAt: project.createdAt,
       },
     },
-    { status: 201 }
+    { status: 201 },
   );
 }
