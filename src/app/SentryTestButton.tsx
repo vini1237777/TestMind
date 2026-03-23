@@ -8,8 +8,6 @@ export default function SentryTestButton() {
       onClick={() => {
         Sentry.captureException(new Error("TestMind Sentry test error"));
       }}
-    >
-      Trigger Sentry Test Error
-    </button>
+    ></button>
   );
 }
