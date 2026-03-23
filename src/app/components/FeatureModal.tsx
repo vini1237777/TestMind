@@ -62,7 +62,7 @@ export default function FeatureModal({
     } catch (err) {
       console.error(err);
       toast.error(
-        err instanceof Error ? err.message : "Failed to create suite"
+        err instanceof Error ? err.message : "Failed to create suite",
       );
     } finally {
       setIsSaving(false);
@@ -84,7 +84,7 @@ export default function FeatureModal({
             <label className="text-sm font-medium">Feature Name</label>
             <input
               type="text"
-              placeholder="e.g. Apply coupon on checkout"
+              placeholder="Feature Name (e.g. User Login, Shopping Cart, etc.)"
               value={featureName}
               onChange={(e) => setFeatureName(e.target.value)}
               className="p-2 border rounded focus:ring-2 focus:ring-amber-500 outline-none"
@@ -94,7 +94,7 @@ export default function FeatureModal({
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium">Description</label>
             <textarea
-              placeholder="Short description of what this feature covers"
+              placeholder="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="p-2 border rounded h-20 focus:ring-2 focus:ring-amber-500 outline-none"
