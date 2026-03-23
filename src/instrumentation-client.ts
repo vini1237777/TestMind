@@ -6,3 +6,5 @@ Sentry.init({
   //   enabled: process.env.NODE_ENV === "production",
   enabled: true,
 });
+
+console.log("Sentry DSN exists?", !!process.env.NEXT_PUBLIC_SENTRY_DSN);
