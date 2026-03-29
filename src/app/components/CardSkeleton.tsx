@@ -9,7 +9,7 @@ export default function CardSkeleton() {
       {skeletonItems.map((_, index) => (
         <div
           key={index}
-          className="bg-gray-100 flex flex-col justify-center pl-2 pr-2"
+          className="bg-gray-100 dark:bg-gray-50 flex flex-col justify-center pl-2 pr-2"
           style={{ height: "133.7px", paddingBottom: "16px" }}
         >
           <div className="w-[92%]">
