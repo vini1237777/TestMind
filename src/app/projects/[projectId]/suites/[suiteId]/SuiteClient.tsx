@@ -453,7 +453,7 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
           </div>
 
           {feedback && (
-            <div className="tm-rise mt-6 border-t pt-4">
+            <div id="review-panel" className="tm-rise mt-6 scroll-mt-4 border-t pt-4">
               <h3 className="text-sm font-semibold mb-2">AI Feedback Review</h3>
 
               <div className="flex items-center gap-2 mb-2">
@@ -718,6 +718,59 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
                         <TypeBar cases={selectedSuite.testCases} showLegend />
                         {c.negative + c.edge === 0 && selectedSuite.testCases.length > 0 && (
                           <p className="mt-2 text-[11px] text-amber-700">Only happy paths so far. Run a review to find negative and edge cases.</p>
+                        )}
+                      </div>
+                    );
+                  })()}
+
+                  {(() => {
+                    if (isGenerating || isReviewing || !selectedSuite.testCases.length) return null;
+                    const score = feedback?.score ?? selectedSuite.lastFeedbackScore ?? null;
+                    const waiting = feedback?.suggestedTestCases?.length ?? 0;
+                    const step =
+                      waiting > 0
+                        ? {
+                            tone: "amber",
+                            text: `${waiting} suggested ${waiting === 1 ? "case is" : "cases are"} waiting from the review. Accept the ones you want to add.`,
+                            cta: "Show suggestions",
+                            run: () => document.getElementById("review-panel")?.scrollIntoView({ behavior: "smooth" }),
+                          }
+                        : score === null
+                          ? {
+                              tone: "amber",
+                              text: "This suite has not been reviewed. A review scores coverage out of 100 and lists the cases that are missing.",
+                              cta: "Run review",
+                              run: handleFeedbackReview,
+                            }
+                          : score < 85
+                            ? {
+                                tone: "gray",
+                                text: `Scored ${score}/100. Add the missing rules to the description and generate again; the next run uses this review to target the gaps.`,
+                                cta: null,
+                                run: null,
+                              }
+                            : {
+                                tone: "green",
+                                text: `Scored ${score}/100. Good coverage, ready to export.`,
+                                cta: "Export",
+                                run: () => setExportOpen(true),
+                              };
+                    const tones: Record<string, string> = {
+                      amber: "border-amber-300 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30",
+                      gray: "border-gray-200 bg-gray-50 dark:bg-gray-900",
+                      green: "border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950/30",
+                    };
+                    return (
+                      <div className={`tm-rise mb-4 flex flex-wrap items-center gap-3 rounded-lg border px-3 py-2.5 ${tones[step.tone]}`}>
+                        <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Next step</span>
+                        <p className="min-w-0 flex-1 text-xs">{step.text}</p>
+                        {step.cta && step.run && (
+                          <button
+                            onClick={step.run}
+                            className="tm-press shrink-0 rounded bg-gray-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-black dark:bg-gray-200 dark:text-black"
+                          >
+                            {step.cta}
+                          </button>
                         )}
                       </div>
                     );

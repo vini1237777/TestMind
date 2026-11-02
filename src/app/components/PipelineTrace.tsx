@@ -18,6 +18,14 @@ function useElapsed(running: boolean) {
   return ms;
 }
 
+// What each step is, shown while the graph is idle
+const IDLE_HINT: Record<string, string> = {
+  Generate: "gpt-4o-mini drafts cases",
+  Validate: "Zod schema and ID checks",
+  Review: "gpt-4o-mini scores coverage",
+  Improve: "merge and dedupe",
+};
+
 const fmtMs = (ms: number) => (ms >= 1000 ? `${(ms / 1000).toFixed(2)}s` : `${Math.round(ms)}ms`);
 
 function Edge({ active }: { active: boolean }) {
@@ -87,7 +95,7 @@ export default function PipelineTrace({ workflow, status, trace }: { workflow: W
                   <span className={info?.kind === "llm" ? "text-amber-600" : "text-gray-400"}>{info?.kind === "llm" ? "AI" : "code"}</span>
                 </div>
                 <p className="mt-1 min-h-[14px] text-[11px] text-gray-500">
-                  {t ? <>{fmtMs(t.durationMs)}{t.output && <>, {t.output}</>}</> : running ? "working…" : ""}
+                  {t ? <>{fmtMs(t.durationMs)}{t.output && <>, {t.output}</>}</> : running ? "working…" : IDLE_HINT[info?.label ?? ""] ?? ""}
                 </p>
               </div>
               {i < nodes.length - 1 && <Edge active={running} />}
