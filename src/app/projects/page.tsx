@@ -76,8 +76,7 @@ export default function ProjectsPage() {
         </div>
 
         <button
-          data-magnetic
-          className="tm-press shrink-0 text-xs px-3 py-2 rounded bg-amber-500 text-white hover:bg-amber-300 dark:bg-gray-200 dark:text-black"
+          className="text-xs px-3 py-2 rounded bg-amber-500 text-white hover:bg-amber-300 dark:bg-gray-200 dark:text-black"
           onClick={() => setIsProjectModalOpen(true)}
         >
           + New Project
@@ -111,8 +110,7 @@ export default function ProjectsPage() {
             <Link
               key={project?.id}
               href={`/projects/${project.id}`}
-              data-tilt="6"
-              className="tm-rise tm-shine border rounded p-4 text-sm"
+              className="tm-rise tm-lift border rounded p-4 hover:shadow-2xl text-sm dark:hover:shadow-md dark:hover:shadow-white"
               style={{ animationDelay: `${Math.min(i, 12) * 50}ms` }}
             >
               <h2 className="font-semibold mb-1">{project?.name}</h2>

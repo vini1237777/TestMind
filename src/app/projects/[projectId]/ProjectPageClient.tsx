@@ -50,8 +50,7 @@ export default function ProjectPageClient({
           {localSuites.map((suite, i) => (
             <article
               key={suite.id}
-              data-tilt="6"
-              className="tm-rise tm-shine border rounded p-4 shadow-sm text-sm"
+              className="tm-rise tm-lift border rounded p-4 shadow-sm text-sm hover:shadow-2xl dark:hover:shadow-md dark:hover:shadow-white"
               style={{ animationDelay: `${Math.min(i, 12) * 50}ms` }}
             >
               <h2 className="font-semibold mb-1">{suite.featureName}</h2>
