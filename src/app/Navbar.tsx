@@ -7,12 +7,26 @@ import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import FeaturesModal from "./components/FeaturesModal";
+import FeaturesModal, { type FeaturesTab } from "./components/FeaturesModal";
 
 export default function Navbar() {
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [featuresOpen, setFeaturesOpen] = useState(false);
+  const [featuresTab, setFeaturesTab] = useState<FeaturesTab>("tour");
+  const [openCount, setOpenCount] = useState(0);
+  const openFeatures = (tab: FeaturesTab = "tour") => {
+    setFeaturesTab(tab);
+    setOpenCount((n) => n + 1);
+    setFeaturesOpen(true);
+  };
+
+  // Other parts of the page can open the modal with: dispatchEvent(new CustomEvent("tm:features", { detail: "tech" }))
+  useEffect(() => {
+    const onOpen = (e: Event) => openFeatures(((e as CustomEvent).detail as FeaturesTab) || "tour");
+    window.addEventListener("tm:features", onOpen);
+    return () => window.removeEventListener("tm:features", onOpen);
+  }, []);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -34,7 +48,7 @@ export default function Navbar() {
 
   return (
     <div>
-      <FeaturesModal open={featuresOpen} onClose={() => setFeaturesOpen(false)} />
+      <FeaturesModal key={openCount} open={featuresOpen} initialTab={featuresTab} onClose={() => setFeaturesOpen(false)} />
       <nav className="tm-slide w-full bg-amber-300 h-12 flex items-center justify-between px-4 dark:bg-gray-200">
         <Link
           href="/"
@@ -57,7 +71,7 @@ export default function Navbar() {
           </Link>
           <button
             type="button"
-            onClick={() => setFeaturesOpen(true)}
+            onClick={() => openFeatures("tour")}
             aria-haspopup="dialog"
             className={`text-sm font-medium rounded-md px-2 py-1 text-black transition-colors ${featuresOpen ? "bg-amber-200 dark:bg-gray-300" : "hover:bg-amber-200"}`}
           >
@@ -69,13 +83,6 @@ export default function Navbar() {
             className={`text-sm font-medium rounded-md px-2 py-1 text-black transition-colors ${active("/projects") ? "bg-amber-200 dark:bg-gray-300" : "hover:bg-amber-200"}`}
           >
             Workspace
-          </Link>
-          <Link
-            href="/tech"
-            aria-current={active("/tech") ? "page" : undefined}
-            className={`text-sm font-medium rounded-md px-2 py-1 text-black transition-colors ${active("/tech") ? "bg-amber-200 dark:bg-gray-300" : "hover:bg-amber-200"}`}
-          >
-            Tech stack
           </Link>
           <button
             type="button"

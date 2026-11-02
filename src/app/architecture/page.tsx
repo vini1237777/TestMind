@@ -1,6 +1,6 @@
 import { permanentRedirect } from "next/navigation";
 
-// The old architecture page was replaced by /tech.
+// Old link: the architecture details now live in the Features modal.
 export default function ArchitecturePage() {
-  permanentRedirect("/tech");
+  permanentRedirect("/");
 }
