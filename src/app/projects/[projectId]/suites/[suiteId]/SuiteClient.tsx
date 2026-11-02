@@ -475,7 +475,7 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
         )}
       </section>
 
-      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
         {/* The test cases */}
         <section className="min-w-0 border border-amber-300 dark:border-amber-500/40">
           {!hasLoaded ? (
@@ -740,50 +740,45 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
                         </p>
                         {feedback.suggestedTestCases.length > 1 && (
                           <button onClick={handleAcceptAll} className="text-xs font-medium text-amber-700 hover:underline dark:text-amber-400">
-                            Add all
+                            Accept all
                           </button>
                         )}
                       </div>
-                      <ul className="mt-2 space-y-2">
+                      <ul className="mt-2 space-y-3">
                         {feedback.suggestedTestCases.map((tc, idx) => (
-                          <li key={idx} className="tm-fade border border-gray-200 bg-white dark:border-slate-700 dark:bg-slate-900">
-                            <details className="group">
-                              <summary className="cursor-pointer list-none p-2.5">
-                                <span className="block text-[13px] leading-snug">{tc.title}</span>
-                                <span className="mt-2 flex items-center gap-2 text-xs">
-                                  <span className="mr-auto text-gray-500">
-                                    {caseLabel(tc.type)}
-                                    <span className="ml-2 text-gray-400 group-open:hidden">Steps ▾</span>
-                                  </span>
-                                  <button
-                                    className="rounded px-2 py-0.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-800"
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      handleRejectSuggested(idx);
-                                    }}
-                                  >
-                                    Skip
-                                  </button>
-                                  <button
-                                    className="rounded bg-amber-500 px-2.5 py-0.5 font-medium text-white hover:bg-amber-600 dark:bg-amber-400 dark:text-black dark:hover:bg-amber-300"
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      handleAcceptSuggested(tc, idx);
-                                    }}
-                                  >
-                                    Add
-                                  </button>
-                                </span>
-                              </summary>
-                              <div className="border-t px-2.5 py-2 text-xs text-gray-600 dark:border-slate-700 dark:text-gray-400">
-                                <ol className="list-decimal space-y-0.5 pl-4">
-                                  {tc.steps.map((st, k) => (
-                                    <li key={k}>{cleanStep(st)}</li>
-                                  ))}
-                                </ol>
-                                <p className="mt-1.5">Expected: {tc.expected}</p>
-                              </div>
-                            </details>
+                          <li key={idx} className="tm-rise border border-gray-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900" style={{ animationDelay: `${idx * 60}ms` }}>
+                            <p className="text-xs text-gray-500">{caseLabel(tc.type)}</p>
+                            <p className="mt-0.5 font-semibold leading-snug">{tc.title}</p>
+
+                            <p className="mt-2 text-xs font-semibold">Steps</p>
+                            <ol className="mt-0.5 list-decimal space-y-0.5 pl-4 text-xs text-gray-700 dark:text-gray-300">
+                              {tc.steps.map((st, k) => (
+                                <li key={k}>{cleanStep(st)}</li>
+                              ))}
+                            </ol>
+
+                            <p className="mt-2 text-xs">
+                              <span className="font-semibold">Expected:</span> <span className="text-gray-700 dark:text-gray-300">{tc.expected}</span>
+                            </p>
+
+                            {tc.samplePayload && Object.keys(tc.samplePayload).length > 0 && (
+                              <pre className="mt-2 overflow-x-auto border bg-gray-50 p-2 text-[11px] dark:border-slate-700 dark:bg-slate-950">{JSON.stringify(tc.samplePayload, null, 2)}</pre>
+                            )}
+
+                            <div className="mt-3 flex gap-2">
+                              <button
+                                className="tm-press rounded bg-amber-500 px-3 py-1 text-xs font-medium text-white hover:bg-amber-600 dark:bg-amber-400 dark:text-black dark:hover:bg-amber-300"
+                                onClick={() => handleAcceptSuggested(tc, idx)}
+                              >
+                                Accept
+                              </button>
+                              <button
+                                className="tm-press rounded bg-gray-200 px-3 py-1 text-xs font-medium text-gray-800 hover:bg-gray-300 dark:bg-slate-700 dark:text-gray-100 dark:hover:bg-slate-600"
+                                onClick={() => handleRejectSuggested(idx)}
+                              >
+                                Reject
+                              </button>
+                            </div>
                           </li>
                         ))}
                       </ul>
