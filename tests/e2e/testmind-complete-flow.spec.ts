@@ -119,11 +119,11 @@ test("user can create project, add feature, and generate test cases", async ({
   await expect(page.getByRole("heading", { name: /projects/i })).toBeVisible();
 
   await page.getByRole("button", { name: /new project/i }).click();
-  await expect(page.getByText(/create project/i)).toBeVisible();
+  await expect(page.getByRole("dialog")).toBeVisible();
 
   await page.getByPlaceholder(/project name/i).fill(projectName);
   await page.getByPlaceholder(/project description/i).fill(projectDescription);
-  await page.getByRole("button", { name: /^save$/i }).click();
+  await page.getByRole("button", { name: /^create (project|feature)$/i }).click();
 
   await expect(page.getByText(projectName, { exact: true })).toBeVisible();
   await page.getByText(projectName, { exact: true }).click();
@@ -133,11 +133,11 @@ test("user can create project, add feature, and generate test cases", async ({
   await page
     .getByRole("button", { name: "+ New Feature" })
     .click();
-  await expect(page.getByText("Create New Feature / Suite")).toBeVisible();
+  await expect(page.getByText("Create new feature")).toBeVisible();
 
   await page.getByPlaceholder(/feature name/i).fill(featureName);
   await page.getByPlaceholder(/description/i).fill(featureDescription);
-  await page.getByRole("button", { name: /^save$/i }).click();
+  await page.getByRole("button", { name: /^create (project|feature)$/i }).click();
 
   await expect(page.getByText(featureName, { exact: true })).toBeVisible();
   await page.locator("a[href*=\"/suites/\"]").first().click();
