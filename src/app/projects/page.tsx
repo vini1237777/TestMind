@@ -1,119 +1,135 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
-import { FiArrowUpRight, FiPlus } from "react-icons/fi";
+import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 import { Project } from "../types/testmind";
 import ProjectModal from "../components/ProjectModal";
 import CardSkeleton from "../components/CardSkeleton";
 import FailedTest from "../components/FailedTest";
-import { Page } from "../components/shell/AppShell";
-import { shortId, timeAgo } from "../components/ui";
-
-type LoadError = { status: number; message: string } | null;
 
 export default function ProjectsPage() {
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
   const [hasLoaded, setHasLoaded] = useState(false);
-  const [loadError, setLoadError] = useState<LoadError>(null);
+  const [loadFailed, setLoadFailed] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
-
-  const retry = useCallback(() => {
-    setHasLoaded(false);
-    setLoadError(null);
-    setAttempt((a) => a + 1);
-  }, []);
 
   useEffect(() => {
     let isMounted = true;
-    (async () => {
+
+    const loadProjects = async () => {
       try {
-        const res = await fetch("/api/projects", { cache: "no-store" });
-        if (!isMounted) return;
-        if (!res.ok) {
-          setLoadError({
-            status: res.status,
-            message: res.status === 429 ? "429 Too Many Requests (limit is 10 per minute)" : `${res.status} from /api/projects`,
-          });
+        const res = await fetch("/api/projects", {
+          cache: "no-store",
+        });
+
+        if (res.status === 429) {
+          toast.error("Too many requests. Please try again later.");
+          setLoadFailed("429 Too Many Requests (limit is 10 per minute)");
           return;
         }
+
+        if (!res.ok) {
+          toast.error("Failed to load projects.");
+          setLoadFailed(`${res.status} from /api/projects`);
+          return;
+        }
+
         const data = await res.json();
-        if (isMounted) setProjects(data.projects || []);
+        if (!isMounted) return;
+
+        setProjects(data.projects || []);
       } catch (error) {
         console.error(error);
-        if (isMounted) setLoadError({ status: 0, message: "Network error reaching /api/projects" });
+        toast.error("Something went wrong while loading projects.");
+        setLoadFailed("Network error reaching /api/projects");
       } finally {
-        if (isMounted) setHasLoaded(true);
+        if (!isMounted) return;
+        setHasLoaded(true);
       }
-    })();
+    };
+
+    loadProjects();
+
     return () => {
       isMounted = false;
     };
   }, [attempt]);
 
   return (
-    <Page>
-      <header className="mb-7 flex items-end justify-between gap-4">
-        <div>
-          <p className="eyebrow">engineering workspace</p>
-          <h1 className="font-display mt-1 text-[34px] font-extrabold leading-none">Projects</h1>
-          <p className="mt-2 text-[14px] text-muted">
-            {!hasLoaded ? "Loading workspace" : loadError ? "Could not load projects" : `${projects.length} active project${projects.length === 1 ? "" : "s"}. Select one to inspect its test suites.`}
-          </p>
+    <main className="max-w-full mx-4 px-4 py-8">
+      <header className="mb-6 flex items-center justify-between">
+        <div className="w-full">
+          <h1 className="text-2xl font-semibold">Projects</h1>
+          {!hasLoaded ? (
+            <span className="w-[92%]">
+              <Skeleton height={20} width={"50%"} />
+            </span>
+          ) : (
+            <p className="text-sm text-gray-500">
+              Select a project to view its AI-generated test suites.
+            </p>
+          )}
         </div>
-        <button className="btn btn-primary" onClick={() => setIsProjectModalOpen(true)}>
-          <FiPlus /> New project
+
+        <button
+          className="text-xs px-3 py-2 rounded bg-amber-500 text-white hover:bg-amber-300 dark:bg-gray-200 dark:text-black"
+          onClick={() => setIsProjectModalOpen(true)}
+        >
+          + New Project
         </button>
       </header>
 
       {!hasLoaded ? (
         <CardSkeleton />
-      ) : loadError ? (
+      ) : loadFailed ? (
         <FailedTest
           compact
-          code={loadError.status === 429 ? "TC_429" : "TC_503"}
-          title="Assertion failed: workspace projects should load"
-          expected="HTTP 200 OK with project collection"
-          received={loadError.message}
-          hint={
-            loadError.status === 429
-              ? "Rate limit quota exceeded (10 req/min/IP). This guardrail protects OpenAI token budgets and resets automatically within 60 seconds."
-              : "MongoDB or Upstash Redis timed out. Static routes remain online, so retry the request or explore the system architecture while connections recover."
-          }
-          onRetry={retry}
+          code="TC_503"
+          title="Projects should load"
+          expected="200 OK with a list of projects"
+          received={loadFailed}
+          hint="The database or cache did not answer in time. Everything else still works, so try again in a moment."
+          onRetry={() => {
+            setLoadFailed(null);
+            setHasLoaded(false);
+            setAttempt((a) => a + 1);
+          }}
         />
       ) : projects.length === 0 ? (
-        <div className="panel grid place-items-center px-6 py-16 text-center">
-          <p className="font-display text-[22px] font-extrabold">Your workspace is empty</p>
-          <p className="mt-1 text-[14px] text-muted">Initialize a project, define a feature spec, and generate your first verified test suite.</p>
-        </div>
+        <p className="text-sm text-gray-500">
+          No projects yet. Click{" "}
+          <span className="font-semibold">+ New Project</span> to create one.
+        </p>
       ) : (
-        <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
-          {projects.map((project, i) => (
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {projects?.map((project, i) => (
             <Link
-              key={project.id}
+              key={project?.id}
               href={`/projects/${project.id}`}
-              className="panel group flex flex-col p-5 animate-rise transition-transform hover:-translate-y-1 hover:-rotate-[0.6deg]"
-              style={{ animationDelay: `${Math.min(i, 12) * 45}ms` }}
+              className="tm-rise tm-lift border rounded p-4 hover:shadow-2xl text-sm dark:hover:shadow-md dark:hover:shadow-white"
+              style={{ animationDelay: `${Math.min(i, 12) * 50}ms` }}
             >
-              <div className="flex items-start justify-between gap-3">
-                <h2 className="text-[16px] font-bold leading-snug">{project.name}</h2>
-                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full border-[1.5px] border-fg transition-colors group-hover:bg-accent dark:border-line-strong">
-                  <FiArrowUpRight className="transition-transform group-hover:rotate-45" />
-                </span>
-              </div>
-              <p className="mt-1.5 line-clamp-2 min-h-[2.8em] text-[13.5px] leading-relaxed text-muted">{project.description || "No description provided"}</p>
-              <p className="mt-5 flex items-center justify-between border-t border-dashed border-line-strong pt-3 font-mono text-[11px] text-muted">
-                <span>{shortId(project.id)}</span>
-                <span title={new Date(project.createdAt).toLocaleString()}>{timeAgo(project.createdAt)}</span>
+              <h2 className="font-semibold mb-1">{project?.name}</h2>
+              <p className="text-xs text-gray-500 mb-2 line-clamp-2">
+                {project?.description}
+              </p>
+              <p className="text-[11px] text-gray-400">
+                Created: {new Date(project?.createdAt).toLocaleString()}
               </p>
             </Link>
           ))}
         </section>
       )}
 
-      <ProjectModal open={isProjectModalOpen} onClose={() => setIsProjectModalOpen(false)} onCreated={(p) => setProjects((prev) => [p, ...prev])} />
-    </Page>
+      <ProjectModal
+        open={isProjectModalOpen}
+        onClose={() => setIsProjectModalOpen(false)}
+        onCreated={(newProject) => setProjects((prev) => [newProject, ...prev])}
+      />
+    </main>
   );
 }

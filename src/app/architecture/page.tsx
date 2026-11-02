@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { NODE_INFO, WORKFLOWS } from "@/src/lib/ai/graph/topology";
-import { Page } from "@/src/app/components/shell/AppShell";
 
 export const metadata: Metadata = {
   title: "Architecture · TestMind",
@@ -11,7 +10,7 @@ const SRC = "https://github.com/vini1237777/TestMind/blob/main/";
 
 function Src({ path, children }: { path: string; children?: React.ReactNode }) {
   return (
-    <a href={SRC + path} target="_blank" rel="noreferrer" className="font-mono text-[11.5px] text-accent hover:underline">
+    <a href={SRC + path} target="_blank" rel="noreferrer" className="font-mono text-[11.5px] text-amber-600 dark:text-amber-400 hover:underline">
       {children ?? path}
     </a>
   );
@@ -19,9 +18,9 @@ function Src({ path, children }: { path: string; children?: React.ReactNode }) {
 
 function Box({ title, sub, tone = "default" }: { title: string; sub: string; tone?: "default" | "accent" }) {
   return (
-    <div className={`rounded-lg border px-3 py-2.5 bg-panel ${tone === "accent" ? "border-accent/50" : "border-line-strong"}`}>
+    <div className={`rounded-lg border px-3 py-2.5 bg-rounded-lg border bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900 ${tone === "accent" ? "border-amber-400" : "border-gray-300 dark:border-gray-600"}`}>
       <p className="text-[13px] font-medium">{title}</p>
-      <p className="font-mono text-[10.5px] text-faint">{sub}</p>
+      <p className="font-mono text-[10.5px] text-gray-400">{sub}</p>
     </div>
   );
 }
@@ -29,17 +28,17 @@ function Box({ title, sub, tone = "default" }: { title: string; sub: string; ton
 function Down({ label }: { label?: string }) {
   return (
     <div className="flex items-center gap-2 py-1 pl-6" aria-hidden>
-      <span className="h-5 w-px bg-line-strong" />
-      {label && <span className="font-mono text-[10.5px] text-faint">{label}</span>}
+      <span className="h-5 w-px bg-gray-200 dark:bg-gray-700-strong" />
+      {label && <span className="font-mono text-[10.5px] text-gray-400">{label}</span>}
     </div>
   );
 }
 
 function Section({ id, eyebrow, title, children }: { id: string; eyebrow: string; title: string; children: React.ReactNode }) {
   return (
-    <section id={id} className="scroll-mt-20 border-t border-line pt-10 mt-10">
-      <p className="eyebrow">{eyebrow}</p>
-      <h2 className="font-display mt-1 mb-5 text-[26px] font-extrabold">{title}</h2>
+    <section id={id} className="scroll-mt-20 border-t border-gray-200 dark:border-gray-700 pt-10 mt-10">
+      <p className="text-[11px] font-semibold uppercase tracking-widest text-amber-600 dark:text-amber-400">{eyebrow}</p>
+      <h2 className=" mt-1 mb-5 text-[26px] font-semibold">{title}</h2>
       {children}
     </section>
   );
@@ -63,11 +62,11 @@ const OPS = [
 
 export default function ArchitecturePage() {
   return (
-    <Page>
+    <main className="max-w-full mx-4 px-4 py-8">
     <article className="max-w-[980px]">
-      <p className="eyebrow">system design</p>
-      <h1 className="font-display mt-2 text-[38px] font-extrabold leading-[1.05] sm:text-[52px]">Inside the TestMind Engine</h1>
-      <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-muted">
+      <p className="text-[11px] font-semibold uppercase tracking-widest text-amber-600 dark:text-amber-400">system design</p>
+      <h1 className=" mt-2 text-[38px] font-semibold leading-[1.05] sm:text-[52px]">Inside the TestMind Engine</h1>
+      <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-gray-500 dark:text-gray-400">
         TestMind treats the LLM as a single untrusted step inside a strict, deterministic pipeline. Generation and auditing run as
         two isolated LangGraph workflows. Every model response is validated via Zod, normalized in plain TypeScript, and traced
         for token and latency telemetry.
@@ -75,12 +74,12 @@ export default function ArchitecturePage() {
 
       <nav className="mt-6 flex flex-wrap gap-2 text-[12.5px]" aria-label="On this page">
         {[["system", "System"], ["workflows", "Workflows"], ["guardrails", "LLM guardrails"], ["ops", "Performance & ops"], ["testing", "Testing"], ["next", "Tradeoffs"]].map(([id, l]) => (
-          <a key={id} href={`#${id}`} className="rounded-full border border-line px-3 py-1 text-muted hover:border-line-strong hover:text-fg">{l}</a>
+          <a key={id} href={`#${id}`} className="rounded-full border border-gray-200 dark:border-gray-700 px-3 py-1 text-gray-500 dark:text-gray-400 hover:border-amber-400 hover:text-black dark:hover:text-white">{l}</a>
         ))}
       </nav>
 
       <Section id="system" eyebrow="01 · topology" title="Request lifecycle">
-        <div className="panel grid gap-6 p-5 md:grid-cols-[1fr_1fr]">
+        <div className="rounded-lg border bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900 grid gap-6 p-5 md:grid-cols-[1fr_1fr]">
           <div>
             <Box title="Browser" sub="React 19 · App Router client components" />
             <Down label="fetch /api/*" />
@@ -96,7 +95,7 @@ export default function ArchitecturePage() {
             <Box title="MongoDB (Mongoose)" sub="projects · features · test suites" />
             <Box title="Upstash Redis" sub="distributed read cache · rate limiter state" />
             <Box title="Sentry" sub="client · server · edge telemetry" />
-            <p className="mt-2 text-[12.5px] leading-relaxed text-muted">
+            <p className="mt-2 text-[12.5px] leading-relaxed text-gray-500 dark:text-gray-400">
               Database writes occur strictly after the state graph completes without error, guaranteeing that a failed LLM call never persists corrupted or partial suite data.
             </p>
           </div>
@@ -104,30 +103,30 @@ export default function ArchitecturePage() {
       </Section>
 
       <Section id="workflows" eyebrow="02 · orchestration" title="Two graphs, four deterministic nodes">
-        <p className="mb-5 max-w-2xl text-[14px] text-muted">
+        <p className="mb-5 max-w-2xl text-[14px] text-gray-500 dark:text-gray-400">
           Graph definitions and UI visualizers share a single source of truth for node identifiers (<Src path="src/lib/ai/graph/topology.ts" />), preventing
           architectural drift. A telemetry wrapper instruments every node for execution timing and token consumption.
         </p>
         <div className="grid gap-4 md:grid-cols-2">
           {(Object.keys(WORKFLOWS) as (keyof typeof WORKFLOWS)[]).map((k) => (
-            <div key={k} className="panel p-4">
-              <p className="font-display text-[18px] font-extrabold">{WORKFLOWS[k].label}</p>
+            <div key={k} className="rounded-lg border bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900 p-4">
+              <p className=" text-[18px] font-semibold">{WORKFLOWS[k].label}</p>
               <ol className="mt-3 space-y-2">
                 {WORKFLOWS[k].nodes.map((n, i) => (
-                  <li key={n} className="rounded-lg border border-line bg-panel-2/50 p-3">
+                  <li key={n} className="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-[13px] font-medium"><span className="font-mono text-faint mr-2">{i + 1}</span>{NODE_INFO[n].label}</span>
-                      <span className={`font-mono text-[10.5px] ${NODE_INFO[n].kind === "llm" ? "text-accent" : "text-faint"}`}>{NODE_INFO[n].kind === "llm" ? "LLM" : "code"}</span>
+                      <span className="text-[13px] font-medium"><span className="font-mono text-gray-400 mr-2">{i + 1}</span>{NODE_INFO[n].label}</span>
+                      <span className={`font-mono text-[10.5px] ${NODE_INFO[n].kind === "llm" ? "text-amber-600 dark:text-amber-400" : "text-gray-400"}`}>{NODE_INFO[n].kind === "llm" ? "LLM" : "code"}</span>
                     </div>
-                    <p className="mt-1.5 text-[12.5px] leading-relaxed text-muted">{NODE_INFO[n].does}</p>
+                    <p className="mt-1.5 text-[12.5px] leading-relaxed text-gray-500 dark:text-gray-400">{NODE_INFO[n].does}</p>
                   </li>
                 ))}
               </ol>
             </div>
           ))}
         </div>
-        <p className="mt-4 text-[13px] text-muted">
-          <span className="text-fg font-medium">Why LangGraph over a linear chain:</span> early prototypes used a single LangChain call. Moving to a typed state machine enabled strict inter node
+        <p className="mt-4 text-[13px] text-gray-500 dark:text-gray-400">
+          <span className="text-gray-900 dark:text-white font-medium">Why LangGraph over a linear chain:</span> early prototypes used a single LangChain call. Moving to a typed state machine enabled strict inter node
           validation, decoupled the review loop from initial generation, and unlocked per node observability.
         </p>
       </Section>
@@ -135,9 +134,9 @@ export default function ArchitecturePage() {
       <Section id="guardrails" eyebrow="03 · resilience" title="Defensive LLM guardrails">
         <div className="grid gap-3 sm:grid-cols-2">
           {GUARDRAILS.map((g) => (
-            <div key={g.t} className="panel p-4">
+            <div key={g.t} className="rounded-lg border bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900 p-4">
               <p className="text-[14px] font-medium">{g.t}</p>
-              <p className="mt-1 text-[13px] leading-relaxed text-muted">{g.d}</p>
+              <p className="mt-1 text-[13px] leading-relaxed text-gray-500 dark:text-gray-400">{g.d}</p>
               <p className="mt-2"><Src path={g.src} /></p>
             </div>
           ))}
@@ -145,52 +144,52 @@ export default function ArchitecturePage() {
       </Section>
 
       <Section id="ops" eyebrow="04 · production ops" title="Performance and infrastructure">
-        <div className="panel divide-y divide-line">
+        <div className="rounded-lg border bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
           {OPS.map((o) => (
             <div key={o.t} className="grid gap-1 p-4 sm:grid-cols-[180px_1fr_auto] sm:gap-4 sm:items-baseline">
               <p className="text-[13.5px] font-medium">{o.t}</p>
-              <p className="text-[13px] leading-relaxed text-muted">{o.d}</p>
+              <p className="text-[13px] leading-relaxed text-gray-500 dark:text-gray-400">{o.d}</p>
               <Src path={o.src}>{o.src.split("/").pop()}</Src>
             </div>
           ))}
         </div>
-        <div className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-3">
+        <div className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-200 dark:bg-gray-700 sm:grid-cols-3">
           {[
             { v: "~40 → 420+", k: "cached API throughput (req/s)" },
             { v: "~2.5s → ~250ms", k: "API latency" },
             { v: "1.18 GB → 281 MB", k: "optimized Docker image footprint" },
           ].map((m) => (
-            <div key={m.k} className="bg-panel p-4">
-              <p className="font-mono text-[18px] font-semibold text-accent">{m.v}</p>
-              <p className="mt-1 text-[12px] text-muted">{m.k}</p>
+            <div key={m.k} className="bg-rounded-lg border bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900 p-4">
+              <p className="font-mono text-[18px] font-semibold text-amber-600 dark:text-amber-400">{m.v}</p>
+              <p className="mt-1 text-[12px] text-gray-500 dark:text-gray-400">{m.k}</p>
             </div>
           ))}
         </div>
-        <p className="mt-2 font-mono text-[11px] text-faint">Measured with autocannon load tests, as noted in the repository README.</p>
+        <p className="mt-2 font-mono text-[11px] text-gray-400">Measured with autocannon load tests, as noted in the repository README.</p>
       </Section>
 
       <Section id="testing" eyebrow="05 · verification" title="Deterministic end to end verification">
-        <p className="max-w-2xl text-[14px] leading-relaxed text-muted">
+        <p className="max-w-2xl text-[14px] leading-relaxed text-gray-500 dark:text-gray-400">
           Playwright tests execute the full user journey (create project → define feature → generate → audit → merge suggestion) while intercepting
           the three AI endpoints with deterministic fixtures. This keeps runs fast and free while injecting adversarial payloads (uppercase enums, a non array
-          <code className="mx-1 font-mono text-[12px] text-fg">suggestions</code>) to verify frontend resilience.
+          <code className="mx-1 font-mono text-[12px] text-gray-900 dark:text-white">suggestions</code>) to verify frontend resilience.
         </p>
         <p className="mt-2"><Src path="tests/e2e/testmind-complete-flow.spec.ts" /></p>
       </Section>
 
       <Section id="next" eyebrow="06 · roadmap" title="Architectural tradeoffs and next steps">
-        <ul className="space-y-2 text-[14px] text-muted">
+        <ul className="space-y-2 text-[14px] text-gray-500 dark:text-gray-400">
           {[
             ["Real time SSE node streaming", "Telemetry currently resolves upon full graph completion. Streaming LangGraph events over Server Sent Events would illuminate each node live during execution."],
             ["Automated prompt regression evals", "Running a golden dataset of specs against minimum coverage thresholds in CI would prevent prompt edits or model upgrades from silently degrading output quality."],
             ["Granular sliding window rate limits", "A single fixed window across /api/* keeps the proxy simple, but separating cheap cached reads from expensive LLM calls is the logical next step."],
             ["Multi tenant workspace isolation", "Projects currently share a global namespace for frictionless demo access. Scoping resources by authenticated user sessions is first in line."],
           ].map(([t, d]) => (
-            <li key={t} className="flex gap-3"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" /><span><span className="text-fg font-medium">{t}.</span> {d}</span></li>
+            <li key={t} className="flex gap-3"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" /><span><span className="text-gray-900 dark:text-white font-medium">{t}.</span> {d}</span></li>
           ))}
         </ul>
       </Section>
     </article>
-    </Page>
+    </main>
   );
 }
