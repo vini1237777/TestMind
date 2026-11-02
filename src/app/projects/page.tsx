@@ -7,8 +7,7 @@ import { Project } from "../types/testmind";
 import ProjectModal from "../components/ProjectModal";
 import CardSkeleton from "../components/CardSkeleton";
 import FailedTest from "../components/FailedTest";
-import Link from "next/link";
-import { timeAgo } from "../lib/format";
+import ProjectCard from "../components/ProjectCard";
 
 export default function ProjectsPage() {
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
@@ -196,42 +195,11 @@ export default function ProjectsPage() {
             <button className="underline text-amber-700" onClick={() => setQuery("")}>Clear search</button>
           </p>
         ) : (
-        <div className="overflow-hidden rounded-lg border">
-          <div className="hidden grid-cols-[minmax(0,1fr)_80px_80px_90px_120px] gap-4 border-b bg-gray-50 px-4 py-2 text-xs text-gray-500 md:grid dark:bg-gray-900">
-            <span>Project</span>
-            <span className="text-right">Suites</span>
-            <span className="text-right">Cases</span>
-            <span className="text-right">Score</span>
-            <span className="text-right">Last active</span>
-          </div>
-          <ul className="divide-y">
-            {visible.map((p, i) => {
-              const st = p.stats;
-              return (
-                <li key={p.id} className="tm-rise" style={{ animationDelay: `${Math.min(i, 12) * 30}ms` }}>
-                  <Link
-                    href={`/projects/${p.id}`}
-                    className="grid grid-cols-1 gap-1 px-4 py-3 text-sm transition-colors hover:bg-amber-50/60 md:grid-cols-[minmax(0,1fr)_80px_80px_90px_120px] md:items-center md:gap-4 dark:hover:bg-gray-900"
-                  >
-                    <span className="min-w-0">
-                      <span className="block truncate font-medium">{p.name}</span>
-                      <span className="block truncate text-xs text-gray-500">{p.description || "No description"}</span>
-                    </span>
-                    <span className="hidden text-right tabular-nums md:block">{st?.suites ?? 0}</span>
-                    <span className="hidden text-right tabular-nums md:block">{st?.cases ?? 0}</span>
-                    <span className={`hidden text-right tabular-nums md:block ${st?.avgScore == null ? "text-gray-400" : ""}`}>
-                      {st?.avgScore == null ? "None" : `${st.avgScore}/100`}
-                    </span>
-                    <span className="hidden text-right text-gray-500 md:block">{timeAgo(st?.lastActivity ?? p.createdAt)}</span>
-                    <span className="text-xs text-gray-500 md:hidden">
-                      {st?.suites ?? 0} suites, {st?.cases ?? 0} cases{st?.avgScore != null ? `, score ${st.avgScore}/100` : ""}
-                    </span>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
+        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {visible.map((project, i) => (
+            <ProjectCard key={project.id} project={project} index={i} />
+          ))}
+        </section>
         )}
         </>
       )}
