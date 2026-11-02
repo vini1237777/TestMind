@@ -63,7 +63,7 @@ export default function ProjectPageClient({
         </div>
       ) : (
         <div className="border border-amber-300 dark:border-amber-500/40">
-          <div className="hidden grid-cols-[minmax(0,1fr)_160px_80px_90px_120px] gap-4 bg-amber-300 px-4 py-2 text-xs font-semibold text-black md:grid dark:bg-amber-400">
+          <div className="hidden grid-cols-[minmax(0,1fr)_160px_80px_90px_120px] gap-4 bg-amber-300 px-4 py-2 text-xs font-semibold text-black md:grid">
             <span>Feature</span>
             <span>Case mix</span>
             <span className="text-right">Cases</span>
