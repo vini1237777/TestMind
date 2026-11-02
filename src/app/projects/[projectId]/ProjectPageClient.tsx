@@ -50,7 +50,7 @@ export default function ProjectPageClient({
             ["Avg review score", avgScore ?? "not reviewed"],
           ].map(([label, value]) => (
             <div key={label} className="bg-amber-50 px-4 py-3 dark:bg-gray-900">
-              <dt className="text-[11px] uppercase tracking-wide text-gray-500">{label}</dt>
+              <dt className="text-xs text-gray-500">{label}</dt>
               <dd className={`font-semibold ${typeof value === "number" ? "text-xl" : "text-xs leading-7 text-gray-400"}`}>{value}</dd>
             </div>
           ))}

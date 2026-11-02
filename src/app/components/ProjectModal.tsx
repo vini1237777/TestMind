@@ -58,7 +58,6 @@ export default function ProjectModal({
       onClose={onClose}
       busy={isSaving}
       onSubmit={name ? handleSave : undefined}
-      icon="📁"
       title="Create project"
       subtitle="A project groups related features, like an app or a service."
       footer={
