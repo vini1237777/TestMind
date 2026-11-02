@@ -1,6 +1,7 @@
 import { SuitePageProps } from "@/src/app/types/testmind";
 import SuiteClient from "./SuiteClient";
 import { getSuiteById } from "@/src/app/actions/suites";
+import { getProjectById } from "@/src/app/actions/projects";
 
 export const revalidate = 60;
 
@@ -12,6 +13,8 @@ export default async function SuitePage({ params }: SuitePageProps) {
   if (!doc) {
     return <p>Suite not found</p>;
   }
+
+  const project = await getProjectById(String(doc.projectId)).catch(() => null);
 
   const suite = {
     id: doc.id.toString(),
@@ -31,8 +34,8 @@ export default async function SuitePage({ params }: SuitePageProps) {
   };
 
   return (
-    <main className="max-w-full mx-auto px-4 py-8">
-      <SuiteClient feature={suite} />
+    <main className="max-w-full mx-4 px-4 py-8">
+      <SuiteClient feature={suite} projectName={project?.name ?? "Project"} />
     </main>
   );
 }

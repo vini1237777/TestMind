@@ -42,8 +42,8 @@ export default function Intro() {
           </p>
           <div className="tm-rise mt-5 flex flex-wrap items-center gap-3" style={{ animationDelay: "650ms" }}>
             <TryNow />
-            <Link href="/architecture" className="tm-press rounded border px-3 py-2 text-xs hover:bg-amber-50 dark:border-gray-700 dark:hover:bg-gray-800">
-              Architecture notes
+            <Link href="/tech" className="tm-press rounded border px-3 py-2 text-xs hover:bg-amber-50 dark:border-gray-700 dark:hover:bg-gray-800">
+              Tech stack and model
             </Link>
           </div>
           <p className="tm-fade mt-3 text-[11px] text-gray-500" style={{ animationDelay: "800ms" }}>

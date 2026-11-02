@@ -44,3 +44,43 @@ export function download(filename: string, content: string, type: string) {
 }
 
 export const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "suite";
+
+const caseType = (t: unknown) => String(t || "").toLowerCase();
+
+/** One test case as Markdown, for pasting into a ticket or a PR. */
+export function caseToMarkdown(tc: TestSuite["testCases"][number]): string {
+  const out = [`### ${tc.id}: ${tc.title}`, ``, `**Type:** ${caseType(tc.type)}`, ``, `**Steps**`];
+  tc.steps.forEach((s, i) => out.push(`${i + 1}. ${s}`));
+  out.push(``, `**Expected:** ${tc.expected}`);
+  if (tc.samplePayload && Object.keys(tc.samplePayload).length) {
+    out.push(``, "```json", JSON.stringify(tc.samplePayload, null, 2), "```");
+  }
+  return out.join("\n");
+}
+
+/** The whole suite as a Markdown test plan. */
+export function toMarkdown(suite: TestSuite): string {
+  const head = [`# ${suite.featureName}`, ``, suite.description, ``, `${suite.testCases.length} test cases`, ``];
+  return head.join("\n") + suite.testCases.map(caseToMarkdown).join("\n\n---\n\n") + "\n";
+}
+
+const csvCell = (v: string) => `"${v.replace(/"/g, '""')}"`;
+
+/** The suite as CSV, one row per case, ready for a spreadsheet or a test management import. */
+export function toCsv(suite: TestSuite): string {
+  const rows = [["ID", "Type", "Title", "Steps", "Expected"]];
+  for (const tc of suite.testCases) {
+    rows.push([tc.id, caseType(tc.type), tc.title, tc.steps.map((s, i) => `${i + 1}. ${s}`).join("\n"), tc.expected]);
+  }
+  return rows.map((r) => r.map(csvCell).join(",")).join("\r\n") + "\r\n";
+}
+
+/** Counts per case type, case insensitive. */
+export function typeCounts(cases: { type: unknown }[]) {
+  const c = { happy: 0, negative: 0, edge: 0 };
+  for (const tc of cases) {
+    const t = caseType(tc.type);
+    if (t === "happy" || t === "negative" || t === "edge") c[t]++;
+  }
+  return c;
+}
