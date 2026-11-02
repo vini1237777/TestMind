@@ -114,7 +114,7 @@ test("user can create project, add feature, and generate test cases", async ({
     });
   });
 
-  await page.goto("/");
+  await page.goto("/projects");
 
   await expect(page.getByRole("heading", { name: /projects/i })).toBeVisible();
 
