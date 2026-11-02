@@ -1,6 +1,7 @@
 import Link from "next/link";
 import DemoRun from "./DemoRun";
 import Reveal from "./Reveal";
+import TryNow from "./TryNow";
 
 const STEPS = [
   { title: "Describe", text: "Write what the feature should do, in plain words." },
@@ -23,7 +24,7 @@ function Words({ text, start = 0 }: { text: string; start?: number }) {
 
 export default function Intro() {
   return (
-    <div className="mx-4 px-4">
+    <div id="landing" className="mx-4 px-4">
       {/* What it is, next to a replay of one run */}
       <section className="grid grid-cols-1 items-center gap-10 py-10 lg:grid-cols-[1fr_minmax(0,500px)]">
         <div>
@@ -40,18 +41,13 @@ export default function Intro() {
             dedicated tester.
           </p>
           <div className="tm-rise mt-5 flex flex-wrap items-center gap-3" style={{ animationDelay: "650ms" }}>
-            <a
-              href="#workspace"
-              className="tm-press rounded bg-amber-500 px-3 py-2 text-xs text-white hover:bg-amber-600 dark:bg-gray-200 dark:text-black"
-            >
-              Try it below
-            </a>
+            <TryNow />
             <Link href="/architecture" className="tm-press rounded border px-3 py-2 text-xs hover:bg-amber-50 dark:border-gray-700 dark:hover:bg-gray-800">
               Architecture notes
             </Link>
           </div>
           <p className="tm-fade mt-3 text-[11px] text-gray-500" style={{ animationDelay: "800ms" }}>
-            The panel on the right replays a recorded run. The workspace below calls the model for real.
+            The panel on the right replays a recorded run. The workspace calls the model for real.
           </p>
         </div>
 
