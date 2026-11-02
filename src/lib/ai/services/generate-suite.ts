@@ -4,6 +4,7 @@ import { buildGenerateTestsPrompt } from "@/src/lib/ai/prompts/generate-tests";
 import { GenerateSuiteResponseSchema } from "@/src/lib/ai/schemas/test-case";
 import { createRunLogger } from "@/src/lib/ai/utils/logger";
 import { parseJson } from "@/src/lib/ai/utils/parse-json";
+import type { LlmUsage } from "@/src/lib/ai/llm/openai";
 
 type GenerateSuiteInput = {
   featureName: string;
@@ -17,7 +18,7 @@ export async function generateSuiteService({
   description,
   lastFeedbackSummary,
   lastFeedbackScore,
-}: GenerateSuiteInput): Promise<TestCase[]> {
+}: GenerateSuiteInput): Promise<{ testCases: TestCase[]; usage: LlmUsage }> {
   const logger = createRunLogger("generate-suite");
   logger.start("Generating test suite", { featureName });
 
@@ -45,8 +46,17 @@ export async function generateSuiteService({
     count: validated.testCases.length,
   });
 
-  return validated.testCases.map((testCase) => ({
-    ...testCase,
-    samplePayload: testCase.samplePayload ?? {},
-  }));
+  const usage = {
+    model: completion.model,
+    promptTokens: completion.usage?.prompt_tokens,
+    completionTokens: completion.usage?.completion_tokens,
+  };
+
+  return {
+    testCases: validated.testCases.map((testCase) => ({
+      ...testCase,
+      samplePayload: testCase.samplePayload ?? {},
+    })),
+    usage,
+  };
 }

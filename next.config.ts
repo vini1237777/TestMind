@@ -3,6 +3,8 @@ import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  // Pin the workspace root so a stray lockfile higher up can't widen the build scope.
+  turbopack: { root: __dirname },
 };
 
 export default withSentryConfig(nextConfig, {

@@ -114,7 +114,7 @@ test("user can create project, add feature, and generate test cases", async ({
     });
   });
 
-  await page.goto("/");
+  await page.goto("/projects");
 
   await expect(page.getByRole("heading", { name: /projects/i })).toBeVisible();
 
@@ -130,13 +130,11 @@ test("user can create project, add feature, and generate test cases", async ({
 
   await expect(page.getByText(projectName)).toBeVisible();
 
-  await page
-    .getByRole("button", { name: "+ New Feature / Test Suite" })
-    .click();
+  await page.getByRole("button", { name: /new feature/i }).click();
   await expect(page.getByText("Create New Feature / Suite")).toBeVisible();
 
   await page.getByPlaceholder(/feature name/i).fill(featureName);
-  await page.getByPlaceholder(/description/i).fill(featureDescription);
+  await page.getByLabel(/spec/i).fill(featureDescription);
   await page.getByRole("button", { name: /^save$/i }).click();
 
   await expect(page.getByText(featureName, { exact: true })).toBeVisible();
