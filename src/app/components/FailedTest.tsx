@@ -51,7 +51,6 @@ export default function FailedTest({ code, title, expected, received, hint, dige
             {!compact && (
               <>
                 <Link href="/projects" className="rounded border px-3 py-2 text-xs hover:bg-gray-50 dark:hover:bg-gray-800">Back to workspace</Link>
-                <Link href="/tech" className="rounded px-3 py-2 text-xs underline text-amber-700 dark:text-amber-400">How TestMind is built</Link>
               </>
             )}
           </div>
