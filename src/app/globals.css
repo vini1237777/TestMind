@@ -34,6 +34,13 @@
 .tm-lift { transition: transform .2s ease, box-shadow .2s ease; }
 .tm-lift:hover { transform: translateY(-3px); }
 
+/* Tailwind 4 compat: v4 made the default border colour currentColor (black).
+   The app was designed with v3's soft grey, so restore it. */
+@layer base {
+  *, ::after, ::before, ::backdrop, ::file-selector-button { border-color: var(--color-gray-200, currentColor); }
+  .dark *, .dark ::after, .dark ::before { border-color: var(--color-gray-700, currentColor); }
+}
+
 /* Typing caret in the demo */
 @keyframes tm-blink { 50% { opacity: 0; } }
 .tm-caret { display: inline-block; width: 2px; height: 1em; margin-left: 1px; vertical-align: -2px; background: #f59e0b; animation: tm-blink 1s steps(1) infinite; }

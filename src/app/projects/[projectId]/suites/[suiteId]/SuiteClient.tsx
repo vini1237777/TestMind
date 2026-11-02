@@ -10,7 +10,10 @@ import ScoreBadge from "@/src/app/components/ScoreBadge";
 import Skeleton from "react-loading-skeleton";
 import PipelineTrace, { type RunStatus } from "@/src/app/components/PipelineTrace";
 import type { RunTrace } from "@/src/lib/ai/graph/topology";
-import { download, slug, toPlaywrightSpec } from "@/src/app/lib/export-playwright";
+import { caseToMarkdown, download, slug, toCsv, toMarkdown, toPlaywrightSpec, typeCounts } from "@/src/app/lib/export-playwright";
+import Breadcrumbs from "@/src/app/components/Breadcrumbs";
+import TypeBar from "@/src/app/components/TypeBar";
+import { timeAgo } from "@/src/app/lib/format";
 
 const tabs = [
   { label: "All", value: "all" },
@@ -21,9 +24,16 @@ const tabs = [
 
 type SuiteCaseProps = {
   feature: Feature;
+  projectName?: string;
 };
 
-export default function SuiteCase({ feature }: SuiteCaseProps) {
+const TYPE_BADGE: Record<string, string> = {
+  happy: "border-green-200 bg-green-50 text-green-700 dark:border-green-900 dark:bg-green-950/40 dark:text-green-400",
+  negative: "border-red-200 bg-red-50 text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-400",
+  edge: "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-400",
+};
+
+export default function SuiteCase({ feature, projectName = "Project" }: SuiteCaseProps) {
   const router = useRouter();
 
   const [name, setName] = useState(feature.name);
@@ -38,7 +48,16 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
   const [filterType, setFilterType] = useState<
     "all" | "happy" | "negative" | "edge"
   >("all");
-  const [expandedCaseId, setExpandedCaseId] = useState<string | null>(null);
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [caseQuery, setCaseQuery] = useState("");
+  const [exportOpen, setExportOpen] = useState(false);
+  const toggleCase = (id: string) =>
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   const [error, setError] = useState<string | null>(null);
   const [isDirty, setIsDirty] = useState(false);
 
@@ -60,9 +79,6 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
   const [reviewStatus, setReviewStatus] = useState<RunStatus>("idle");
   const [reviewTrace, setReviewTrace] = useState<RunTrace | null>(null);
 
-  const handleBack = () => {
-    router.push(`/projects/${feature.projectId}`);
-  };
 
   const handleFeedbackReview = async () => {
     if (!selectedSuite || !selectedSuite.testCases.length) {
@@ -256,7 +272,7 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
       });
 
       setSelectedSuiteId(suiteId);
-      setExpandedCaseId(null);
+      setExpandedIds(new Set());
       setFilterType("all");
       setIsDirty(false);
     } catch (err) {
@@ -325,9 +341,11 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
   const selectedSuite =
     testSuites.find((s) => s.id === selectedSuiteId) || null;
 
+  const cq = caseQuery.trim().toLowerCase();
   const filteredCases =
     selectedSuite?.testCases.filter((tc) =>
-      filterType === "all" ? true : String(tc.type).toLowerCase() === filterType
+      (filterType === "all" ? true : String(tc.type).toLowerCase() === filterType) &&
+      (!cq || `${tc.id} ${tc.title} ${tc.expected} ${tc.steps.join(" ")}`.toLowerCase().includes(cq))
     ) ?? [];
 
   const handleDownloadSuite = (suite: TestSuite) => {
@@ -348,18 +366,24 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
 
   return (
     <div className="min-h-screen">
-      <button onClick={handleBack} className="text-sm cursor-pointer">
-        ← Back to Feature
-      </button>
-      <main className="max-w-full mx-auto px-4 py-8 w-full">
-        <section className="border border-gray-200 bg-white shadow-sm rounded p-4 mb-8 space-y-4  dark:bg-gray-900">
+      <Breadcrumbs
+        items={[
+          { label: "Projects", href: "/projects" },
+          { label: projectName, href: `/projects/${feature.projectId}` },
+          { label: feature.name },
+        ]}
+      />
+      <main className="w-full">
+        <section className="mb-8 space-y-4 rounded-lg border bg-white p-5 shadow-sm dark:bg-gray-900">
           <div>
-            <p className="text-[11px] uppercase text-gray-500 dark:text-white">
-              Feature
-            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-[11px] uppercase tracking-wide text-gray-500">Feature</p>
+              {isDirty && <span className="tm-fade rounded-full bg-amber-100 px-2 py-0.5 text-[10px] text-amber-800">Unsaved changes</span>}
+            </div>
             <input
               type="text"
-              className="text-sm w-full mt-1 p-2 border rounded focus:ring-2 focus:ring-amber-500"
+              aria-label="Feature name"
+              className="mt-1 w-full rounded border border-transparent px-2 py-1 -mx-2 text-xl font-semibold hover:border-gray-200 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500/30 dark:bg-transparent"
               value={name}
               onChange={(e) => {
                 setName(e.target.value);
@@ -369,11 +393,11 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
           </div>
 
           <div>
-            <label className="text-xs font-medium text-gray-700 dark:text-white">
-              Description
+            <label className="text-[11px] uppercase tracking-wide text-gray-500">
+              What should this feature do?
             </label>
             <textarea
-              className="text-sm w-full p-2 border rounded focus:ring-2 focus:ring-amber-500 min-h-20"
+              className="mt-1 min-h-24 w-full rounded border p-3 text-sm leading-relaxed focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500/30 dark:bg-gray-950"
               value={description}
               onChange={(e) => {
                 setDescription(e.target.value);
@@ -382,16 +406,7 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
             />
           </div>
 
-          <div className="flex gap-3">
-            <button
-              onClick={handleSaveFeature}
-              disabled={isSavingFeature || !hasChanges || !name.trim()}
-              className="bg-amber-500 text-white text-xs px-3 rounded
-                hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSavingFeature ? "Saving..." : "Save Feature"}
-            </button>
-
+          <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={handleGenerate}
               disabled={
@@ -400,28 +415,34 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
                 !name.trim() ||
                 !description.trim()
               }
-              className="bg-amber-500 text-white text-xs px-3 rounded
-                hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              title={!isFirstGeneration && !isDirty ? "Edit the description to generate a new version" : undefined}
+              className="tm-press inline-flex items-center gap-2 rounded bg-amber-500 px-4 py-2 text-xs font-medium text-white shadow-sm hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
             >
+              {isGenerating && <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/40 border-t-white" />}
               {isGenerating ? "Generating..." : "Generate Test Cases"}
             </button>
-            <div className="flex gap-3 mt-2">
-              <button
-                onClick={handleFeedbackReview}
-                disabled={
-                  isReviewing ||
-                  !selectedSuite ||
-                  !selectedSuite.testCases.length
-                }
-                className="bg-gray-800 text-white text-xs px-3 py-2 rounded
-                hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed mb-0.5"
-              >
-                {isReviewing ? "Reviewing..." : "Run AI Feedback Review"}
-              </button>
-            </div>
+            <button
+              onClick={handleFeedbackReview}
+              disabled={
+                isReviewing ||
+                !selectedSuite ||
+                !selectedSuite.testCases.length
+              }
+              className="tm-press inline-flex items-center gap-2 rounded bg-gray-900 px-4 py-2 text-xs font-medium text-white shadow-sm hover:bg-black disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-200 dark:text-black"
+            >
+              {isReviewing && <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/40 border-t-white" />}
+              {isReviewing ? "Reviewing..." : "Run AI Feedback Review"}
+            </button>
+            <button
+              onClick={handleSaveFeature}
+              disabled={isSavingFeature || !hasChanges || !name.trim()}
+              className="tm-press rounded border px-4 py-2 text-xs font-medium hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-gray-800"
+            >
+              {isSavingFeature ? "Saving..." : "Save Feature"}
+            </button>
 
             {feedbackError && (
-              <p className="text-xs text-red-600 mt-1">{feedbackError}</p>
+              <p className="text-xs text-red-600">{feedbackError}</p>
             )}
             {error && <p className="text-xs text-red-600">{error}</p>}
           </div>
@@ -552,9 +573,12 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
             )}
         </section>
 
-        <div className="flex gap-6  dark:bg-dark">
-          <aside className="w-1/3 border-r pr-4">
-            <h2 className="font-semibold text-sm mb-3">Test Suites</h2>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+          <aside className="lg:border-r lg:pr-6">
+            <h2 className="mb-3 flex items-center justify-between text-sm font-semibold">
+              Test Suites
+              <span className="text-[11px] font-normal text-gray-500">{testSuites.length} {testSuites.length === 1 ? "version" : "versions"}</span>
+            </h2>
 
             {testSuites.length === 0 ? (
               hasLoaded ? (
@@ -574,24 +598,31 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
                     key={suite.id}
                     onClick={() => {
                       setSelectedSuiteId(suite.id);
-                      setExpandedCaseId(null);
+                      setExpandedIds(new Set());
                       setFilterType("all");
                     }}
-                    className={`p-2 border rounded cursor-pointer text-xs  dark:bg-gray-900  ${
+                    className={`cursor-pointer rounded-lg border border-l-4 p-3 text-xs transition-colors dark:bg-gray-900 ${
                       suite.id === selectedSuiteId
-                        ? "bg-amber-50 border-amber-200 dark:border-white"
-                        : "hover:bg-gray-50"
+                        ? "border-amber-200 border-l-amber-500 bg-amber-50 dark:border-gray-700 dark:border-l-amber-500"
+                        : "border-l-transparent hover:bg-gray-50 dark:hover:bg-gray-800"
                     }`}
                   >
-                    <div className="font-medium">{suite.name}</div>
-                    <div className="text-[10px] text-gray-500">
-                      {new Date(suite?.createdAt).toLocaleString()}
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="line-clamp-2 font-medium">{suite.name}</span>
+                      {suite?.lastFeedbackScore != null && (
+                        <span title="AI review score" className={`shrink-0 rounded-full border px-1.5 py-0.5 text-[10px] font-semibold ${
+                          suite.lastFeedbackScore >= 80 ? "border-green-200 bg-green-50 text-green-700" : suite.lastFeedbackScore >= 60 ? "border-amber-200 bg-amber-50 text-amber-700" : "border-red-200 bg-red-50 text-red-700"
+                        }`}>
+                          {suite.lastFeedbackScore}
+                        </span>
+                      )}
                     </div>
-                    {suite?.lastFeedbackScore != null && (
-                      <div className="text-[10px] text-emerald-700 mt-1">
-                        AI Score: {suite.lastFeedbackScore}/100
-                      </div>
-                    )}
+                    <div className="mt-2">
+                      <TypeBar cases={suite.testCases ?? []} />
+                    </div>
+                    <div className="mt-1.5 text-[10px] text-gray-500">
+                      {suite.testCases?.length ?? 0} cases, {timeAgo(suite.createdAt)}
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -599,7 +630,7 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
           </aside>
 
           {hasLoaded ? (
-            <section className="w-2/3 pl-4">
+            <section className="min-w-0">
               {!selectedSuite ? (
                 <p className="text-sm text-gray-500">Select a suite.</p>
               ) : (
@@ -626,24 +657,71 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
                       )}
                     </div>
 
-                    <div className="flex gap-2">
+                    <div className="relative">
                       <button
-                        onClick={() => handleDownloadSuite(selectedSuite)}
-                        className="text-xs px-3 py-1 border rounded hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
-                      >
-                        Download JSON
-                      </button>
-                      <button
-                        onClick={() =>
-                          download(`${slug(selectedSuite.name)}.spec.ts`, toPlaywrightSpec(selectedSuite), "text/typescript")
-                        }
+                        onClick={() => setExportOpen((o) => !o)}
                         disabled={!selectedSuite.testCases.length}
-                        className="text-xs px-3 py-1 border rounded hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors disabled:opacity-50"
+                        aria-haspopup="menu"
+                        aria-expanded={exportOpen}
+                        className="text-xs px-3 py-1.5 border rounded hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors disabled:opacity-50"
                       >
-                        Export Playwright
+                        Export ▾
                       </button>
+                      {exportOpen && (
+                        <>
+                          <div className="fixed inset-0 z-10" onClick={() => setExportOpen(false)} />
+                          <div role="menu" className="tm-slide absolute right-0 z-20 mt-1 w-56 overflow-hidden rounded border bg-white text-xs shadow-lg dark:border-gray-700 dark:bg-gray-900">
+                            {[
+                              { label: "JSON", hint: "raw suite data", run: () => handleDownloadSuite(selectedSuite) },
+                              { label: "Playwright spec", hint: "one test per case", run: () => download(`${slug(selectedSuite.name)}.spec.ts`, toPlaywrightSpec(selectedSuite), "text/typescript") },
+                              { label: "CSV", hint: "for sheets or a test tool import", run: () => download(`${slug(selectedSuite.name)}.csv`, toCsv(selectedSuite), "text/csv") },
+                              { label: "Markdown", hint: "for a ticket or PR", run: () => download(`${slug(selectedSuite.name)}.md`, toMarkdown(selectedSuite), "text/markdown") },
+                            ].map((o) => (
+                              <button
+                                key={o.label}
+                                role="menuitem"
+                                onClick={() => {
+                                  o.run();
+                                  setExportOpen(false);
+                                }}
+                                className="flex w-full items-center justify-between px-3 py-2 text-left hover:bg-amber-50 dark:hover:bg-gray-800"
+                              >
+                                <span className="font-medium">{o.label}</span>
+                                <span className="text-[10px] text-gray-400">{o.hint}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
+
+                  {(() => {
+                    const c = typeCounts(selectedSuite.testCases);
+                    const score = feedback?.score ?? selectedSuite.lastFeedbackScore;
+                    return (
+                      <div className="mb-4 rounded border p-3 dark:border-gray-700">
+                        <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2 text-xs">
+                          <span>
+                            <span className="text-base font-semibold">{selectedSuite.testCases.length}</span> test cases
+                          </span>
+                          <span className="text-gray-500">
+                            {typeof score === "number" ? (
+                              <>
+                                Last review <span className="font-semibold text-gray-900 dark:text-white">{score}/100</span>
+                              </>
+                            ) : (
+                              "Not reviewed yet"
+                            )}
+                          </span>
+                        </div>
+                        <TypeBar cases={selectedSuite.testCases} showLegend />
+                        {c.negative + c.edge === 0 && selectedSuite.testCases.length > 0 && (
+                          <p className="mt-2 text-[11px] text-amber-700">Only happy paths so far. Run a review to find negative and edge cases.</p>
+                        )}
+                      </div>
+                    );
+                  })()}
 
                   <div className="flex flex-wrap gap-2 mb-4">
                     {tabs.map((tab) => (
@@ -661,40 +739,52 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
                         }`}
                       >
                         {tab.label}
+                        <span className="ml-1 opacity-70">
+                          {tab.value === "all" ? selectedSuite.testCases.length : typeCounts(selectedSuite.testCases)[tab.value as "happy" | "negative" | "edge"]}
+                        </span>
                       </button>
                     ))}
+                    <input
+                      type="search"
+                      value={caseQuery}
+                      onChange={(e) => setCaseQuery(e.target.value)}
+                      placeholder="Search cases"
+                      aria-label="Search test cases"
+                      className="ml-auto w-40 rounded border px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500 dark:border-gray-700 dark:bg-gray-900"
+                    />
+                    <button
+                      onClick={() =>
+                        setExpandedIds(expandedIds.size >= filteredCases.length ? new Set() : new Set(filteredCases.map((t) => t.id)))
+                      }
+                      className="text-xs px-2 py-1 border rounded hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
+                    >
+                      {expandedIds.size >= filteredCases.length && filteredCases.length > 0 ? "Collapse all" : "Expand all"}
+                    </button>
                   </div>
 
                   {filteredCases.map((tc, i) => {
-                    const expanded = expandedCaseId === tc.id;
+                    const expanded = expandedIds.has(tc.id);
+                    const type = String(tc.type).toLowerCase();
 
                     return (
                       <div
                         key={tc.id}
-                        className="tm-rise border rounded p-3 mb-4 shadow-sm text-sm transition-shadow dark:bg-gray-900 hover:shadow-2xl dark:hover:shadow-md dark:hover:shadow-white"
+                        className="tm-rise border rounded mb-3 text-sm transition-shadow hover:shadow-md dark:border-gray-700 dark:bg-gray-900"
                         style={{ animationDelay: `${Math.min(i, 10) * 50}ms` }}
                       >
-                        <div className="flex justify-between">
-                          <span className="font-mono text-xs">{tc.id}</span>
-                          <span className="uppercase text-xs text-gray-500">
-                            {tc.type}
-                          </span>
-                        </div>
-
                         <button
-                          onClick={() =>
-                            setExpandedCaseId(expanded ? null : tc.id)
-                          }
-                          className="text-[11px] mt-2 border px-2 py-1 rounded hover:bg-gray-50 dark:hover:text-black"
+                          onClick={() => toggleCase(tc.id)}
+                          aria-expanded={expanded}
+                          className="flex w-full items-center gap-3 p-3 text-left"
                         >
-                          {expanded ? "Hide" : "View"} details
+                          <span title={tc.id} className="w-14 shrink-0 truncate font-mono text-xs text-gray-500">{tc.id}</span>
+                          <span className="min-w-0 flex-1 font-medium">{tc.title}</span>
+                          <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] uppercase ${TYPE_BADGE[type] ?? "text-gray-500"}`}>{type}</span>
+                          <span className={`shrink-0 text-gray-400 transition-transform ${expanded ? "rotate-180" : ""}`} aria-hidden>▾</span>
                         </button>
 
                         {expanded && (
-                          <div className="tm-slide">
-                            <h3 className="font-semibold mt-2 mb-1">
-                              {tc.title}
-                            </h3>
+                          <div className="tm-slide border-t px-3 pb-3 pt-2 dark:border-gray-700">
 
                             <p className="font-semibold text-xs">Steps:</p>
                             <ol className="list-decimal list-inside text-gray-700 dark:text-white">
@@ -735,6 +825,16 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
                                 </button>
                               </div>
                             )}
+                            <button
+                              onClick={() =>
+                                navigator.clipboard
+                                  .writeText(caseToMarkdown(tc))
+                                  .then(() => toast.success(`${tc.id} copied as Markdown`))
+                              }
+                              className="mt-3 text-[11px] border rounded px-2 py-1 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
+                            >
+                              Copy as Markdown
+                            </button>
                           </div>
                         )}
                       </div>
@@ -743,14 +843,14 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
 
                   {filteredCases.length === 0 && (
                     <p className="text-xs text-gray-500">
-                      No {filterType} test cases in this suite.
+                      {cq ? `No test cases match "${caseQuery}".` : `No ${filterType} test cases in this suite.`}
                     </p>
                   )}
                 </>
               )}
             </section>
           ) : (
-            <section className="w-2/3 pl-4">
+            <section className="min-w-0">
               <div className="flex flex-col w-full gap-2">
                 <div className="flex">
                   <div className="w-[80%]">
