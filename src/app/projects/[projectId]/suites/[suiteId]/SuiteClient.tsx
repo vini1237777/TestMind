@@ -57,6 +57,8 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
   const [isDirty, setIsDirty] = useState(false);
 
   const [isReviewing, setIsReviewing] = useState(false);
+  // Cases accepted since the last score; the score is stale until a new review runs.
+  const [addedSinceReview, setAddedSinceReview] = useState(0);
   const [feedback, setFeedback] = useState<FeedbackResult | null>(null);
   const [feedbackError, setFeedbackError] = useState<string | null>(null);
 
@@ -83,6 +85,7 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
 
     setFeedbackError(null);
     setIsReviewing(true);
+    setAddedSinceReview(0);
     setReviewTrace(null);
     setReviewStatus("running");
 
@@ -300,6 +303,7 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
       }
 
       toast.success("Case added");
+      setAddedSinceReview((n) => n + 1);
 
       setTestSuites((prev) =>
         prev.map((suite) =>
@@ -343,6 +347,7 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
         return;
       }
       toast.success(`${all.length} ${all.length === 1 ? "case" : "cases"} added`);
+      setAddedSinceReview((n) => n + all.length);
       setTestSuites((prev) => prev.map((x) => (x.id === selectedSuiteId ? { ...x, testCases: [...(x.testCases || []), ...all] } : x)));
       setFeedback((prev) => (prev ? { ...prev, suggestedTestCases: [] } : prev));
     } catch (err) {
@@ -378,6 +383,13 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
     a.click();
     URL.revokeObjectURL(url);
   };
+
+  // Once every suggestion is accepted or rejected, score the updated suite again.
+  const suggestionsLeft = feedback?.suggestedTestCases.length ?? 0;
+  useEffect(() => {
+    if (addedSinceReview > 0 && suggestionsLeft === 0 && !isReviewing) handleFeedbackReview();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [addedSinceReview, suggestionsLeft, isReviewing]);
 
   const isFirstGeneration =
     !selectedSuite || (selectedSuite.testCases?.length ?? 0) === 0;
@@ -708,6 +720,17 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
                 </>
               ) : (
                 <>
+                  {addedSinceReview > 0 && (
+                    <div className="tm-slide mb-3 flex items-start justify-between gap-3 border border-amber-300 bg-amber-50 p-2.5 text-xs dark:border-amber-500/40 dark:bg-amber-500/10">
+                      <span>
+                        This score is from before you added {addedSinceReview} {addedSinceReview === 1 ? "case" : "cases"}.
+                        {suggestionsLeft > 0 && " It updates on its own once you accept or reject the rest."}
+                      </span>
+                      <button onClick={handleFeedbackReview} className="shrink-0 font-medium text-amber-700 hover:underline dark:text-amber-400">
+                        Update score
+                      </button>
+                    </div>
+                  )}
                   <p className="font-semibold leading-snug">{verdict(reviewScore)}</p>
                   {reviewSummary && (
                     <details className="group mt-1">
