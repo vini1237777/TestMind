@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { feedback, improvedTestCases } = await runReviewWorkflow({
+    const { feedback, improvedTestCases, trace } = await runReviewWorkflow({
       featureName: feature,
       description: desc,
       projectId,
@@ -56,6 +56,7 @@ export async function POST(req: NextRequest) {
         ...feedback,
         improvedTestCases,
         workflow: "langgraph_review",
+        trace,
       },
       { status: 200 }
     );

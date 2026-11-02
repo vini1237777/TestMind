@@ -1,5 +1,7 @@
 import { SuitePageProps } from "@/src/app/types/testmind";
 import SuiteClient from "./SuiteClient";
+import { Page } from "@/src/app/components/shell/AppShell";
+import FailedTest from "@/src/app/components/FailedTest";
 import { getSuiteById } from "@/src/app/actions/suites";
 
 export const revalidate = 60;
@@ -10,7 +12,9 @@ export default async function SuitePage({ params }: SuitePageProps) {
   const doc = await getSuiteById(suiteId);
 
   if (!doc) {
-    return <p>Suite not found</p>;
+    return (
+      <FailedTest code="TC_404" title="This suite should exist" expected="A saved test suite" received="No suite with this id" hint="It may have been deleted. Go back to the project to see its suites." />
+    );
   }
 
   const suite = {
@@ -31,8 +35,8 @@ export default async function SuitePage({ params }: SuitePageProps) {
   };
 
   return (
-    <main className="max-w-full mx-auto px-4 py-8">
+    <Page>
       <SuiteClient feature={suite} />
-    </main>
+    </Page>
   );
 }
