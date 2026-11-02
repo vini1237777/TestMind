@@ -7,7 +7,6 @@ import { Project } from "../types/testmind";
 import ProjectModal from "../components/ProjectModal";
 import CardSkeleton from "../components/CardSkeleton";
 import FailedTest from "../components/FailedTest";
-import ProjectCard from "../components/ProjectCard";
 import Link from "next/link";
 import { timeAgo } from "../lib/format";
 
@@ -51,17 +50,6 @@ export default function ProjectsPage() {
     list.sort(by[sort]);
     return list;
   }, [projects, query, sort]);
-
-  // Latest suite from the three most recently active projects
-  const recent = useMemo(
-    () =>
-      projects
-        .filter((x) => x.stats?.lastSuite && x.stats.lastActivity)
-        .sort((a, b) => new Date(b.stats!.lastActivity!).getTime() - new Date(a.stats!.lastActivity!).getTime())
-        .slice(0, 3)
-        .map((p) => ({ project: p, suite: p.stats!.lastSuite! })),
-    [projects],
-  );
 
   const totals = useMemo(() => {
     const withStats = projects.filter((p) => p.stats);
@@ -121,7 +109,9 @@ export default function ProjectsPage() {
         <div>
           <h1 className="text-2xl font-semibold">Projects</h1>
           <p className="text-sm text-gray-500">
-            Each project holds features, and each feature gets an AI written, AI reviewed test suite.
+            {hasLoaded && projects.length > 0
+              ? `${projects.length} projects, ${totals.suites} test suites, ${totals.cases} test cases`
+              : "Group features by app or service, then generate and review their tests."}
           </p>
         </div>
 
@@ -132,22 +122,6 @@ export default function ProjectsPage() {
           + New Project
         </button>
       </header>
-
-      {hasLoaded && !loadFailed && projects.length > 0 && (
-        <dl className="tm-fade mb-6 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-gray-200 bg-gray-200 sm:grid-cols-4 dark:border-gray-700 dark:bg-gray-700">
-          {[
-            ["Projects", projects.length],
-            ["Test suites", totals.suites],
-            ["Test cases", totals.cases],
-            ["Avg review score", totals.avg === null ? "none yet" : `${totals.avg}/100`],
-          ].map(([label, value]) => (
-            <div key={label} className="bg-amber-50 px-4 py-3 dark:bg-gray-900">
-              <dt className="text-xs text-gray-500">{label}</dt>
-              <dd className="text-xl font-semibold">{value}</dd>
-            </div>
-          ))}
-        </dl>
-      )}
 
       {!hasLoaded ? (
         <CardSkeleton />
@@ -167,7 +141,6 @@ export default function ProjectsPage() {
         />
       ) : projects.length === 0 ? (
         <div className="tm-rise rounded-lg border border-dashed p-10 text-center dark:border-gray-700">
-          <p className="text-3xl" aria-hidden>🧪</p>
           <h2 className="mt-2 font-semibold">No projects yet</h2>
           <p className="mx-auto mt-1 max-w-sm text-sm text-gray-500">
             Create a project, add a feature with a short description, and TestMind drafts the first test suite for you.
@@ -181,27 +154,6 @@ export default function ProjectsPage() {
         </div>
       ) : (
         <>
-        {recent.length > 0 && !query && (
-          <section className="mb-8" aria-label="Recently opened suites">
-            <h2 className="mb-2 text-sm font-semibold">Recent</h2>
-            <ul className="divide-y rounded-lg border">
-              {recent.map(({ project: p, suite }) => (
-                <li key={suite.id}>
-                  <Link
-                    href={`/projects/${p.id}/suites/${suite.id}`}
-                    className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-6 gap-y-0.5 px-4 py-2.5 text-sm hover:bg-gray-50 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_70px_70px_100px] dark:hover:bg-gray-900"
-                  >
-                    <span className="truncate font-medium">{suite.name}</span>
-                    <span className="truncate text-xs text-gray-500 sm:text-sm">{p.name}</span>
-                    <span className="hidden text-gray-500 sm:block">{suite.cases} cases</span>
-                    <span className="hidden text-gray-500 sm:block">{suite.score === null ? "No score" : `${suite.score}/100`}</span>
-                    <span className="hidden text-right text-gray-400 sm:block">{timeAgo(p.stats!.lastActivity)}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
 
         <div className="mb-4 flex flex-wrap items-center gap-2">
           <div className="relative min-w-[220px] flex-1 sm:max-w-sm">
@@ -231,9 +183,11 @@ export default function ProjectsPage() {
             <option value="score">Highest score</option>
             <option value="name">Name A to Z</option>
           </select>
-          <span className="ml-auto text-xs text-gray-500">
-            {visible.length === projects.length ? `${projects.length} projects` : `${visible.length} of ${projects.length} projects`}
-          </span>
+          {query && (
+            <span className="ml-auto text-xs text-gray-500">
+              {visible.length} of {projects.length}
+            </span>
+          )}
         </div>
 
         {visible.length === 0 ? (
@@ -242,11 +196,42 @@ export default function ProjectsPage() {
             <button className="underline text-amber-700" onClick={() => setQuery("")}>Clear search</button>
           </p>
         ) : (
-        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {visible.map((project, i) => (
-            <ProjectCard key={project.id} project={project} index={i} />
-          ))}
-        </section>
+        <div className="overflow-hidden rounded-lg border">
+          <div className="hidden grid-cols-[minmax(0,1fr)_80px_80px_90px_120px] gap-4 border-b bg-gray-50 px-4 py-2 text-xs text-gray-500 md:grid dark:bg-gray-900">
+            <span>Project</span>
+            <span className="text-right">Suites</span>
+            <span className="text-right">Cases</span>
+            <span className="text-right">Score</span>
+            <span className="text-right">Last active</span>
+          </div>
+          <ul className="divide-y">
+            {visible.map((p, i) => {
+              const st = p.stats;
+              return (
+                <li key={p.id} className="tm-rise" style={{ animationDelay: `${Math.min(i, 12) * 30}ms` }}>
+                  <Link
+                    href={`/projects/${p.id}`}
+                    className="grid grid-cols-1 gap-1 px-4 py-3 text-sm transition-colors hover:bg-amber-50/60 md:grid-cols-[minmax(0,1fr)_80px_80px_90px_120px] md:items-center md:gap-4 dark:hover:bg-gray-900"
+                  >
+                    <span className="min-w-0">
+                      <span className="block truncate font-medium">{p.name}</span>
+                      <span className="block truncate text-xs text-gray-500">{p.description || "No description"}</span>
+                    </span>
+                    <span className="hidden text-right tabular-nums md:block">{st?.suites ?? 0}</span>
+                    <span className="hidden text-right tabular-nums md:block">{st?.cases ?? 0}</span>
+                    <span className={`hidden text-right tabular-nums md:block ${st?.avgScore == null ? "text-gray-400" : ""}`}>
+                      {st?.avgScore == null ? "None" : `${st.avgScore}/100`}
+                    </span>
+                    <span className="hidden text-right text-gray-500 md:block">{timeAgo(st?.lastActivity ?? p.createdAt)}</span>
+                    <span className="text-xs text-gray-500 md:hidden">
+                      {st?.suites ?? 0} suites, {st?.cases ?? 0} cases{st?.avgScore != null ? `, score ${st.avgScore}/100` : ""}
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
         )}
         </>
       )}

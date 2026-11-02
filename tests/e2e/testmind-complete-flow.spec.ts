@@ -142,7 +142,7 @@ test("user can create project, add feature, and generate test cases", async ({
   await expect(page.getByText(featureName, { exact: true })).toBeVisible();
   await page.locator("a[href*=\"/suites/\"]").first().click();
 
-  await expect(page.getByText("Test Suites")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Generate Test Cases" })).toBeVisible();
 
   await page.waitForTimeout(2000);
 

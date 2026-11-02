@@ -30,8 +30,13 @@ export default function ProjectPageClient({
       <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">{project.name}</h1>
-          <p className="text-sm text-gray-500 max-w-xl">
+          <p className="max-w-xl text-sm text-gray-500">
             {project.description}
+            {localSuites.length > 0 && (
+              <span className="block text-xs text-gray-400">
+                {localSuites.length} {localSuites.length === 1 ? "feature" : "features"}, {totalCases} test cases{avgScore !== null ? `, average score ${avgScore}/100` : ""}
+              </span>
+            )}
           </p>
         </div>
         <button
@@ -42,20 +47,6 @@ export default function ProjectPageClient({
         </button>
       </header>
 
-      {localSuites.length > 0 && (
-        <dl className="tm-fade mb-6 grid grid-cols-3 gap-px overflow-hidden rounded-lg border border-gray-200 bg-gray-200 dark:border-gray-700 dark:bg-gray-700 sm:max-w-xl">
-          {[
-            ["Suites", localSuites.length],
-            ["Test cases", totalCases],
-            ["Avg review score", avgScore ?? "not reviewed"],
-          ].map(([label, value]) => (
-            <div key={label} className="bg-amber-50 px-4 py-3 dark:bg-gray-900">
-              <dt className="text-xs text-gray-500">{label}</dt>
-              <dd className={`font-semibold ${typeof value === "number" ? "text-xl" : "text-xs leading-7 text-gray-400"}`}>{value}</dd>
-            </div>
-          ))}
-        </dl>
-      )}
 
       {localSuites?.length === 0 ? (
         <div className="tm-rise rounded-lg border border-dashed p-10 text-center">
@@ -71,37 +62,39 @@ export default function ProjectPageClient({
           </button>
         </div>
       ) : (
-        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {localSuites.map((suite, i) => (
-            <Link
-              key={suite.id}
-              href={`/projects/${project.id}/suites/${suite.id}`}
-              className="tm-rise group flex flex-col rounded-lg border border-gray-200 bg-white p-4 text-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-amber-400 hover:shadow-[0_12px_30px_-12px_rgba(217,119,6,0.35)] dark:border-gray-700 dark:bg-gray-900 dark:hover:border-amber-500"
-              style={{ animationDelay: `${Math.min(i, 12) * 50}ms` }}
-            >
-              <div className="mb-1 flex items-start justify-between gap-2">
-                <h2 className="font-semibold">{suite.featureName}</h2>
-                {typeof suite.lastFeedbackScore === "number" && (
-                  <span title="Last AI review score" className="shrink-0 text-xs font-semibold text-gray-700 dark:text-gray-200">
-                    {suite.lastFeedbackScore}/100
+        <div className="overflow-hidden rounded-lg border">
+          <div className="hidden grid-cols-[minmax(0,1fr)_160px_80px_90px_120px] gap-4 border-b bg-gray-50 px-4 py-2 text-xs text-gray-500 md:grid dark:bg-gray-900">
+            <span>Feature</span>
+            <span>Case mix</span>
+            <span className="text-right">Cases</span>
+            <span className="text-right">Score</span>
+            <span className="text-right">Updated</span>
+          </div>
+          <ul className="divide-y">
+            {localSuites.map((suite, i) => (
+              <li key={suite.id} className="tm-rise" style={{ animationDelay: `${Math.min(i, 12) * 30}ms` }}>
+                <Link
+                  href={`/projects/${project.id}/suites/${suite.id}`}
+                  className="grid grid-cols-1 gap-1 px-4 py-3 text-sm transition-colors hover:bg-amber-50/60 md:grid-cols-[minmax(0,1fr)_160px_80px_90px_120px] md:items-center md:gap-4 dark:hover:bg-gray-900"
+                >
+                  <span className="min-w-0">
+                    <span className="block truncate font-medium">{suite.featureName}</span>
+                    <span className="block truncate text-xs text-gray-500">{suite.description || "No description"}</span>
                   </span>
-                )}
-              </div>
-              <p className="text-xs text-gray-500 mb-3 line-clamp-2">
-                {suite.description}
-              </p>
-              <div className="mt-auto">
-              <TypeBar cases={suite.testCases ?? []} />
-              </div>
-              <div className="mt-2 flex items-center justify-between text-[11px] text-gray-400">
-                <span>
-                  <b className="text-gray-900 dark:text-white">{suite.testCases?.length ?? 0}</b> cases, {timeAgo(suite.lastReviewedAt || suite.createdAt)}
-                </span>
-                <span className="text-amber-700 opacity-0 transition-opacity group-hover:opacity-100 dark:text-amber-400">Open →</span>
-              </div>
-            </Link>
-          ))}
-        </section>
+                  <span className="hidden md:block">{suite.testCases?.length ? <TypeBar cases={suite.testCases} /> : <span className="text-xs text-gray-400">Not generated</span>}</span>
+                  <span className="hidden text-right tabular-nums md:block">{suite.testCases?.length ?? 0}</span>
+                  <span className={`hidden text-right tabular-nums md:block ${typeof suite.lastFeedbackScore === "number" ? "" : "text-gray-400"}`}>
+                    {typeof suite.lastFeedbackScore === "number" ? `${suite.lastFeedbackScore}/100` : "None"}
+                  </span>
+                  <span className="hidden text-right text-gray-500 md:block">{timeAgo(suite.lastReviewedAt || suite.createdAt)}</span>
+                  <span className="text-xs text-gray-500 md:hidden">
+                    {suite.testCases?.length ?? 0} cases{typeof suite.lastFeedbackScore === "number" ? `, score ${suite.lastFeedbackScore}/100` : ""}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
 
       <FeatureModal
