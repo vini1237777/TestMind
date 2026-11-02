@@ -9,12 +9,18 @@ const COLORS = { happy: "bg-amber-300", negative: "bg-amber-500", edge: "bg-ambe
  */
 type Counts = { happy: number; negative: number; edge: number };
 
-export default function TypeBar({ cases, counts, showLegend = false }: { cases?: { type: unknown }[]; counts?: Counts; showLegend?: boolean }) {
+/** `flush` draws a square edged strip with no track, for the bottom edge of a card. */
+export default function TypeBar({ cases, counts, showLegend = false, flush = false }: { cases?: { type: unknown }[]; counts?: Counts; showLegend?: boolean; flush?: boolean }) {
   const c = counts ?? typeCounts(cases ?? []);
   const total = c.happy + c.negative + c.edge;
   return (
     <div>
-      <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800" role="img" aria-label={`${c.happy} happy, ${c.negative} negative, ${c.edge} edge`}>
+      <div
+        className={`flex w-full overflow-hidden ${flush ? "h-1" : "h-1.5 rounded-full bg-gray-100 dark:bg-gray-800"}`}
+        role="img"
+        aria-label={`${c.happy} happy path, ${c.negative} negative, ${c.edge} edge case`}
+        title={`${c.happy} happy path, ${c.negative} negative, ${c.edge} edge case`}
+      >
         {total > 0 &&
           (Object.keys(COLORS) as (keyof typeof COLORS)[]).map((k) =>
             c[k] ? <div key={k} className={`${COLORS[k]} transition-[width] duration-500`} style={{ width: `${(c[k] / total) * 100}%` }} /> : null,
