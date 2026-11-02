@@ -13,7 +13,7 @@ export default async function SuitePage({ params }: SuitePageProps) {
 
   if (!doc) {
     return (
-      <FailedTest code="TC_404" title="This suite should exist" expected="A saved test suite" received="No suite with this id" hint="It may have been deleted. Go back to the project to see its suites." />
+      <FailedTest code="TC_404" title="Assertion failed: suite record should exist" expected="A persisted test suite document" received="Null lookup for this suite identifier" hint="This suite may have been deleted. Return to the parent project overview to inspect active suites." />
     );
   }
 

@@ -28,7 +28,7 @@ function CaseRow({ tc, expanded, onToggle, index = 0 }: { tc: TestCase; expanded
       {expanded && (
         <div className="grid gap-4 border-t border-line bg-panel-2/40 px-4 py-4 pl-[52px] md:grid-cols-2">
           <div>
-            <p className="eyebrow mb-2">steps</p>
+            <p className="eyebrow mb-2">execution steps</p>
             <ol className="space-y-1.5 text-[13px]">
               {tc.steps.map((s, i) => (
                 <li key={i} className="flex gap-2">
@@ -37,13 +37,13 @@ function CaseRow({ tc, expanded, onToggle, index = 0 }: { tc: TestCase; expanded
                 </li>
               ))}
             </ol>
-            <p className="eyebrow mt-4 mb-1.5">expected</p>
+            <p className="eyebrow mt-4 mb-1.5">expected result</p>
             <p className="text-[13px]">{tc.expected}</p>
           </div>
           {hasPayload && (
             <div className="min-w-0">
               <div className="mb-2 flex items-center justify-between">
-                <p className="eyebrow">sample payload</p>
+                <p className="eyebrow">test payload</p>
                 <button type="button" className="flex items-center gap-1 text-[11.5px] text-muted hover:text-fg"
                   onClick={() => navigator.clipboard.writeText(JSON.stringify(tc.samplePayload, null, 2)).then(() => toast.success("Copied!"))}>
                   <FiCopy /> Copy payload
@@ -159,7 +159,7 @@ export default function SuiteCase({ feature }: { feature: Feature }) {
       const data = await res.json();
       if (!res.ok) {
         setGenStatus("error");
-        setError(res.status === 429 ? "Rate limited: 10 requests per minute per IP." : data.error || "Failed to generate test cases");
+        setError(res.status === 429 ? "Rate limit reached: 10 requests per minute per IP." : data.error || "Failed to generate test cases");
         return;
       }
 
@@ -229,7 +229,7 @@ export default function SuiteCase({ feature }: { feature: Feature }) {
       const data = await res.json();
       if (!res.ok) {
         setReviewStatus("error");
-        setFeedbackError(res.status === 429 ? "Rate limited: 10 requests per minute per IP." : data.error || "Failed to get AI feedback.");
+        setFeedbackError(res.status === 429 ? "Rate limit reached: 10 requests per minute per IP." : data.error || "Failed to get AI feedback.");
         return;
       }
       setFeedback({
@@ -294,20 +294,20 @@ export default function SuiteCase({ feature }: { feature: Feature }) {
 
       <header className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div className="min-w-0">
-          <p className="eyebrow">feature suite</p>
+          <p className="eyebrow">feature test suite</p>
           <h1 className="font-display mt-1 text-[32px] font-extrabold leading-tight sm:text-[38px]">{name || "Untitled feature"}</h1>
           <p className="mt-1 font-mono text-[11.5px] text-faint">
             {selectedSuite ? (
               <>suite {shortId(selectedSuite.id)} · {cases.length} cases · {timeAgo(selectedSuite.createdAt)}</>
             ) : (
-              "no suite generated yet"
+              "awaiting initial generation run"
             )}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <button className="btn" disabled={!selectedSuite || !cases.length}
             onClick={() => selectedSuite && download(`${slug(selectedSuite.name)}.json`, JSON.stringify(selectedSuite, null, 2), "application/json")}>
-            <FiDownload /> Download JSON
+            <FiDownload /> Export JSON
           </button>
           <button className="btn" disabled={!selectedSuite || !cases.length}
             onClick={() => selectedSuite && download(`${slug(selectedSuite.name)}.spec.ts`, toPlaywrightSpec(selectedSuite), "text/typescript")}>
@@ -320,14 +320,14 @@ export default function SuiteCase({ feature }: { feature: Feature }) {
         {/* Left: spec + history */}
         <div className="flex flex-col gap-5">
           <section className="panel p-4">
-            <p className="eyebrow mb-3">spec</p>
+            <p className="eyebrow mb-3">feature spec</p>
             <div className="flex flex-col gap-3">
               <label className="flex flex-col gap-1.5">
                 <span className="text-[12.5px] font-medium text-muted">Feature</span>
                 <input type="text" className="field" value={name} onChange={(e) => { setName(e.target.value); setIsDirty(true); }} />
               </label>
               <label className="flex flex-col gap-1.5">
-                <span className="text-[12.5px] font-medium text-muted">Description</span>
+                <span className="text-[12.5px] font-medium text-muted">Specification</span>
                 <textarea className="field min-h-36 resize-y leading-relaxed" value={description}
                   onChange={(e) => { setDescription(e.target.value); setIsDirty(true); }} />
               </label>
@@ -335,17 +335,17 @@ export default function SuiteCase({ feature }: { feature: Feature }) {
             <div className="mt-4 flex flex-col gap-2">
               <button className="btn btn-primary w-full" onClick={handleGenerate}
                 disabled={(!isFirstGeneration && !isDirty) || isGenerating || !name.trim() || !description.trim()}>
-                <FiPlay /> {isGenerating ? "Generating…" : "Generate Test Cases"}
+                <FiPlay /> {isGenerating ? "Running graph…" : "Generate Test Cases"}
               </button>
               <button className="btn w-full" onClick={handleFeedbackReview} disabled={isReviewing || !selectedSuite || !cases.length}>
-                <FiSearch /> {isReviewing ? "Reviewing…" : "Run AI Feedback Review"}
+                <FiSearch /> {isReviewing ? "Auditing suite…" : "Run AI Feedback Review"}
               </button>
               <button className="btn btn-ghost w-full text-muted" onClick={handleSaveFeature}
                 disabled={isSavingFeature || !hasChanges || !name.trim()}>
                 {isSavingFeature ? "Saving…" : "Save Feature"}
               </button>
               {!isFirstGeneration && !isDirty && (
-                <p className="text-center text-[11.5px] text-faint">Edit the spec to regenerate.</p>
+                <p className="text-center text-[11.5px] text-faint">Refine the spec above to trigger a fresh run.</p>
               )}
             </div>
             {(error || feedbackError) && (
@@ -363,7 +363,7 @@ export default function SuiteCase({ feature }: { feature: Feature }) {
                 <div className="h-12 rounded-lg bg-panel-2" />
               </div>
             ) : testSuites.length === 0 ? (
-              <p className="text-[13px] text-muted">No suites yet. Generate test cases.</p>
+              <p className="text-[13px] text-muted">No suites on record. Trigger a generation run.</p>
             ) : (
               <ul className="flex flex-col gap-1.5">
                 {testSuites.map((suite) => {
@@ -397,8 +397,8 @@ export default function SuiteCase({ feature }: { feature: Feature }) {
         <div className="flex min-w-0 flex-col gap-5">
           <section className="panel p-4">
             <div className="mb-3 flex items-center justify-between">
-              <p className="eyebrow">pipeline runs</p>
-              <Link href="/architecture" className="text-[12px] text-muted hover:text-accent">how this works →</Link>
+              <p className="eyebrow">pipeline telemetry</p>
+              <Link href="/architecture" className="text-[12px] text-muted hover:text-accent">inspect architecture →</Link>
             </div>
             <div className="flex flex-col gap-3">
               <PipelineTrace workflow="generation" status={genStatus} trace={genTrace} />
@@ -410,7 +410,7 @@ export default function SuiteCase({ feature }: { feature: Feature }) {
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
               <div className="flex-1 min-w-0">
                 <div className="mb-2 flex items-center gap-2">
-                  <p className="eyebrow">coverage</p>
+                  <p className="eyebrow">coverage distribution</p>
                   {feedback && (
                     <span className="inline-flex items-center gap-1 rounded-full border border-accent/40 bg-accent-soft px-2 py-px text-[10.5px] font-medium text-accent">
                       <FiCheck /> AI Reviewed
@@ -426,11 +426,11 @@ export default function SuiteCase({ feature }: { feature: Feature }) {
                     <ScoreRing score={score} />
                     <div>
                       <p className="text-[12.5px] font-medium">AI Coverage Score</p>
-                      <p className="text-[11.5px] text-muted">{score >= 85 ? "Strong" : score >= 60 ? "Moderate: gaps in edge or negative paths" : "Weak: significant gaps"}</p>
+                      <p className="text-[11.5px] text-muted">{score >= 85 ? "Strong coverage" : score >= 60 ? "Moderate: blind spots in negative or edge paths" : "Vulnerable: critical coverage gaps detected"}</p>
                     </div>
                   </>
                 ) : (
-                  <p className="max-w-[180px] text-[12px] text-faint">Run a review to score this suite&apos;s coverage.</p>
+                  <p className="max-w-[180px] text-[12px] text-faint">Execute an AI audit to benchmark this suite&apos;s coverage.</p>
                 )}
               </div>
             </div>
@@ -442,7 +442,7 @@ export default function SuiteCase({ feature }: { feature: Feature }) {
                   <p className="text-[13px] leading-relaxed">{feedback.summary}</p>
                   {feedback.missingAreas.length > 0 && (
                     <>
-                      <p className="eyebrow mt-4 mb-2">missing / weak areas</p>
+                      <p className="eyebrow mt-4 mb-2">uncovered blind spots</p>
                       <div className="flex flex-wrap gap-1.5">
                         {feedback.missingAreas.map((item, i) => (
                           <span key={i} className="rounded-md border border-negative/30 bg-negative/10 px-2 py-0.5 text-[12px] text-negative">{item}</span>
@@ -453,7 +453,7 @@ export default function SuiteCase({ feature }: { feature: Feature }) {
                 </div>
                 {feedback.suggestions.length > 0 && (
                   <div>
-                    <p className="eyebrow mb-2">suggestions</p>
+                    <p className="eyebrow mb-2">recommended improvements</p>
                     <ul className="space-y-1.5 text-[13px]">
                       {feedback.suggestions.map((s, i) => (
                         <li key={i} className="flex gap-2"><FiCheck className="mt-1 shrink-0 text-accent" />{s}</li>
@@ -466,7 +466,7 @@ export default function SuiteCase({ feature }: { feature: Feature }) {
 
             {feedback && feedback.suggestedTestCases.length > 0 && (
               <div className="mt-5 border-t border-line pt-5">
-                <p className="eyebrow mb-3">AI suggested test cases · {feedback.suggestedTestCases.length}</p>
+                <p className="eyebrow mb-3">AI recommended test cases · {feedback.suggestedTestCases.length}</p>
                 <ul className="grid gap-3 md:grid-cols-2">
                   {feedback.suggestedTestCases.map((tc, idx) => (
                     <li key={`${tc.id}-${idx}`} className="animate-pop flex flex-col rounded-xl border-[1.5px] border-dashed border-accent bg-accent-soft p-3">
@@ -477,7 +477,7 @@ export default function SuiteCase({ feature }: { feature: Feature }) {
                       <ol className="mt-2 list-decimal space-y-0.5 pl-4 text-[12px] text-muted">
                         {tc.steps.map((s, i) => <li key={i}>{s}</li>)}
                       </ol>
-                      <p className="mt-2 text-[12px]"><span className="text-faint">Expected: </span>{tc.expected}</p>
+                      <p className="mt-2 text-[12px]"><span className="text-faint">Expected outcome: </span>{tc.expected}</p>
                       <div className="mt-3 flex gap-2 pt-1">
                         <button className="btn btn-primary h-8 text-[12px]" onClick={() => handleAcceptSuggested(tc, idx)}><FiCheck /> Accept</button>
                         <button className="btn h-8 text-[12px]" onClick={() => handleRejectSuggested(idx)} aria-label="Reject"><FiX /></button>
@@ -501,7 +501,7 @@ export default function SuiteCase({ feature }: { feature: Feature }) {
                   </button>
                 ))}
               </div>
-              <input type="search" placeholder="Filter by id or title" value={query} onChange={(e) => setQuery(e.target.value)}
+              <input type="search" placeholder="Filter cases by ID or title" value={query} onChange={(e) => setQuery(e.target.value)}
                 className="field h-8 py-0 text-[12.5px] sm:w-56" />
             </div>
 
@@ -510,10 +510,10 @@ export default function SuiteCase({ feature }: { feature: Feature }) {
                 {Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-11 bg-panel-2/60" />)}
               </div>
             ) : !selectedSuite ? (
-              <p className="px-4 py-12 text-center text-[13px] text-muted">Write a spec and generate the first suite.</p>
+              <p className="px-4 py-12 text-center text-[13px] text-muted">Define a feature spec to compile your first suite.</p>
             ) : filteredCases.length === 0 ? (
               <p className="px-4 py-12 text-center text-[13px] text-muted">
-                {cases.length ? `No ${filterType === "all" ? "" : filterType + " "}cases match.` : "This suite is empty. Generate test cases."}
+                {cases.length ? `No ${filterType === "all" ? "" : filterType + " "}cases match.` : "Suite contains zero cases. Trigger a generation run."}
               </p>
             ) : (
               <ul className="divide-y divide-line">

@@ -4,10 +4,10 @@ export default function NotFound() {
   return (
     <FailedTest
       code="TC_404"
-      title="This route should exist"
-      expected="A page at this address"
-      received="Nothing. The route is not defined."
-      hint="The link may be old, or the project was removed. Head back home or open the workspace."
+      title="Assertion failed: route should resolve"
+      expected="A valid application view at this URL"
+      received="404 Not Found. Undefined route."
+      hint="The requested page was moved or removed. Head back to the landing page or jump straight into the workspace."
     />
   );
 }

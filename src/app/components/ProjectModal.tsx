@@ -40,7 +40,7 @@ export default function ProjectModal({ open, onClose, onCreated }: ProjectModalP
 
   return (
     <Modal
-      title="Create project"
+      title="Initialize project"
       onClose={onClose}
       footer={
         <>
@@ -51,13 +51,13 @@ export default function ProjectModal({ open, onClose, onCreated }: ProjectModalP
         </>
       }
     >
-      <Field label="Name">
-        <input autoFocus type="text" placeholder="Project name, e.g. Checkout service" className="field"
+      <Field label="Project name">
+        <input autoFocus type="text" placeholder="e.g. Checkout microservice" className="field"
           value={project.name} onChange={(e) => setProject((p) => ({ ...p, name: e.target.value }))}
           onKeyDown={(e) => e.key === "Enter" && handleSave()} />
       </Field>
-      <Field label="Description" hint="Optional. Shown on the project card.">
-        <input type="text" placeholder="Project description" className="field"
+      <Field label="Description" hint="Optional context displayed on the workspace card.">
+        <input type="text" placeholder="Core payment flows and webhook handlers" className="field"
           value={project.description} onChange={(e) => setProject((p) => ({ ...p, description: e.target.value }))} />
       </Field>
     </Modal>

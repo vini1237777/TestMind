@@ -9,7 +9,7 @@ import { FiMoon, FiSun } from "react-icons/fi";
 
 const NAV = [
   { href: "/projects", label: "Workspace", match: (p: string) => p.startsWith("/projects") },
-  { href: "/architecture", label: "How it works", match: (p: string) => p.startsWith("/architecture") },
+  { href: "/architecture", label: "Architecture", match: (p: string) => p.startsWith("/architecture") },
 ];
 
 export function Logo({ size = 30 }: { size?: number }) {
@@ -89,7 +89,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <footer className="border-t border-line">
         <div className="mx-auto flex max-w-[1240px] flex-col gap-2 px-4 py-6 text-[12.5px] text-muted sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-10">
           <p>
-            Built by{" "}
+            Engineered by{" "}
             <a href="https://github.com/vini1237777" className="font-semibold text-fg hover:text-accent" target="_blank" rel="noreferrer">
               Vinisha Yadav
             </a>
