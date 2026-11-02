@@ -61,10 +61,10 @@ export default function Modal({ open, onClose, title, subtitle, icon, children, 
         role="dialog"
         aria-modal="true"
         aria-labelledby="tm-modal-title"
-        className={`tm-pop w-full ${width} overflow-hidden rounded-xl border bg-white shadow-[0_24px_60px_-20px_rgba(0,0,0,0.35)] dark:bg-gray-900`}
+        className={`tm-pop w-full ${width} overflow-hidden rounded-lg border bg-white shadow-2xl dark:bg-gray-900`}
       >
-        <header className="flex items-start gap-3 border-b bg-gradient-to-r from-amber-50 to-white px-5 py-4 dark:from-gray-900 dark:to-gray-900">
-          {icon && <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-amber-100 text-lg dark:bg-gray-800">{icon}</span>}
+        <header className="flex items-start gap-3 border-b px-5 py-4">
+          {icon}
           <div className="min-w-0 flex-1">
             <h2 id="tm-modal-title" className="font-semibold">
               {title}
@@ -84,16 +84,13 @@ export default function Modal({ open, onClose, title, subtitle, icon, children, 
 
         <div className="max-h-[70vh] overflow-y-auto px-5 py-5">{children}</div>
 
-        <footer className="flex items-center justify-between gap-3 border-t bg-gray-50 px-5 py-3 dark:bg-gray-950">
-          <span className="hidden text-[11px] text-gray-400 sm:inline">
-            {onSubmit && (
-              <>
-                <kbd className="rounded border bg-white px-1 dark:bg-gray-900">⌘</kbd> <kbd className="rounded border bg-white px-1 dark:bg-gray-900">Enter</kbd> to save,{" "}
-              </>
-            )}
-            <kbd className="rounded border bg-white px-1 dark:bg-gray-900">Esc</kbd> to close
-          </span>
-          <div className="ml-auto flex gap-2">{footer}</div>
+        <footer className="flex items-center justify-between gap-3 border-t px-5 py-3">
+          {onSubmit && (
+            <span className="hidden text-[11px] text-gray-400 sm:inline">
+              <kbd className="rounded border px-1">⌘</kbd> <kbd className="rounded border px-1">Enter</kbd> to save
+            </span>
+          )}
+          <div className="ml-auto flex flex-1 justify-end gap-2">{footer}</div>
         </footer>
       </div>
     </div>,
