@@ -4,7 +4,6 @@ import { Toaster } from "react-hot-toast";
 import Navbar from "./Navbar";
 import IntroLoader from "./components/IntroLoader";
 // import NextTopLoader from "nextjs-toploader";
-import "react-loading-skeleton/dist/skeleton.css";
 import HolyLoader from "holy-loader";
 
 export default function RootLayout({

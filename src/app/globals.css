@@ -100,3 +100,11 @@
 /* Typing style ellipsis for status lines */
 @keyframes tm-dots { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75%, 100% { content: "..."; } }
 .tm-dots::after { content: ""; display: inline-block; width: 1.2em; text-align: left; animation: tm-dots 1.2s steps(1) infinite; }
+
+/* Loading placeholders: warm in light, slate in dark, with a soft sweep */
+@keyframes tm-shimmer { to { transform: translateX(100%); } }
+.tm-bone { position: relative; overflow: hidden; border-radius: 4px; background: #f3efe6; }
+.dark .tm-bone { background: #1e293b; }
+.tm-bone::after { content: ""; position: absolute; inset: 0; transform: translateX(-100%); background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .7), transparent); animation: tm-shimmer 1.4s ease-in-out infinite; }
+.dark .tm-bone::after { background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .06), transparent); }
+@media (prefers-reduced-motion: reduce) { .tm-bone::after { animation: none; } }

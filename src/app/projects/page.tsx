@@ -2,10 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
-import "react-loading-skeleton/dist/skeleton.css";
 import { Project } from "../types/testmind";
 import ProjectModal from "../components/ProjectModal";
-import CardSkeleton from "../components/CardSkeleton";
+import { ProjectCardsSkeleton } from "../components/Skeletons";
 import FailedTest from "../components/FailedTest";
 import ProjectCard from "../components/ProjectCard";
 
@@ -123,7 +122,7 @@ export default function ProjectsPage() {
       </header>
 
       {!hasLoaded ? (
-        <CardSkeleton />
+        <ProjectCardsSkeleton />
       ) : loadFailed ? (
         <FailedTest
           compact

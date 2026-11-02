@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 import type { FeedbackResult } from "@/src/app/types/testmind";
 import { Feature, TestCase, TestSuite } from "@/src/app/types/testmind";
 import { updateFeature } from "@/src/app/actions/features";
-import Skeleton from "react-loading-skeleton";
+import { CaseRowsSkeleton, ReviewSkeleton } from "@/src/app/components/Skeletons";
 import PipelineTrace, { type RunStatus } from "@/src/app/components/PipelineTrace";
 import type { RunTrace } from "@/src/lib/ai/graph/topology";
 import { caseToMarkdown, download, slug, toCsv, toMarkdown, toPlaywrightSpec, typeCounts } from "@/src/app/lib/export-playwright";
@@ -456,7 +456,7 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
         />
 
         <div className="mt-2 flex flex-wrap items-center gap-2">
-          {(isFirstGeneration || isDirty || isGenerating) && (
+          {((hasLoaded && isFirstGeneration) || isDirty || isGenerating) && (
             <button
               onClick={handleGenerate}
               disabled={isGenerating || !name.trim() || !description.trim()}
@@ -490,15 +490,12 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
         {/* The test cases */}
         <section className="min-w-0 border border-amber-300 dark:border-amber-500/40">
-          {!hasLoaded ? (
-            isGenerating ? (
-              <p className="p-4 text-sm text-gray-500">The cases will appear here in a few seconds.</p>
-            ) : (
-              <div className="p-4">
-                <Skeleton height={20} width="40%" />
-                <Skeleton height={44} count={6} className="mt-2" />
-              </div>
-            )
+          {!hasLoaded || (isGenerating && !hasCases) ? (
+            <>
+              <div className="flex min-h-10 items-center bg-amber-300 px-3 py-1.5 text-sm font-semibold text-black">Test cases</div>
+              {isGenerating && <p className="px-3 pt-3 text-xs text-gray-500">Writing the first cases. They will appear here in a few seconds.</p>}
+              <CaseRowsSkeleton rows={isGenerating ? 5 : 7} />
+            </>
           ) : !selectedSuite ? (
             <p className="p-4 text-sm text-gray-500">Select a version.</p>
           ) : (
@@ -692,7 +689,9 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
             )}
 
             <div className="p-4">
-              {isReviewing ? (
+              {!hasLoaded ? (
+                <ReviewSkeleton />
+              ) : isReviewing ? (
                 <div className="space-y-3">
                   <PipelineTrace workflow="review" status={reviewStatus} trace={reviewTrace} />
                   <p className="text-xs text-gray-500">Reading {selectedSuite?.testCases.length ?? 0} cases against the description. This takes about ten seconds.</p>
