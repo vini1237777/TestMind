@@ -73,7 +73,7 @@ export default function ArchitecturePage() {
       </p>
 
       <nav className="mt-6 flex flex-wrap gap-2 text-[12.5px]" aria-label="On this page">
-        {[["system", "System"], ["workflows", "Workflows"], ["guardrails", "LLM guardrails"], ["ops", "Performance & ops"], ["testing", "Testing"], ["next", "Tradeoffs"]].map(([id, l]) => (
+        {[["system", "System"], ["workflows", "Workflows"], ["guardrails", "LLM guardrails"], ["ops", "Performance & ops"], ["testing", "Testing"]].map(([id, l]) => (
           <a key={id} href={`#${id}`} className="rounded-full border border-gray-200 dark:border-gray-700 px-3 py-1 text-gray-500 dark:text-gray-400 hover:border-amber-400 hover:text-black dark:hover:text-white">{l}</a>
         ))}
       </nav>
@@ -175,19 +175,6 @@ export default function ArchitecturePage() {
           <code className="mx-1 font-mono text-[12px] text-gray-900 dark:text-white">suggestions</code>) to verify frontend resilience.
         </p>
         <p className="mt-2"><Src path="tests/e2e/testmind-complete-flow.spec.ts" /></p>
-      </Section>
-
-      <Section id="next" eyebrow="roadmap" title="Architectural tradeoffs and next steps">
-        <ul className="space-y-2 text-[14px] text-gray-500 dark:text-gray-400">
-          {[
-            ["Real time SSE node streaming", "Telemetry currently resolves upon full graph completion. Streaming LangGraph events over Server Sent Events would illuminate each node live during execution."],
-            ["Automated prompt regression evals", "Running a golden dataset of specs against minimum coverage thresholds in CI would prevent prompt edits or model upgrades from silently degrading output quality."],
-            ["Granular sliding window rate limits", "A single fixed window across /api/* keeps the proxy simple, but separating cheap cached reads from expensive LLM calls is the logical next step."],
-            ["Multi tenant workspace isolation", "Projects currently share a global namespace for frictionless demo access. Scoping resources by authenticated user sessions is first in line."],
-          ].map(([t, d]) => (
-            <li key={t} className="flex gap-3"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" /><span><span className="text-gray-900 dark:text-white font-medium">{t}.</span> {d}</span></li>
-          ))}
-        </ul>
       </Section>
     </article>
     </main>
