@@ -2,9 +2,9 @@
 export const REPO = "https://github.com/vini1237777/TestMind";
 
 export const RESULTS = [
-  { value: "420+ req/s", was: "from about 40", label: "Cached API throughput" },
-  { value: "~250 ms", was: "from about 2.5 s", label: "API response time" },
-  { value: "281 MB", was: "from 1.18 GB", label: "Docker image size" },
+  { value: "420+ req/s", was: "about 40 req/s", label: "Cached API throughput" },
+  { value: "~250 ms", was: "about 2.5 s", label: "API response time" },
+  { value: "281 MB", was: "1.18 GB", label: "Docker image size" },
 ];
 
 export const STACK = [
@@ -15,12 +15,12 @@ export const STACK = [
   { group: "Testing", items: ["Playwright end to end"] },
 ];
 
-// One run, left to right. AI steps call gpt-4o-mini; code steps are plain TypeScript.
+// One run, in order. The model is called twice; everything else is plain TypeScript.
 export const FLOW = [
-  { step: "Generate", kind: "AI", note: "drafts cases" },
-  { step: "Validate", kind: "code", note: "Zod schema check" },
-  { step: "Review", kind: "AI", note: "scores out of 100" },
-  { step: "Improve", kind: "code", note: "merges and dedupes" },
+  "gpt-4o-mini drafts the cases from your description, in JSON mode.",
+  "Code checks every case against a Zod schema. A bad response stops the run, so nothing half written is saved.",
+  "A second gpt-4o-mini call scores coverage out of 100 and suggests the cases that are missing.",
+  "Code merges the cases you accept and drops duplicates. The score is passed into the next run.",
 ];
 
 export const OPTIMISATIONS = [
