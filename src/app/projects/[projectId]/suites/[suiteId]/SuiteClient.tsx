@@ -299,7 +299,7 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
         return;
       }
 
-      toast.success("Test case added!");
+      toast.success("Case added");
 
       setTestSuites((prev) =>
         prev.map((suite) =>
@@ -325,6 +325,29 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
     } catch (err) {
       console.error(err);
       toast.error("Failed adding test case.");
+    }
+  };
+
+  const handleAcceptAll = async () => {
+    const all = feedback?.suggestedTestCases ?? [];
+    if (!selectedSuiteId || !all.length) return;
+    try {
+      const res = await fetch("/api/suites/add-cases", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ suiteId: selectedSuiteId, testCases: all }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error || "Could not add the cases");
+        return;
+      }
+      toast.success(`${all.length} ${all.length === 1 ? "case" : "cases"} added`);
+      setTestSuites((prev) => prev.map((x) => (x.id === selectedSuiteId ? { ...x, testCases: [...(x.testCases || []), ...all] } : x)));
+      setFeedback((prev) => (prev ? { ...prev, suggestedTestCases: [] } : prev));
+    } catch (err) {
+      console.error(err);
+      toast.error("Could not add the cases");
     }
   };
 
@@ -645,104 +668,146 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
               <h2 className="font-semibold">Review</h2>
               {reviewScore != null && !isReviewing && (
                 <p className="tabular-nums">
-                  <span className="font-bold">{reviewScore}</span>/100
+                  <span className="text-base font-bold">{reviewScore}</span>/100
                 </p>
               )}
             </div>
-            <div className="p-3">
-
-            {isReviewing ? (
-              <div className="mt-2">
-                <PipelineTrace workflow="review" status={reviewStatus} trace={reviewTrace} />
+            {/* Score as a strip under the header, the same shape as the case mix */}
+            {reviewScore != null && !isReviewing && (
+              <div className="h-1 bg-amber-100 dark:bg-slate-800" title={`${reviewScore} out of 100`}>
+                <div className="tm-grow h-full bg-black dark:bg-amber-300" style={{ width: `${reviewScore}%` }} />
               </div>
-            ) : reviewScore == null ? (
-              <>
-                <p className="text-gray-700 dark:text-gray-300">
-                  {hasCases
-                    ? "Not reviewed yet. A review reads these cases against the description, gives a score out of 100 and suggests what is missing."
-                    : "Once there are test cases, you can have them reviewed for gaps."}
-                </p>
-                <button
-                  onClick={handleFeedbackReview}
-                  disabled={!hasCases}
-                  className="tm-press mt-3 w-full rounded bg-amber-500 px-4 py-2 text-xs font-medium text-white shadow-sm hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-amber-400 dark:text-black"
-                >
-                  Review coverage
-                </button>
-              </>
-            ) : (
-              <>
-                <p className="text-gray-700 dark:text-gray-300">
-                  <span className="font-medium text-black dark:text-white">{verdict(reviewScore)}</span> {reviewSummary}
-                </p>
-
-                {feedback && feedback.missingAreas.length > 0 && (
-                  <>
-                    <p className="mt-4 font-medium">Not covered yet</p>
-                    <ul className="mt-1 list-disc space-y-0.5 pl-5 text-gray-600 marker:text-gray-400 dark:text-gray-300">
-                      {feedback.missingAreas.map((item, idx) => (
-                        <li key={idx}>{item}</li>
-                      ))}
-                    </ul>
-                  </>
-                )}
-
-                {feedback && feedback.suggestedTestCases.length > 0 && (
-                  <>
-                    <p className="mt-4 font-medium">Suggested cases</p>
-                    <p className="text-xs text-gray-500">Add the ones you want to this version.</p>
-                    <ul className="mt-2 divide-y border dark:divide-gray-700 dark:border-gray-700">
-                      {feedback.suggestedTestCases.map((tc, idx) => (
-                        <li key={idx} className="tm-fade">
-                          <details>
-                            <summary className="cursor-pointer list-none px-3 py-2 hover:bg-amber-50 dark:hover:bg-gray-800/60">
-                              <span className="block">{tc.title}</span>
-                              <span className="mt-1 flex items-center gap-2 text-xs">
-                                <span className="mr-auto text-gray-500">{caseLabel(tc.type)}</span>
-                                <button
-                                  className="rounded bg-amber-500 px-2.5 py-0.5 text-white hover:bg-amber-600"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    handleAcceptSuggested(tc, idx);
-                                  }}
-                                >
-                                  Add
-                                </button>
-                                <button
-                                  className="rounded px-2 py-0.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    handleRejectSuggested(idx);
-                                  }}
-                                >
-                                  Skip
-                                </button>
-                              </span>
-                            </summary>
-                            <div className="px-3 pb-3 text-xs text-gray-600 dark:text-gray-300">
-                              <ol className="list-decimal space-y-0.5 pl-4">
-                                {tc.steps.map((st, k) => (
-                                  <li key={k}>{cleanStep(st)}</li>
-                                ))}
-                              </ol>
-                              <p className="mt-1.5">Expected: {tc.expected}</p>
-                            </div>
-                          </details>
-                        </li>
-                      ))}
-                    </ul>
-                  </>
-                )}
-
-                <div className="mt-4 flex items-center justify-between gap-2 border-t border-amber-200 pt-3 dark:border-gray-700">
-                  {reviewStatus === "done" ? <PipelineTrace workflow="review" status={reviewStatus} trace={reviewTrace} /> : <span className="text-xs text-gray-500">Reviewed earlier</span>}
-                  <button onClick={handleFeedbackReview} disabled={!hasCases} className="shrink-0 rounded-md px-2 py-1 text-xs font-medium hover:bg-amber-100 dark:hover:bg-gray-800">
-                    Review again
-                  </button>
-                </div>
-              </>
             )}
-            {feedbackError && <p className="mt-2 text-xs text-red-600">{feedbackError}</p>}
+
+            <div className="p-4">
+              {isReviewing ? (
+                <div className="space-y-3">
+                  <PipelineTrace workflow="review" status={reviewStatus} trace={reviewTrace} />
+                  <p className="text-xs text-gray-500">Reading {selectedSuite?.testCases.length ?? 0} cases against the description. This takes about ten seconds.</p>
+                  <div className="space-y-2" aria-hidden>
+                    <div className="h-3 w-11/12 animate-pulse rounded bg-amber-100 dark:bg-slate-800" />
+                    <div className="h-3 w-4/5 animate-pulse rounded bg-amber-100 dark:bg-slate-800" />
+                    <div className="h-3 w-2/3 animate-pulse rounded bg-amber-100 dark:bg-slate-800" />
+                  </div>
+                </div>
+              ) : reviewScore == null ? (
+                <>
+                  <p className="font-medium">How complete are these tests?</p>
+                  <p className="mt-1 text-gray-600 dark:text-gray-400">
+                    {hasCases
+                      ? "A review reads the cases against the description, scores them out of 100 and suggests the ones that are missing."
+                      : "Generate the test cases first, then come back here to check them for gaps."}
+                  </p>
+                  <button
+                    onClick={handleFeedbackReview}
+                    disabled={!hasCases}
+                    className="tm-press mt-4 w-full rounded bg-amber-500 px-4 py-2 text-xs font-medium text-white shadow-sm hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-amber-400 dark:text-black dark:hover:bg-amber-300"
+                  >
+                    Review coverage
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p className="font-semibold leading-snug">{verdict(reviewScore)}</p>
+                  {reviewSummary && (
+                    <details className="group mt-1">
+                      <summary className="cursor-pointer list-none text-[13px] leading-relaxed text-gray-600 dark:text-gray-400">
+                        <span className="line-clamp-2 group-open:line-clamp-none">{reviewSummary}</span>
+                        <span className="text-xs text-amber-700 hover:underline group-open:hidden dark:text-amber-400">Read more</span>
+                      </summary>
+                    </details>
+                  )}
+
+                  {feedback && feedback.missingAreas.length > 0 && (
+                    <div className="mt-4">
+                      <p className="text-xs font-semibold">Not covered yet</p>
+                      <ul className="mt-1.5 space-y-1.5 text-[13px] text-gray-700 dark:text-gray-300">
+                        {feedback.missingAreas.map((item, idx) => (
+                          <li key={idx} className="flex gap-2">
+                            <span aria-hidden className="mt-[7px] h-1.5 w-1.5 shrink-0 bg-amber-500" />
+                            <span>{item.replace(/\.$/, "")}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {feedback && feedback.suggestedTestCases.length > 0 && (
+                    <div className="mt-5">
+                      <div className="flex items-baseline justify-between">
+                        <p className="text-xs font-semibold">
+                          Suggested cases <span className="font-normal text-gray-500">({feedback.suggestedTestCases.length})</span>
+                        </p>
+                        {feedback.suggestedTestCases.length > 1 && (
+                          <button onClick={handleAcceptAll} className="text-xs font-medium text-amber-700 hover:underline dark:text-amber-400">
+                            Add all
+                          </button>
+                        )}
+                      </div>
+                      <ul className="mt-2 space-y-2">
+                        {feedback.suggestedTestCases.map((tc, idx) => (
+                          <li key={idx} className="tm-fade border border-gray-200 bg-white dark:border-slate-700 dark:bg-slate-900">
+                            <details className="group">
+                              <summary className="cursor-pointer list-none p-2.5">
+                                <span className="block text-[13px] leading-snug">{tc.title}</span>
+                                <span className="mt-2 flex items-center gap-2 text-xs">
+                                  <span className="mr-auto text-gray-500">
+                                    {caseLabel(tc.type)}
+                                    <span className="ml-2 text-gray-400 group-open:hidden">Steps ▾</span>
+                                  </span>
+                                  <button
+                                    className="rounded px-2 py-0.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-800"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      handleRejectSuggested(idx);
+                                    }}
+                                  >
+                                    Skip
+                                  </button>
+                                  <button
+                                    className="rounded bg-amber-500 px-2.5 py-0.5 font-medium text-white hover:bg-amber-600 dark:bg-amber-400 dark:text-black dark:hover:bg-amber-300"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      handleAcceptSuggested(tc, idx);
+                                    }}
+                                  >
+                                    Add
+                                  </button>
+                                </span>
+                              </summary>
+                              <div className="border-t px-2.5 py-2 text-xs text-gray-600 dark:border-slate-700 dark:text-gray-400">
+                                <ol className="list-decimal space-y-0.5 pl-4">
+                                  {tc.steps.map((st, k) => (
+                                    <li key={k}>{cleanStep(st)}</li>
+                                  ))}
+                                </ol>
+                                <p className="mt-1.5">Expected: {tc.expected}</p>
+                              </div>
+                            </details>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  <div className="mt-5 flex items-center justify-between gap-2 border-t pt-3 text-xs dark:border-slate-700">
+                    <span
+                      className="text-gray-500"
+                      title={reviewTrace ? `Took ${(reviewTrace.totalMs / 1000).toFixed(1)}s` : undefined}
+                    >
+                      {reviewStatus === "done"
+                        ? "Reviewed just now"
+                        : selectedSuite?.lastReviewedAt
+                          ? `Reviewed ${timeAgo(String(selectedSuite.lastReviewedAt))}`
+                          : "Reviewed earlier"}
+                    </span>
+                    <button onClick={handleFeedbackReview} disabled={!hasCases} className="rounded px-2 py-1 font-medium hover:bg-amber-100 dark:hover:bg-slate-800">
+                      Review again
+                    </button>
+                  </div>
+                </>
+              )}
+              {feedbackError && <p className="mt-2 text-xs text-red-600">{feedbackError}</p>}
             </div>
           </div>
         </aside>
