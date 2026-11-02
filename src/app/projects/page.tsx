@@ -115,7 +115,7 @@ export default function ProjectsPage() {
         </div>
 
         <button
-          className="tm-press shrink-0 rounded bg-amber-500 px-3 py-2 text-xs font-medium text-white shadow-sm hover:bg-amber-600 dark:bg-gray-200 dark:text-black"
+          className="tm-press shrink-0 rounded bg-amber-500 px-3 py-2 text-xs font-medium text-white shadow-sm hover:bg-amber-600 dark:bg-amber-400 dark:text-black dark:hover:bg-amber-300"
           onClick={() => setIsProjectModalOpen(true)}
         >
           + New Project

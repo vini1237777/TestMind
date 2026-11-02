@@ -29,7 +29,7 @@ export default function TryNow() {
     <button
       type="button"
       onClick={go}
-      className="tm-press tm-attention rounded-full bg-amber-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-amber-600 dark:bg-gray-200 dark:text-black"
+      className="tm-press tm-attention rounded-full bg-amber-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-amber-600 dark:bg-amber-400 dark:text-black dark:hover:bg-amber-300"
     >
       Try it now →
     </button>

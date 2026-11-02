@@ -27,7 +27,7 @@ export default function Intro() {
             <br />
             <Words text="Get its test cases," start={250} />{" "}
             <span className="tm-word relative inline-block" style={{ animationDelay: "500ms" }}>
-              <span aria-hidden className="tm-mark absolute inset-x-0 bottom-1 -z-10 h-3 bg-amber-300 dark:bg-amber-500/60" />
+              <span aria-hidden className="tm-mark absolute inset-x-0 bottom-1 -z-10 h-3 bg-amber-300 dark:bg-amber-400/70" />
               and what they miss.
             </span>
           </h2>
@@ -53,7 +53,7 @@ export default function Intro() {
         <div className="tm-pop relative" style={{ animationDelay: "300ms" }}>
           <div className="relative">
             {/* Offset card behind the panel, echoing the tilted logo tile */}
-            <div aria-hidden className="absolute inset-0 translate-x-2.5 translate-y-2.5 rotate-1 rounded-lg bg-amber-300 dark:bg-amber-500/40" />
+            <div aria-hidden className="absolute inset-0 translate-x-2.5 translate-y-2.5 rotate-1 rounded-lg bg-amber-300 dark:bg-amber-400/80" />
             <div className="relative">
               <DemoRun />
             </div>

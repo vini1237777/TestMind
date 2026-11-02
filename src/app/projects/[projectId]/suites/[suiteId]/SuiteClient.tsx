@@ -425,7 +425,7 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
             <button
               onClick={handleGenerate}
               disabled={isGenerating || !name.trim() || !description.trim()}
-              className="tm-press inline-flex items-center gap-2 rounded bg-amber-500 px-4 py-2 text-xs font-medium text-white shadow-sm hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-200 dark:text-black"
+              className="tm-press inline-flex items-center gap-2 rounded bg-amber-500 px-4 py-2 text-xs font-medium text-white shadow-sm hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-amber-400 dark:text-black dark:hover:bg-amber-300"
             >
               {isGenerating && <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/40 border-t-white" />}
               {isGenerating ? "Writing test cases" : isFirstGeneration ? "Generate test cases" : "Generate a new version"}
@@ -454,7 +454,7 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
 
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
         {/* The test cases */}
-        <section className="min-w-0 border border-amber-300 dark:border-gray-600">
+        <section className="min-w-0 border border-amber-300 dark:border-amber-500/40">
           {!hasLoaded ? (
             isGenerating ? (
               <p className="p-4 text-sm text-gray-500">The cases will appear here in a few seconds.</p>
@@ -468,7 +468,7 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
             <p className="p-4 text-sm text-gray-500">Select a version.</p>
           ) : (
             <>
-              <div className="flex min-h-10 flex-wrap items-center gap-2 bg-amber-300 px-3 py-1.5 text-black dark:bg-gray-200">
+              <div className="flex min-h-10 flex-wrap items-center gap-2 bg-amber-300 px-3 py-1.5 text-black dark:bg-amber-400">
                 <h2 className="text-sm font-semibold">
                   Test cases <span className="font-normal">({selectedSuite.testCases.length})</span>
                 </h2>
@@ -481,7 +481,7 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
                       setExpandedIds(new Set());
                       setFilterType("all");
                     }}
-                    className="rounded-md border-0 bg-amber-200 px-2 py-1 text-xs text-black focus:outline-none focus:ring-2 focus:ring-black/30 dark:bg-gray-300"
+                    className="rounded-md border-0 bg-amber-200 px-2 py-1 text-xs text-black focus:outline-none focus:ring-2 focus:ring-black/30 dark:bg-amber-300"
                   >
                     {testSuites.map((v, i) => (
                       <option key={v.id} value={v.id}>
@@ -499,7 +499,7 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
                     disabled={!hasCases}
                     aria-haspopup="menu"
                     aria-expanded={exportOpen}
-                    className="rounded-md px-2 py-1 text-sm font-medium transition-colors hover:bg-amber-200 disabled:opacity-50 dark:hover:bg-gray-300"
+                    className="rounded-md px-2 py-1 text-sm font-medium transition-colors hover:bg-amber-200 disabled:opacity-50 dark:hover:bg-amber-300"
                   >
                     Export ▾
                   </button>
@@ -543,7 +543,7 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
                     <button
                       key={tab.value}
                       onClick={() => setFilterType(tab.value as "all" | "happy" | "negative" | "edge")}
-                      className={`rounded-md px-2 py-1 transition-colors ${on ? "bg-amber-200 font-medium text-black dark:bg-gray-300" : "text-gray-600 hover:bg-amber-100 dark:text-gray-300 dark:hover:bg-gray-800"}`}
+                      className={`rounded-md px-2 py-1 transition-colors ${on ? "bg-amber-200 font-medium text-black dark:bg-amber-300" : "text-gray-600 hover:bg-amber-100 dark:text-gray-300 dark:hover:bg-gray-800"}`}
                     >
                       {tab.value === "all" ? "All" : caseLabel(tab.value)} ({count})
                     </button>
@@ -640,8 +640,8 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
 
         {/* The review, kept beside the cases it talks about */}
         <aside id="review-panel" className="scroll-mt-4 lg:sticky lg:top-4 lg:self-start">
-          <div className="border border-amber-300 text-sm dark:border-gray-600">
-            <div className="flex min-h-10 items-center justify-between gap-4 bg-amber-300 px-3 py-1.5 text-black dark:bg-gray-200">
+          <div className="border border-amber-300 text-sm dark:border-amber-500/40">
+            <div className="flex min-h-10 items-center justify-between gap-4 bg-amber-300 px-3 py-1.5 text-black dark:bg-amber-400">
               <h2 className="font-semibold">Review</h2>
               {reviewScore != null && !isReviewing && (
                 <p className="tabular-nums">
@@ -665,7 +665,7 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
                 <button
                   onClick={handleFeedbackReview}
                   disabled={!hasCases}
-                  className="tm-press mt-3 w-full rounded bg-amber-500 px-4 py-2 text-xs font-medium text-white shadow-sm hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-gray-200 dark:text-black"
+                  className="tm-press mt-3 w-full rounded bg-amber-500 px-4 py-2 text-xs font-medium text-white shadow-sm hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-amber-400 dark:text-black"
                 >
                   Review coverage
                 </button>

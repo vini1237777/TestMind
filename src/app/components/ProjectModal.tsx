@@ -4,8 +4,8 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { Project } from "../types/testmind";
 import { createProject } from "../actions/projects";
+import ProjectTile from "./ProjectTile";
 import Modal, { btnGhost, btnPrimary, fieldClass, labelClass } from "./Modal";
-import { initials } from "../lib/format";
 
 type ProjectModalProps = {
   open: boolean;
@@ -106,11 +106,9 @@ export default function ProjectModal({
 
         {/* Live preview of the card this will create */}
         <div>
-          <p className="mb-1.5 text-[11px] uppercase tracking-wide text-gray-400">Preview</p>
+          <p className="mb-1.5 text-xs text-gray-500">How it will look</p>
           <div className="flex items-center gap-3 rounded-lg border border-dashed p-3">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-amber-100 text-sm font-bold text-amber-800">
-              {name ? initials(name) : "?"}
-            </span>
+            <ProjectTile name={name} />
             <div className="min-w-0">
               <p className={`truncate text-sm font-semibold ${name ? "" : "text-gray-400"}`}>{name || "Your project"}</p>
               <p className="truncate text-xs text-gray-500">{project.description.trim() || "No description."}</p>
