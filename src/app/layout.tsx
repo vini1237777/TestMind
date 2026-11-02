@@ -1,42 +1,28 @@
-import type { Metadata } from "next";
-import { Bricolage_Grotesque, Caveat, Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
-import { Toaster } from "react-hot-toast";
-import HolyLoader from "holy-loader";
-import "react-loading-skeleton/dist/skeleton.css";
 import "./globals.css";
-import AppShell from "./components/shell/AppShell";
+import { Toaster } from "react-hot-toast";
+import Navbar from "./Navbar";
+// import NextTopLoader from "nextjs-toploader";
+import "react-loading-skeleton/dist/skeleton.css";
+import HolyLoader from "holy-loader";
 
-const sans = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
-const mono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono" });
-const hand = Caveat({ subsets: ["latin"], variable: "--font-hand", weight: ["500", "700"] });
-const display = Bricolage_Grotesque({ subsets: ["latin"], variable: "--font-bricolage", weight: ["500", "700", "800"] });
-
-export const metadata: Metadata = {
-  title: "TestMind · AI QA Engineering Workspace",
-  description:
-    "Transform feature specs into audited test suites. Powered by multi node LangGraph workflows, strict Zod validation, and full execution tracing.",
-};
-
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${sans.variable} ${mono.variable} ${display.variable} ${hand.variable}`}>
-      <body>
-        <HolyLoader zIndex={999999} color="var(--accent)" />
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-          <Toaster
-            position="bottom-right"
-            toastOptions={{
-              style: {
-                background: "var(--panel)",
-                color: "var(--fg)",
-                border: "1.5px solid var(--fg)",
-                boxShadow: "var(--hard-sm)",
-                fontSize: 13,
-              },
-            }}
-          />
-          <AppShell>{children}</AppShell>
+    <html lang="en" suppressHydrationWarning>
+      <body className="bg-white text-black dark:bg-[#020617] dark:text-white">
+        <HolyLoader zIndex={999999} />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem={false}
+        >
+          <Toaster />
+          <Navbar />
+          <main className="min-h-screen">{children}</main>
         </ThemeProvider>
       </body>
     </html>
