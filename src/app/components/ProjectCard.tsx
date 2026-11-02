@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Project } from "../types/testmind";
 import ProjectTile from "./ProjectTile";
+import TypeBar from "./TypeBar";
 import { timeAgo } from "../lib/format";
 
 /** A project at a glance: name, what it is, and one line of numbers. Details live inside. */
@@ -11,11 +12,11 @@ export default function ProjectCard({ project, index }: { project: Project; inde
   return (
     <Link
       href={`/projects/${project.id}`}
-      className="tm-rise group flex flex-col rounded-lg border border-gray-200 bg-white p-4 text-sm transition-all duration-200 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:border-black hover:shadow-[4px_4px_0_0_#fcd34d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-amber-400 dark:hover:shadow-[4px_4px_0_0_rgba(251,191,36,0.35)]"
+      className="tm-rise group flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white p-4 text-sm transition-all duration-200 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:border-black hover:shadow-[4px_4px_0_0_#fcd34d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-amber-400 dark:hover:shadow-[4px_4px_0_0_rgba(251,191,36,0.35)]"
       style={{ animationDelay: `${Math.min(index, 12) * 45}ms` }}
     >
       <div className="flex items-center gap-3">
-        <ProjectTile name={project.name} />
+        <ProjectTile name={project.name} id={project.id} />
         <div className="min-w-0">
           <h2 className="truncate font-semibold">{project.name}</h2>
           <p className="text-xs text-gray-500">{timeAgo(s?.lastActivity || project.createdAt)}</p>
@@ -41,6 +42,13 @@ export default function ProjectCard({ project, index }: { project: Project; inde
           </span>
         )}
       </p>
+
+      {/* Case mix as a thin strip along the bottom edge */}
+      {!empty && (
+        <div className="-mx-4 -mb-4 mt-3">
+          <TypeBar counts={s!} flush />
+        </div>
+      )}
     </Link>
   );
 }
