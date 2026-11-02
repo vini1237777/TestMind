@@ -91,3 +91,8 @@
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
 }
+
+/* Marker highlight drawn under a phrase in the hero */
+@keyframes tm-mark { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.tm-mark { transform-origin: left; animation: tm-mark .6s cubic-bezier(.2,.8,.2,1) 1s both; }
+@media (prefers-reduced-motion: reduce) { .tm-mark { animation: none; } }

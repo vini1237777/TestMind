@@ -58,7 +58,7 @@ export default function Navbar() {
           <span className="tm-logo-tile grid h-8 w-8 place-items-center rounded-lg bg-black text-[13px] font-black tracking-tight text-amber-300">
             TM
           </span>
-          <span className="text-base font-semibold">TestMind</span>
+          <span className="hidden text-base font-semibold sm:inline">TestMind</span>
         </Link>
 
         <div className="flex items-center gap-1">

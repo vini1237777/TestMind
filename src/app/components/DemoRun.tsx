@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { caseLabel } from "../lib/case-label";
+import { EXAMPLE } from "../lib/example";
 
 // A scripted replay shaped like a real run. It lets visitors watch the product
 // work without spending an LLM call on every page view.
-const FEATURE = "Password reset";
-const SPEC = "Users reset their password through an emailed link. Links expire after 30 minutes and work only once.";
+const FEATURE = EXAMPLE.feature;
+const SPEC = EXAMPLE.description;
 const NODES = [
   { label: "Generate", kind: "AI", ms: 2840 },
   { label: "Validate", kind: "code", ms: 3 },
@@ -34,7 +35,7 @@ export default function DemoRun() {
   useEffect(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduce) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+       
       setP({ typed: SPEC.length, clicked: true, node: NODES.length, cases: CASES.length, score: SCORE, gaps: GAPS.length });
       return;
     }
