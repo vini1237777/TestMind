@@ -1,4 +1,5 @@
 import { Annotation } from "@langchain/langgraph";
+import type { NodeTrace } from "@/src/lib/ai/graph/topology";
 
 export const SuiteGraphAnnotation = Annotation.Root({
   featureName: Annotation<string>({ reducer: (_, right) => right, default: () => "" }),
@@ -14,4 +15,6 @@ export const SuiteGraphAnnotation = Annotation.Root({
   lastReviewedAt: Annotation<string | null | undefined>({ reducer: (_, right) => right, default: () => null }),
   actionType: Annotation<string | undefined>({ reducer: (_, right) => right, default: () => undefined }),
   errors: Annotation<string[]>({ reducer: (left, right) => [...left, ...right], default: () => [] }),
+  // Each node appends one entry; the concat reducer keeps them in execution order.
+  trace: Annotation<NodeTrace[]>({ reducer: (left, right) => [...left, ...right], default: () => [] }),
 });

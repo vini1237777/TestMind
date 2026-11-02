@@ -4,13 +4,16 @@ import { SuiteGraphAnnotation } from "@/src/lib/ai/graph/annotations";
 import { createInitialSuiteGraphState } from "@/src/lib/ai/graph/runner";
 import { generateTestCasesNode } from "@/src/lib/ai/graph/nodes/generate-test-cases";
 import { validateGeneratedCasesNode } from "@/src/lib/ai/graph/nodes/validate-generated-cases";
+import { GENERATION_NODES } from "@/src/lib/ai/graph/topology";
+
+const [GENERATE, VALIDATE] = GENERATION_NODES;
 
 const generationGraph = new StateGraph(SuiteGraphAnnotation)
-  .addNode("generate_test_cases", generateTestCasesNode)
-  .addNode("validate_generated_cases", validateGeneratedCasesNode)
-  .addEdge(START, "generate_test_cases")
-  .addEdge("generate_test_cases", "validate_generated_cases")
-  .addEdge("validate_generated_cases", END);
+  .addNode(GENERATE, generateTestCasesNode)
+  .addNode(VALIDATE, validateGeneratedCasesNode)
+  .addEdge(START, GENERATE)
+  .addEdge(GENERATE, VALIDATE)
+  .addEdge(VALIDATE, END);
 
 const generationGraphApp = generationGraph.compile();
 

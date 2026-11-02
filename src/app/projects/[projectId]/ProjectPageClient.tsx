@@ -4,7 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import type { Project, TestSuite } from "@/src/app/types/testmind";
 import FeatureModal from "@/src/app/components/FeatureModal";
-import { useRouter } from "next/navigation";
+import Breadcrumbs from "@/src/app/components/Breadcrumbs";
+import TypeBar from "@/src/app/components/TypeBar";
+import { timeAgo } from "@/src/app/lib/format";
 
 export default function ProjectPageClient({
   project,
@@ -13,61 +15,86 @@ export default function ProjectPageClient({
   project: Project;
   suites: TestSuite[];
 }) {
-  const router = useRouter();
   const [openFeatureModal, setOpenFeatureModal] = useState(false);
   const [localSuites, setLocalSuites] = useState<TestSuite[]>(suites);
 
-  const handleBack = () => {
-    router.push(`/projects`);
-  };
+  const totalCases = localSuites.reduce((n, s) => n + (s.testCases?.length ?? 0), 0);
+  const scored = localSuites.filter((s) => typeof s.lastFeedbackScore === "number");
+  const avgScore = scored.length
+    ? Math.round(scored.reduce((n, s) => n + (s.lastFeedbackScore as number), 0) / scored.length)
+    : null;
 
   return (
     <>
-      <button onClick={handleBack} className="text-sm mb-4 cursor-pointer">
-        ← Back to Project
-      </button>
-      <header className="mb-6 flex items-center justify-between">
+      <Breadcrumbs items={[{ label: "Projects", href: "/projects" }, { label: project.name || "Project" }]} />
+      <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">{project.name}</h1>
-          <p className="text-sm text-gray-500 max-w-xl">
+          <p className="max-w-xl text-sm text-gray-500">
             {project.description}
+            {localSuites.length > 0 && (
+              <span className="block text-xs text-gray-400">
+                {localSuites.length} {localSuites.length === 1 ? "feature" : "features"}, {totalCases} test cases{avgScore !== null ? `, average score ${avgScore}/100` : ""}
+              </span>
+            )}
           </p>
         </div>
         <button
-          className="text-xs px-3 py-2 rounded bg-amber-500 text-white hover:bg-amber-300"
+          className="tm-press shrink-0 rounded bg-amber-500 px-3 py-2 text-xs font-medium text-white shadow-sm hover:bg-amber-600 dark:bg-amber-400 dark:text-black dark:hover:bg-amber-300"
           onClick={() => setOpenFeatureModal(true)}
         >
-          + New Feature / Test Suite
+          + New Feature
         </button>
       </header>
 
+
       {localSuites?.length === 0 ? (
-        <p className="text-sm text-gray-500">
-          No test suites yet for this project.
-        </p>
+        <div className="tm-rise rounded-lg border border-dashed p-10 text-center">
+          <h2 className="font-semibold">No test suites yet</h2>
+          <p className="mx-auto mt-1 max-w-sm text-sm text-gray-500">
+            Add a feature with a short description of what it should do. TestMind writes the first suite and you can review it from there.
+          </p>
+          <button
+            onClick={() => setOpenFeatureModal(true)}
+            className="tm-press mt-4 rounded bg-amber-500 px-4 py-2 text-xs font-medium text-white hover:bg-amber-600 dark:bg-amber-400 dark:text-black dark:hover:bg-amber-300"
+          >
+            Add the first feature
+          </button>
+        </div>
       ) : (
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {localSuites.map((suite) => (
-            <article
-              key={suite.id}
-              className="border rounded p-4 shadow-sm text-sm hover:shadow-2xl dark:hover:shadow-md dark:hover:shadow-white"
-            >
-              <h2 className="font-semibold mb-1">{suite.featureName}</h2>
-              <p className="text-xs text-gray-500 mb-2 line-clamp-2">
-                {suite.description}
-              </p>
-              <p className="text-[11px] text-gray-400 mb-2">
-                Created: {new Date(suite.createdAt).toLocaleString()}
-              </p>
-              <Link
-                href={`/projects/${project.id}/suites/${suite.id}`}
-                className="text-xs underline text-amber-700 dark:hover:text-amber-400"
-              >
-                View test cases
-              </Link>
-            </article>
-          ))}
-        </section>
+        <div className="border border-amber-300 dark:border-amber-500/40">
+          <div className="hidden grid-cols-[minmax(0,1fr)_160px_80px_90px_120px] gap-4 bg-amber-300 px-4 py-2 text-xs font-semibold text-black md:grid">
+            <span>Feature</span>
+            <span>Case mix</span>
+            <span className="text-right">Cases</span>
+            <span className="text-right">Score</span>
+            <span className="text-right">Updated</span>
+          </div>
+          <ul className="divide-y dark:divide-slate-800">
+            {localSuites.map((suite, i) => (
+              <li key={suite.id} className="tm-rise" style={{ animationDelay: `${Math.min(i, 12) * 30}ms` }}>
+                <Link
+                  href={`/projects/${project.id}/suites/${suite.id}`}
+                  className="grid grid-cols-1 gap-1 px-4 py-3 text-sm transition-colors hover:bg-amber-50 md:grid-cols-[minmax(0,1fr)_160px_80px_90px_120px] md:items-center md:gap-4 dark:hover:bg-slate-900"
+                >
+                  <span className="min-w-0">
+                    <span className="block truncate font-medium">{suite.featureName}</span>
+                    <span className="block truncate text-xs text-gray-500">{suite.description || "No description"}</span>
+                  </span>
+                  <span className="hidden md:block">{suite.testCases?.length ? <TypeBar cases={suite.testCases} /> : <span className="text-xs text-gray-400">Not generated</span>}</span>
+                  <span className="hidden text-right tabular-nums md:block">{suite.testCases?.length ?? 0}</span>
+                  <span className={`hidden text-right tabular-nums md:block ${typeof suite.lastFeedbackScore === "number" ? "" : "text-gray-400"}`}>
+                    {typeof suite.lastFeedbackScore === "number" ? `${suite.lastFeedbackScore}/100` : "None"}
+                  </span>
+                  <span className="hidden text-right text-gray-500 md:block">{timeAgo(suite.lastReviewedAt || suite.createdAt)}</span>
+                  <span className="text-xs text-gray-500 md:hidden">
+                    {suite.testCases?.length ?? 0} cases{typeof suite.lastFeedbackScore === "number" ? `, score ${suite.lastFeedbackScore}/100` : ""}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
 
       <FeatureModal

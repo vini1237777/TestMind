@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "projectId is required." }, { status: 400 });
     }
 
-    const testCases = await runGenerationWorkflow({
+    const { testCases, trace } = await runGenerationWorkflow({
       featureName: feature,
       description: desc,
       projectId,
@@ -69,6 +69,7 @@ export async function POST(req: NextRequest) {
                 ? updated.lastReviewedAt.toISOString()
                 : updated.lastReviewedAt ?? null,
             workflow: "langgraph_generation",
+            trace,
           },
           { status: 200 }
         );
@@ -95,6 +96,7 @@ export async function POST(req: NextRequest) {
         lastFeedbackScore: suite.lastFeedbackScore ?? null,
         lastReviewedAt: suite.lastReviewedAt ?? null,
         workflow: "langgraph_generation",
+            trace,
       },
       { status: 200 }
     );

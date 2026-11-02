@@ -44,7 +44,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   }));
 
   return (
-    <main className="max-w-full mx-auto px-4 py-8">
+    <main className="max-w-full mx-4 px-4 py-8">
       <ProjectPageClient project={project} suites={suites} />
     </main>
   );

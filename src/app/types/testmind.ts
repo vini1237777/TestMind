@@ -20,11 +20,25 @@ export type TestSuite = {
   lastReviewedAt?: string | null;
 };
 
+export type ProjectStats = {
+  suites: number;
+  /** Distinct features; older cached responses may not have it. */
+  features?: number;
+  cases: number;
+  happy: number;
+  negative: number;
+  edge: number;
+  avgScore: number | null;
+  lastActivity: string | null;
+  lastSuite?: { id: string; name: string; score: number | null; cases: number } | null;
+};
+
 export type Project = {
   id: string;
   name: string;
   description?: string;
   createdAt: string;
+  stats?: ProjectStats;
 };
 
 export type ProjectPageProps = {

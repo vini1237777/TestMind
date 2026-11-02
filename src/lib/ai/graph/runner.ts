@@ -17,5 +17,6 @@ export function createInitialSuiteGraphState(
     lastReviewedAt: input.lastReviewedAt ?? null,
     actionType: input.actionType,
     errors: input.errors ?? [],
+    trace: input.trace ?? [],
   };
 }

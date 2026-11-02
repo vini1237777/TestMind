@@ -114,35 +114,35 @@ test("user can create project, add feature, and generate test cases", async ({
     });
   });
 
-  await page.goto("/");
+  await page.goto("/projects");
 
   await expect(page.getByRole("heading", { name: /projects/i })).toBeVisible();
 
   await page.getByRole("button", { name: /new project/i }).click();
-  await expect(page.getByText(/create project/i)).toBeVisible();
+  await expect(page.getByRole("dialog")).toBeVisible();
 
   await page.getByPlaceholder(/project name/i).fill(projectName);
   await page.getByPlaceholder(/project description/i).fill(projectDescription);
-  await page.getByRole("button", { name: /^save$/i }).click();
+  await page.getByRole("button", { name: /^create (project|feature)$/i }).click();
 
   await expect(page.getByText(projectName, { exact: true })).toBeVisible();
   await page.getByText(projectName, { exact: true }).click();
 
-  await expect(page.getByText(projectName)).toBeVisible();
+  await expect(page.getByRole("heading", { name: projectName })).toBeVisible();
 
   await page
-    .getByRole("button", { name: "+ New Feature / Test Suite" })
+    .getByRole("button", { name: "+ New Feature" })
     .click();
-  await expect(page.getByText("Create New Feature / Suite")).toBeVisible();
+  await expect(page.getByText("Create new feature")).toBeVisible();
 
   await page.getByPlaceholder(/feature name/i).fill(featureName);
   await page.getByPlaceholder(/description/i).fill(featureDescription);
-  await page.getByRole("button", { name: /^save$/i }).click();
+  await page.getByRole("button", { name: /^create (project|feature)$/i }).click();
 
   await expect(page.getByText(featureName, { exact: true })).toBeVisible();
-  await page.getByText("View test cases", { exact: true }).click();
+  await page.locator("a[href*=\"/suites/\"]").first().click();
 
-  await expect(page.getByText("Test Suites")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Generate Test Cases" })).toBeVisible();
 
   await page.waitForTimeout(2000);
 
@@ -152,7 +152,7 @@ test("user can create project, add feature, and generate test cases", async ({
 
   await page.getByRole("button", { name: "Generate Test Cases" }).click();
 
-  await expect(page.getByText("TC_1")).toBeVisible();
+  await expect(page.getByText("Valid input generates tests")).toBeVisible();
 
   page.on("request", (request) => {
     console.log("Request:", request.method(), request.url());

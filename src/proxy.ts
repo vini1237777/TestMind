@@ -24,4 +24,5 @@ export default async function proxy(req: NextRequest) {
   return NextResponse.next();
 }
 
-export const config = { matcher: "/api/:path*" };
+// /api/health is excluded so platform health checks never depend on Redis.
+export const config = { matcher: "/api/((?!health).*)" };

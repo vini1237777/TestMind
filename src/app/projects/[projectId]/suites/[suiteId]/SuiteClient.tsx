@@ -1,13 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import type { FeedbackResult } from "@/src/app/types/testmind";
 import { Feature, TestCase, TestSuite } from "@/src/app/types/testmind";
 import { updateFeature } from "@/src/app/actions/features";
-import ScoreBadge from "@/src/app/components/ScoreBadge";
 import Skeleton from "react-loading-skeleton";
+import PipelineTrace, { type RunStatus } from "@/src/app/components/PipelineTrace";
+import type { RunTrace } from "@/src/lib/ai/graph/topology";
+import { caseToMarkdown, download, slug, toCsv, toMarkdown, toPlaywrightSpec, typeCounts } from "@/src/app/lib/export-playwright";
+import Breadcrumbs from "@/src/app/components/Breadcrumbs";
+import TypeBar from "@/src/app/components/TypeBar";
+import { caseLabel } from "@/src/app/lib/case-label";
+import { timeAgo } from "@/src/app/lib/format";
 
 const tabs = [
   { label: "All", value: "all" },
@@ -18,9 +24,11 @@ const tabs = [
 
 type SuiteCaseProps = {
   feature: Feature;
+  projectName?: string;
 };
 
-export default function SuiteCase({ feature }: SuiteCaseProps) {
+
+export default function SuiteCase({ feature, projectName = "Project" }: SuiteCaseProps) {
   const router = useRouter();
 
   const [name, setName] = useState(feature.name);
@@ -35,11 +43,22 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
   const [filterType, setFilterType] = useState<
     "all" | "happy" | "negative" | "edge"
   >("all");
-  const [expandedCaseId, setExpandedCaseId] = useState<string | null>(null);
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [caseQuery, setCaseQuery] = useState("");
+  const [exportOpen, setExportOpen] = useState(false);
+  const toggleCase = (id: string) =>
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   const [error, setError] = useState<string | null>(null);
   const [isDirty, setIsDirty] = useState(false);
 
   const [isReviewing, setIsReviewing] = useState(false);
+  // Cases accepted since the last score; the score is stale until a new review runs.
+  const [addedSinceReview, setAddedSinceReview] = useState(0);
   const [feedback, setFeedback] = useState<FeedbackResult | null>(null);
   const [feedbackError, setFeedbackError] = useState<string | null>(null);
 
@@ -51,9 +70,12 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
 
   const [hasLoaded, setHasLoaded] = useState<boolean>(false);
 
-  const handleBack = () => {
-    router.push(`/projects/${feature.projectId}`);
-  };
+  // Pipeline trace for the last generation and review runs.
+  const [genStatus, setGenStatus] = useState<RunStatus>("idle");
+  const [genTrace, setGenTrace] = useState<RunTrace | null>(null);
+  const [reviewStatus, setReviewStatus] = useState<RunStatus>("idle");
+  const [reviewTrace, setReviewTrace] = useState<RunTrace | null>(null);
+
 
   const handleFeedbackReview = async () => {
     if (!selectedSuite || !selectedSuite.testCases.length) {
@@ -63,6 +85,9 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
 
     setFeedbackError(null);
     setIsReviewing(true);
+    setAddedSinceReview(0);
+    setReviewTrace(null);
+    setReviewStatus("running");
 
     try {
       const res = await fetch("/api/feedback-review", {
@@ -72,23 +97,39 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
           featureName: name.trim(),
           description: description.trim(),
           testCases: selectedSuite.testCases,
+          // Sent so the route can save the score on the suite.
+          suiteId: selectedSuite.id,
+          projectId: feature.projectId,
         }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
+        setReviewStatus("error");
         setFeedbackError(data.error || "Failed to get AI feedback.");
         return;
       }
 
-      setFeedback(data as FeedbackResult);
+      setFeedback({
+        score: data.score,
+        summary: data.summary,
+        missingAreas: Array.isArray(data.missingAreas) ? data.missingAreas : [],
+        suggestions: Array.isArray(data.suggestions) ? data.suggestions : [],
+        suggestedTestCases: Array.isArray(data.suggestedTestCases) ? data.suggestedTestCases : [],
+      });
+      setReviewTrace(data.trace ?? null);
+      setReviewStatus("done");
+      setTestSuites((prev) =>
+        prev.map((s) => (s.id === selectedSuite.id ? { ...s, lastFeedbackScore: data.score, lastFeedbackSummary: data.summary } : s))
+      );
 
       setLastReviewedAt(new Date().toISOString());
       setLastFeedbackScore(data.score);
       setLastFeedbackSummary(data.summary);
     } catch (err) {
       console.error(err);
+      setReviewStatus("error");
       setFeedbackError("Something went wrong while getting feedback.");
     } finally {
       setIsReviewing(false);
@@ -162,6 +203,8 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
 
     setError(null);
     setIsGenerating(true);
+    setGenTrace(null);
+    setGenStatus("running");
 
     try {
       const res = await fetch("/api/generate-tests", {
@@ -172,17 +215,21 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
           description: description.trim(),
           projectId: feature.projectId,
           suiteId: selectedSuiteId,
-          lastFeedbackScore: feature.lastFeedbackScore || null,
-          lastFeedbackSummary: feature.lastFeedbackSummary || "",
-          lastReviewedAt: feature.lastReviewedAt || "",
+          // The last review steers the next generation prompt.
+          lastFeedbackScore: feedback?.score ?? selectedSuite?.lastFeedbackScore ?? null,
+          lastFeedbackSummary: feedback?.summary ?? selectedSuite?.lastFeedbackSummary ?? "",
+          lastReviewedAt: lastReviewedAt || selectedSuite?.lastReviewedAt || "",
         }),
       });
 
       const data = await res.json();
       if (!res.ok) {
+        setGenStatus("error");
         setError(data.error || "Failed to generate test cases");
         return;
       }
+      setGenTrace(data.trace ?? null);
+      setGenStatus("done");
 
       const suiteId = data.suiteId as string;
       const createdAt = data.createdAt as string;
@@ -223,11 +270,12 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
       });
 
       setSelectedSuiteId(suiteId);
-      setExpandedCaseId(null);
+      setExpandedIds(new Set());
       setFilterType("all");
       setIsDirty(false);
     } catch (err) {
       console.error(err);
+      setGenStatus("error");
       setError("Something went wrong.");
     } finally {
       setIsGenerating(false);
@@ -254,7 +302,8 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
         return;
       }
 
-      toast.success("Test case added!");
+      toast.success("Case added");
+      setAddedSinceReview((n) => n + 1);
 
       setTestSuites((prev) =>
         prev.map((suite) =>
@@ -283,6 +332,30 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
     }
   };
 
+  const handleAcceptAll = async () => {
+    const all = feedback?.suggestedTestCases ?? [];
+    if (!selectedSuiteId || !all.length) return;
+    try {
+      const res = await fetch("/api/suites/add-cases", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ suiteId: selectedSuiteId, testCases: all }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error || "Could not add the cases");
+        return;
+      }
+      toast.success(`${all.length} ${all.length === 1 ? "case" : "cases"} added`);
+      setAddedSinceReview((n) => n + all.length);
+      setTestSuites((prev) => prev.map((x) => (x.id === selectedSuiteId ? { ...x, testCases: [...(x.testCases || []), ...all] } : x)));
+      setFeedback((prev) => (prev ? { ...prev, suggestedTestCases: [] } : prev));
+    } catch (err) {
+      console.error(err);
+      toast.error("Could not add the cases");
+    }
+  };
+
   const handleRejectSuggested = (index: number) => {
     const updated = feedback!.suggestedTestCases.filter((_, i) => i !== index);
     setFeedback({ ...feedback!, suggestedTestCases: updated });
@@ -291,9 +364,11 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
   const selectedSuite =
     testSuites.find((s) => s.id === selectedSuiteId) || null;
 
+  const cq = caseQuery.trim().toLowerCase();
   const filteredCases =
     selectedSuite?.testCases.filter((tc) =>
-      filterType === "all" ? true : tc.type === filterType
+      (filterType === "all" ? true : String(tc.type).toLowerCase() === filterType) &&
+      (!cq || `${tc.id} ${tc.title} ${tc.expected} ${tc.steps.join(" ")}`.toLowerCase().includes(cq))
     ) ?? [];
 
   const handleDownloadSuite = (suite: TestSuite) => {
@@ -309,426 +384,452 @@ export default function SuiteCase({ feature }: SuiteCaseProps) {
     URL.revokeObjectURL(url);
   };
 
+  // Once every suggestion is accepted or rejected, score the updated suite again.
+  const suggestionsLeft = feedback?.suggestedTestCases.length ?? 0;
+  useEffect(() => {
+    if (addedSinceReview > 0 && suggestionsLeft === 0 && !isReviewing) handleFeedbackReview();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [addedSinceReview, suggestionsLeft, isReviewing]);
+
   const isFirstGeneration =
     !selectedSuite || (selectedSuite.testCases?.length ?? 0) === 0;
 
+  // Opened from "Run it for real" on the home page (?run=1): start the run once the suite is loaded.
+  const autoRan = useRef(false);
+  useEffect(() => {
+    if (autoRan.current || !selectedSuiteId || !isFirstGeneration) return;
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("run") !== "1") return;
+    autoRan.current = true;
+    url.searchParams.delete("run");
+    window.history.replaceState(null, "", url);
+    handleGenerate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedSuiteId, isFirstGeneration]);
+
+  const versionIndex = selectedSuite ? testSuites.length - testSuites.findIndex((x) => x.id === selectedSuite.id) : 0;
+  const reviewScore = feedback?.score ?? selectedSuite?.lastFeedbackScore ?? null;
+  const reviewSummary = feedback?.summary ?? selectedSuite?.lastFeedbackSummary ?? "";
+  const hasCases = !!selectedSuite?.testCases.length;
+  const verdict = (n: number) =>
+    n >= 85
+      ? "Good coverage. Only small gaps left."
+      : n >= 60
+        ? "The basics are covered, but some failure and edge cases are missing."
+        : "Large parts of this feature are not tested yet.";
+  const cleanStep = (st: string) => st.replace(/^step\s*\d+\s*[:.]\s*/i, "");
+
   return (
-    <div className="min-h-screen">
-      <button onClick={handleBack} className="text-sm cursor-pointer">
-        ← Back to Feature
-      </button>
-      <main className="max-w-full mx-auto px-4 py-8 w-full">
-        <section className="border border-gray-200 bg-white shadow-sm rounded p-4 mb-8 space-y-4  dark:bg-gray-900">
-          <div>
-            <p className="text-[11px] uppercase text-gray-500 dark:text-white">
-              Feature
-            </p>
-            <input
-              type="text"
-              className="text-sm w-full mt-1 p-2 border rounded focus:ring-2 focus:ring-amber-500"
-              value={name}
-              onChange={(e) => {
-                setName(e.target.value);
-                setIsDirty(true);
-              }}
-            />
-          </div>
+    <div className="mx-auto min-h-screen max-w-6xl">
+      <Breadcrumbs
+        items={[
+          { label: "Projects", href: "/projects" },
+          { label: projectName, href: `/projects/${feature.projectId}` },
+          { label: feature.name },
+        ]}
+      />
 
-          <div>
-            <label className="text-xs font-medium text-gray-700 dark:text-white">
-              Description
-            </label>
-            <textarea
-              className="text-sm w-full p-2 border rounded focus:ring-2 focus:ring-amber-500 min-h-20"
-              value={description}
-              onChange={(e) => {
-                setDescription(e.target.value);
-                setIsDirty(true);
-              }}
-            />
-          </div>
+      {/* What is being tested */}
+      <section className="mt-2 max-w-3xl">
+        <input
+          type="text"
+          aria-label="Feature name"
+          className="-mx-2 w-full rounded border border-transparent px-2 py-1 text-2xl font-semibold hover:border-gray-200 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500/30 dark:bg-transparent"
+          value={name}
+          onChange={(e) => {
+            setName(e.target.value);
+            setIsDirty(true);
+          }}
+        />
+        <label htmlFor="feature-description" className="mt-3 block text-xs text-gray-500">
+          What this feature should do
+        </label>
+        <textarea
+          id="feature-description"
+          rows={3}
+          className="mt-1 w-full resize-y rounded border p-3 text-sm leading-relaxed focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500/30 dark:bg-gray-950"
+          value={description}
+          onChange={(e) => {
+            setDescription(e.target.value);
+            setIsDirty(true);
+          }}
+        />
 
-          <div className="flex gap-3">
-            <button
-              onClick={handleSaveFeature}
-              disabled={isSavingFeature || !hasChanges || !name.trim()}
-              className="bg-amber-500 text-white text-xs px-3 rounded
-                hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSavingFeature ? "Saving..." : "Save Feature"}
-            </button>
-
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          {(isFirstGeneration || isDirty || isGenerating) && (
             <button
               onClick={handleGenerate}
-              disabled={
-                (!isFirstGeneration && !isDirty) ||
-                isGenerating ||
-                !name.trim() ||
-                !description.trim()
-              }
-              className="bg-amber-500 text-white text-xs px-3 rounded
-                hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isGenerating || !name.trim() || !description.trim()}
+              className="tm-press inline-flex items-center gap-2 rounded bg-amber-500 px-4 py-2 text-xs font-medium text-white shadow-sm hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-amber-400 dark:text-black dark:hover:bg-amber-300"
             >
-              {isGenerating ? "Generating..." : "Generate Test Cases"}
+              {isGenerating && <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/40 border-t-white" />}
+              {isGenerating ? "Writing test cases" : isFirstGeneration ? "Generate test cases" : "Generate a new version"}
             </button>
-            <div className="flex gap-3 mt-2">
-              <button
-                onClick={handleFeedbackReview}
-                disabled={
-                  isReviewing ||
-                  !selectedSuite ||
-                  !selectedSuite.testCases.length
-                }
-                className="bg-gray-800 text-white text-xs px-3 py-2 rounded
-                hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed mb-0.5"
-              >
-                {isReviewing ? "Reviewing..." : "Run AI Feedback Review"}
-              </button>
-            </div>
-
-            {feedbackError && (
-              <p className="text-xs text-red-600 mt-1">{feedbackError}</p>
-            )}
-            {error && <p className="text-xs text-red-600">{error}</p>}
-          </div>
-
-          {feedback && (
-            <div className="mt-6 border-t pt-4">
-              <h3 className="text-sm font-semibold mb-2">AI Feedback Review</h3>
-
-              <div className="flex items-center gap-2 mb-2">
-                <ScoreBadge score={feedback.score} />
-                <p className="text-xs text-gray-600">AI Coverage Score</p>
-              </div>
-              {feedback && (
-                <p className="text-[12px] mb-2">
-                  <span className="font-semibold">Coverage:</span>{" "}
-                  {feedback.score >= 85
-                    ? "Strong (good coverage with minor improvements)"
-                    : feedback.score >= 60
-                    ? "Moderate (covers basics but missing important edge/negative cases)"
-                    : "Weak (significant gaps in test coverage)"}
-                </p>
-              )}
-
-              <p className="text-xs mb-2 dark:bg-gray-800">
-                <span className="font-semibold">Summary:</span>{" "}
-                {feedback.summary}
-              </p>
-
-              {feedback.missingAreas.length > 0 && (
-                <div className="mb-2">
-                  <p className="text-xs font-semibold mb-1">
-                    Missing / Weak Areas:
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {feedback.missingAreas.map((item, idx) => (
-                      <span
-                        key={idx}
-                        className="px-2 py-1 bg-red-100 text-red-700 rounded text-xs"
-                      >
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {feedback.suggestions.length > 0 && (
-                <div className="mb-2">
-                  <p className="text-xs font-semibold mb-1">
-                    Improvement Suggestions:
-                  </p>
-                  <ul className="flex flex-col gap-1 text-xs text-gray-700">
-                    {feedback.suggestions.map((s, i) => (
-                      <li key={i} className="flex items-start gap-1">
-                        <span className="text-green-600">✔</span>
-                        {s}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
           )}
-          {feedback?.suggestedTestCases &&
-            feedback.suggestedTestCases.length > 0 && (
-              <div className="mt-6 border-t pt-4  dark:bg-gray-800">
-                <h3 className="font-semibold text-sm mb-2">
-                  AI Suggested Test Cases
-                </h3>
+          {hasChanges && (
+            <button
+              onClick={handleSaveFeature}
+              disabled={isSavingFeature || !name.trim()}
+              className="tm-fade tm-press rounded border px-4 py-2 text-xs font-medium hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-gray-800"
+            >
+              {isSavingFeature ? "Saving" : "Save changes"}
+            </button>
+          )}
+          {!isFirstGeneration && !isDirty && !isGenerating && (
+            <p className="text-xs text-gray-500">Change the description to generate a new version.</p>
+          )}
+          {error && <p className="text-xs text-red-600">{error}</p>}
+        </div>
+        {genStatus !== "idle" && (
+          <div className="tm-slide mt-1">
+            <PipelineTrace workflow="generation" status={genStatus} trace={genTrace} />
+          </div>
+        )}
+      </section>
 
-                <ul className="flex flex-col gap-4">
-                  {feedback.suggestedTestCases.map((tc, idx) => (
-                    <li
-                      key={idx}
-                      className="border rounded p-3 shadow-sm bg-gray-50 text-sm dark:bg-gray-900"
-                    >
-                      <div className="flex justify-between mb-1">
-                        <span className="uppercase text-xs text-gray-600">
-                          {tc.type}
-                        </span>
-                      </div>
-
-                      <h4 className="font-semibold">{tc.title}</h4>
-
-                      <p className="mt-1 font-semibold text-xs">Steps:</p>
-                      <ol className="list-decimal list-inside text-xs">
-                        {tc.steps.map((s, i) => (
-                          <li key={i}>{s}</li>
-                        ))}
-                      </ol>
-
-                      <p className="mt-2 text-xs">
-                        <span className="font-semibold">Expected:</span>{" "}
-                        {tc.expected}
-                      </p>
-
-                      {tc.samplePayload && (
-                        <pre className="mt-2 bg-white p-2 border rounded text-xs overflow-x-auto dark:bg-gray-800">
-                          {JSON.stringify(tc.samplePayload, null, 2)}
-                        </pre>
-                      )}
-
-                      <div className="flex gap-2 mt-3">
-                        <button
-                          className="px-3 py-1 text-xs bg-amber-500 text-white rounded hover:bg-amber-600"
-                          onClick={() => handleAcceptSuggested(tc, idx)}
-                        >
-                          Accept
-                        </button>
-
-                        <button
-                          className="px-3 py-1 text-xs bg-gray-300 rounded hover:bg-gray-400"
-                          onClick={() => handleRejectSuggested(idx)}
-                        >
-                          Reject
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-        </section>
-
-        <div className="flex gap-6  dark:bg-dark">
-          <aside className="w-1/3 border-r pr-4">
-            <h2 className="font-semibold text-sm mb-3">Test Suites</h2>
-
-            {testSuites.length === 0 ? (
-              hasLoaded ? (
-                <p className="text-xs text-gray-500">
-                  No suites yet. Generate test cases.
-                </p>
-              ) : (
-                <span className="w-[92%]">
-                  <Skeleton height={15} width={"100%"} />
-                  <Skeleton height={15} width={"70%"} />
-                </span>
-              )
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
+        {/* The test cases */}
+        <section className="min-w-0 border border-amber-300 dark:border-amber-500/40">
+          {!hasLoaded ? (
+            isGenerating ? (
+              <p className="p-4 text-sm text-gray-500">The cases will appear here in a few seconds.</p>
             ) : (
-              <ul className="flex flex-col gap-2">
-                {testSuites?.map((suite) => (
-                  <li
-                    key={suite.id}
-                    onClick={() => {
-                      setSelectedSuiteId(suite.id);
-                      setExpandedCaseId(null);
+              <div className="p-4">
+                <Skeleton height={20} width="40%" />
+                <Skeleton height={44} count={6} className="mt-2" />
+              </div>
+            )
+          ) : !selectedSuite ? (
+            <p className="p-4 text-sm text-gray-500">Select a version.</p>
+          ) : (
+            <>
+              <div className="flex min-h-10 flex-wrap items-center gap-2 bg-amber-300 px-3 py-1.5 text-black">
+                <h2 className="text-sm font-semibold">
+                  Test cases <span className="font-normal">({selectedSuite.testCases.length})</span>
+                </h2>
+                {testSuites.length > 1 && (
+                  <select
+                    aria-label="Version"
+                    value={selectedSuite.id}
+                    onChange={(e) => {
+                      setSelectedSuiteId(e.target.value);
+                      setExpandedIds(new Set());
                       setFilterType("all");
                     }}
-                    className={`p-2 border rounded cursor-pointer text-xs  dark:bg-gray-900  ${
-                      suite.id === selectedSuiteId
-                        ? "bg-amber-50 border-amber-200 dark:border-white"
-                        : "hover:bg-gray-50"
-                    }`}
+                    className="rounded-md border-0 bg-amber-200 px-2 py-1 text-xs text-black focus:outline-none focus:ring-2 focus:ring-black/30"
                   >
-                    <div className="font-medium">{suite.name}</div>
-                    <div className="text-[10px] text-gray-500">
-                      {new Date(suite?.createdAt).toLocaleString()}
-                    </div>
-                    {suite?.lastFeedbackScore != null && (
-                      <div className="text-[10px] text-emerald-700 mt-1">
-                        AI Score: {suite.lastFeedbackScore}/100
-                      </div>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </aside>
+                    {testSuites.map((v, i) => (
+                      <option key={v.id} value={v.id}>
+                        Version {testSuites.length - i}
+                        {i === 0 ? " (latest)" : ""}, {timeAgo(v.createdAt)}
+                        {v.lastFeedbackScore != null ? `, reviewed ${v.lastFeedbackScore}` : ""}
+                      </option>
+                    ))}
+                  </select>
+                )}
 
-          {hasLoaded ? (
-            <section className="w-2/3 pl-4">
-              {!selectedSuite ? (
-                <p className="text-sm text-gray-500">Select a suite.</p>
+                <div className="relative ml-auto">
+                  <button
+                    onClick={() => setExportOpen((o) => !o)}
+                    disabled={!hasCases}
+                    aria-haspopup="menu"
+                    aria-expanded={exportOpen}
+                    className="rounded-md px-2 py-1 text-sm font-medium transition-colors hover:bg-amber-200 disabled:opacity-50"
+                  >
+                    Export ▾
+                  </button>
+                  {exportOpen && (
+                    <>
+                      <div className="fixed inset-0 z-10" onClick={() => setExportOpen(false)} />
+                      <div role="menu" className="tm-slide absolute right-0 z-20 mt-1 w-56 overflow-hidden rounded border bg-white text-xs shadow-lg dark:border-gray-700 dark:bg-gray-900">
+                        {[
+                          { label: "Playwright spec", hint: "one test per case", run: () => download(`${slug(selectedSuite.name)}.spec.ts`, toPlaywrightSpec(selectedSuite), "text/typescript") },
+                          { label: "CSV", hint: "for a sheet or test tool", run: () => download(`${slug(selectedSuite.name)}.csv`, toCsv(selectedSuite), "text/csv") },
+                          { label: "Markdown", hint: "for a ticket or PR", run: () => download(`${slug(selectedSuite.name)}.md`, toMarkdown(selectedSuite), "text/markdown") },
+                          { label: "JSON", hint: "raw data", run: () => handleDownloadSuite(selectedSuite) },
+                        ].map((o) => (
+                          <button
+                            key={o.label}
+                            role="menuitem"
+                            onClick={() => {
+                              o.run();
+                              setExportOpen(false);
+                            }}
+                            className="flex w-full items-center justify-between px-3 py-2 text-left hover:bg-amber-50 dark:hover:bg-gray-800"
+                          >
+                            <span className="font-medium">{o.label}</span>
+                            <span className="text-[10px] text-gray-400">{o.hint}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              <div className="px-3 pt-3">
+              <TypeBar cases={selectedSuite.testCases} />
+
+              <div className="mt-3 flex flex-wrap items-center gap-1 border-b pb-3 text-sm dark:border-gray-700">
+                {tabs.map((tab) => {
+                  const count = tab.value === "all" ? selectedSuite.testCases.length : typeCounts(selectedSuite.testCases)[tab.value as "happy" | "negative" | "edge"];
+                  const on = filterType === tab.value;
+                  return (
+                    <button
+                      key={tab.value}
+                      onClick={() => setFilterType(tab.value as "all" | "happy" | "negative" | "edge")}
+                      className={`rounded-md px-2 py-1 transition-colors ${on ? "bg-amber-200 font-medium text-black dark:bg-amber-300" : "text-gray-600 hover:bg-amber-100 dark:text-gray-300 dark:hover:bg-gray-800"}`}
+                    >
+                      {tab.value === "all" ? "All" : caseLabel(tab.value)} ({count})
+                    </button>
+                  );
+                })}
+                <div className="ml-auto flex items-center gap-2">
+                  <input
+                    type="search"
+                    value={caseQuery}
+                    onChange={(e) => setCaseQuery(e.target.value)}
+                    placeholder="Search cases"
+                    aria-label="Search test cases"
+                    className="w-40 rounded border px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/40 dark:border-gray-700 dark:bg-gray-900"
+                  />
+                  <button
+                    onClick={() => setExpandedIds(expandedIds.size >= filteredCases.length ? new Set() : new Set(filteredCases.map((t) => t.id)))}
+                    className="rounded-md px-2 py-1 text-xs hover:bg-amber-100 dark:hover:bg-gray-800"
+                  >
+                    {expandedIds.size >= filteredCases.length && filteredCases.length > 0 ? "Collapse all" : "Expand all"}
+                  </button>
+                </div>
+              </div>
+
+              </div>
+              <ul className="divide-y px-3 dark:divide-gray-700">
+                {filteredCases.map((tc, i) => {
+                  const expanded = expandedIds.has(tc.id);
+                  return (
+                    <li key={tc.id} className="tm-rise text-sm" style={{ animationDelay: `${Math.min(i, 10) * 40}ms` }}>
+                      <button
+                        onClick={() => toggleCase(tc.id)}
+                        aria-expanded={expanded}
+                        className="flex w-full items-center gap-3 px-1 py-2.5 text-left hover:bg-amber-50 dark:hover:bg-gray-900"
+                      >
+                        <span title={tc.id} className="w-6 shrink-0 text-right text-xs tabular-nums text-gray-400">
+                          {i + 1}.
+                        </span>
+                        <span className="min-w-0 flex-1">{tc.title}</span>
+                        <span className="shrink-0 text-xs text-gray-500">{caseLabel(tc.type)}</span>
+                        <span className={`shrink-0 text-xs text-gray-400 transition-transform ${expanded ? "rotate-180" : ""}`} aria-hidden>
+                          ▾
+                        </span>
+                      </button>
+
+                      {expanded && (
+                        <div className="tm-slide pb-4 pl-10 pr-2 text-[13px] text-gray-700 dark:text-gray-300">
+                          <ol className="list-decimal space-y-0.5 pl-4 marker:text-gray-400">
+                            {tc.steps.map((step, k) => (
+                              <li key={k}>{cleanStep(step)}</li>
+                            ))}
+                          </ol>
+                          <p className="mt-2">
+                            <span className="text-gray-500">Expected:</span> {tc.expected}
+                          </p>
+                          {tc.samplePayload && Object.keys(tc.samplePayload).length > 0 && (
+                            <pre className="mt-2 overflow-x-auto rounded bg-gray-50 p-2 text-xs dark:bg-gray-950">{JSON.stringify(tc.samplePayload, null, 2)}</pre>
+                          )}
+                          <div className="mt-2 flex gap-3 text-xs text-gray-500">
+                            {tc.samplePayload && Object.keys(tc.samplePayload).length > 0 && (
+                              <button
+                                className="underline-offset-2 hover:text-gray-800 hover:underline dark:hover:text-gray-200"
+                                onClick={() => navigator.clipboard.writeText(JSON.stringify(tc.samplePayload, null, 2)).then(() => toast.success("Payload copied"))}
+                              >
+                                Copy payload
+                              </button>
+                            )}
+                            <button
+                              className="underline-offset-2 hover:text-gray-800 hover:underline dark:hover:text-gray-200"
+                              onClick={() => navigator.clipboard.writeText(caseToMarkdown(tc)).then(() => toast.success("Copied as Markdown"))}
+                            >
+                              Copy as Markdown
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+
+              {filteredCases.length === 0 && (
+                <p className="px-3 py-6 text-sm text-gray-500">
+                  {cq ? `No test cases match "${caseQuery}".` : filterType === "all" ? "No test cases yet." : `No ${caseLabel(filterType).toLowerCase()} cases in this version.`}
+                </p>
+              )}
+              {testSuites.length > 1 && (
+                <p className="px-3 py-2 text-xs text-gray-500">
+                  Showing version {versionIndex} of {testSuites.length}.
+                </p>
+              )}
+            </>
+          )}
+        </section>
+
+        {/* The review, kept beside the cases it talks about */}
+        <aside id="review-panel" className="scroll-mt-4 lg:sticky lg:top-4 lg:self-start">
+          <div className="border border-amber-300 text-sm dark:border-amber-500/40">
+            <div className="flex min-h-10 items-center justify-between gap-4 bg-amber-300 px-3 py-1.5 text-black">
+              <h2 className="font-semibold">Review</h2>
+              {reviewScore != null && !isReviewing && (
+                <p className="tabular-nums">
+                  <span className="text-base font-bold">{reviewScore}</span>/100
+                </p>
+              )}
+            </div>
+            {/* Score as a strip under the header, the same shape as the case mix */}
+            {reviewScore != null && !isReviewing && (
+              <div className="h-1 bg-amber-100 dark:bg-slate-800" title={`${reviewScore} out of 100`}>
+                <div className="tm-grow h-full bg-amber-600" style={{ width: `${reviewScore}%` }} />
+              </div>
+            )}
+
+            <div className="p-4">
+              {isReviewing ? (
+                <div className="space-y-3">
+                  <PipelineTrace workflow="review" status={reviewStatus} trace={reviewTrace} />
+                  <p className="text-xs text-gray-500">Reading {selectedSuite?.testCases.length ?? 0} cases against the description. This takes about ten seconds.</p>
+                  <div className="space-y-2" aria-hidden>
+                    <div className="h-3 w-11/12 animate-pulse rounded bg-amber-100 dark:bg-slate-800" />
+                    <div className="h-3 w-4/5 animate-pulse rounded bg-amber-100 dark:bg-slate-800" />
+                    <div className="h-3 w-2/3 animate-pulse rounded bg-amber-100 dark:bg-slate-800" />
+                  </div>
+                </div>
+              ) : reviewScore == null ? (
+                <>
+                  <p className="font-medium">How complete are these tests?</p>
+                  <p className="mt-1 text-gray-600 dark:text-gray-400">
+                    {hasCases
+                      ? "A review reads the cases against the description, scores them out of 100 and suggests the ones that are missing."
+                      : "Generate the test cases first, then come back here to check them for gaps."}
+                  </p>
+                  <button
+                    onClick={handleFeedbackReview}
+                    disabled={!hasCases}
+                    className="tm-press mt-4 w-full rounded bg-amber-500 px-4 py-2 text-xs font-medium text-white shadow-sm hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-amber-400 dark:text-black dark:hover:bg-amber-300"
+                  >
+                    Review coverage
+                  </button>
+                </>
               ) : (
                 <>
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <h2 className="font-semibold text-sm">
-                        {selectedSuite.name}
-                      </h2>
-                      <p className="text-[11px] text-gray-500">
-                        {new Date(selectedSuite.createdAt).toLocaleString()}
-                      </p>
-
-                      {feedback && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-50 text-[10px] font-medium text-emerald-700 border border-emerald-200">
-                          AI Reviewed
-                        </span>
-                      )}
-                      {lastReviewedAt && (
-                        <p className="text-[10px] text-gray-500 mt-1">
-                          Last reviewed at:{" "}
-                          {new Date(lastReviewedAt).toLocaleString()}
-                        </p>
-                      )}
-                    </div>
-
-                    <button
-                      onClick={() => handleDownloadSuite(selectedSuite)}
-                      className="text-xs px-3 py-1 border rounded hover:bg-gray-50 dark:hover:bg-gray-600"
-                    >
-                      Download JSON
-                    </button>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {tabs.map((tab) => (
-                      <button
-                        key={tab.value}
-                        onClick={() =>
-                          setFilterType(
-                            tab.value as "all" | "happy" | "negative" | "edge"
-                          )
-                        }
-                        className={`px-3 py-1 text-xs rounded-full ${
-                          filterType === tab.value
-                            ? "bg-amber-500 text-white"
-                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                        }`}
-                      >
-                        {tab.label}
+                  {addedSinceReview > 0 && (
+                    <div className="tm-slide mb-3 flex items-start justify-between gap-3 border border-amber-300 bg-amber-50 p-2.5 text-xs dark:border-amber-500/40 dark:bg-amber-500/10">
+                      <span>
+                        This score is from before you added {addedSinceReview} {addedSinceReview === 1 ? "case" : "cases"}.
+                        {suggestionsLeft > 0 && " It updates on its own once you accept or reject the rest."}
+                      </span>
+                      <button onClick={handleFeedbackReview} className="shrink-0 font-medium text-amber-700 hover:underline dark:text-amber-400">
+                        Update score
                       </button>
-                    ))}
-                  </div>
+                    </div>
+                  )}
+                  <p className="font-semibold leading-snug">{verdict(reviewScore)}</p>
+                  {reviewSummary && (
+                    <details className="group mt-1">
+                      <summary className="cursor-pointer list-none text-[13px] leading-relaxed text-gray-600 dark:text-gray-400">
+                        <span className="line-clamp-2 group-open:line-clamp-none">{reviewSummary}</span>
+                        <span className="text-xs text-amber-700 hover:underline group-open:hidden dark:text-amber-400">Read more</span>
+                      </summary>
+                    </details>
+                  )}
 
-                  {filteredCases.map((tc) => {
-                    const expanded = expandedCaseId === tc.id;
+                  {feedback && feedback.missingAreas.length > 0 && (
+                    <div className="mt-4">
+                      <p className="text-xs font-semibold">Not covered yet</p>
+                      <ul className="mt-1.5 space-y-1.5 text-[13px] text-gray-700 dark:text-gray-300">
+                        {feedback.missingAreas.map((item, idx) => (
+                          <li key={idx} className="flex gap-2">
+                            <span aria-hidden className="mt-[7px] h-1.5 w-1.5 shrink-0 bg-amber-500" />
+                            <span>{item.replace(/\.$/, "")}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
 
-                    return (
-                      <div
-                        key={tc.id}
-                        className="border rounded p-3 mb-4 shadow-sm text-sm dark:bg-gray-900 hover:shadow-2xl dark:hover:shadow-md dark:hover:shadow-white"
-                      >
-                        <div className="flex justify-between">
-                          <span className="font-mono text-xs">{tc.id}</span>
-                          <span className="uppercase text-xs text-gray-500">
-                            {tc.type}
-                          </span>
-                        </div>
+                  {feedback && feedback.suggestedTestCases.length > 0 && (
+                    <div className="mt-5">
+                      <div className="flex items-baseline justify-between">
+                        <p className="text-xs font-semibold">
+                          Suggested cases <span className="font-normal text-gray-500">({feedback.suggestedTestCases.length})</span>
+                        </p>
+                        {feedback.suggestedTestCases.length > 1 && (
+                          <button onClick={handleAcceptAll} className="text-xs font-medium text-amber-700 hover:underline dark:text-amber-400">
+                            Accept all
+                          </button>
+                        )}
+                      </div>
+                      <ul className="mt-2 space-y-3">
+                        {feedback.suggestedTestCases.map((tc, idx) => (
+                          <li key={idx} className="tm-rise border border-gray-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900" style={{ animationDelay: `${idx * 60}ms` }}>
+                            <p className="text-xs text-gray-500">{caseLabel(tc.type)}</p>
+                            <p className="mt-0.5 font-semibold leading-snug">{tc.title}</p>
 
-                        <button
-                          onClick={() =>
-                            setExpandedCaseId(expanded ? null : tc.id)
-                          }
-                          className="text-[11px] mt-2 border px-2 py-1 rounded hover:bg-gray-50 dark:hover:text-black"
-                        >
-                          {expanded ? "Hide" : "View"} details
-                        </button>
-
-                        {expanded && (
-                          <>
-                            <h3 className="font-semibold mt-2 mb-1">
-                              {tc.title}
-                            </h3>
-
-                            <p className="font-semibold text-xs">Steps:</p>
-                            <ol className="list-decimal list-inside text-gray-700 dark:text-white">
-                              {tc.steps.map((step, i) => (
-                                <li key={i}>{step}</li>
+                            <p className="mt-2 text-xs font-semibold">Steps</p>
+                            <ol className="mt-0.5 list-decimal space-y-0.5 pl-4 text-xs text-gray-700 dark:text-gray-300">
+                              {tc.steps.map((st, k) => (
+                                <li key={k}>{cleanStep(st)}</li>
                               ))}
                             </ol>
 
-                            <p className="mt-2">
-                              <span className="font-semibold">Expected:</span>{" "}
-                              {tc.expected}
+                            <p className="mt-2 text-xs">
+                              <span className="font-semibold">Expected:</span> <span className="text-gray-700 dark:text-gray-300">{tc.expected}</span>
                             </p>
 
-                            {tc.samplePayload && (
-                              <div className="mt-2">
-                                <p className="font-semibold text-xs mb-1">
-                                  Sample Payload:
-                                </p>
-                                <pre className="bg-gray-50 p-2 rounded border text-xs overflow-x-auto dark:bg-gray-950">
-                                  {JSON.stringify(tc.samplePayload, null, 2)}
-                                </pre>
-
-                                <button
-                                  onClick={() =>
-                                    navigator.clipboard
-                                      .writeText(
-                                        JSON.stringify(
-                                          tc.samplePayload,
-                                          null,
-                                          2
-                                        )
-                                      )
-                                      .then(() => toast.success("Copied!"))
-                                  }
-                                  className="text-[11px] underline mt-1"
-                                >
-                                  Copy payload
-                                </button>
-                              </div>
+                            {tc.samplePayload && Object.keys(tc.samplePayload).length > 0 && (
+                              <pre className="mt-2 overflow-x-auto border bg-gray-50 p-2 text-[11px] dark:border-slate-700 dark:bg-slate-950">{JSON.stringify(tc.samplePayload, null, 2)}</pre>
                             )}
-                          </>
-                        )}
-                      </div>
-                    );
-                  })}
 
-                  {filteredCases.length === 0 && (
-                    <p className="text-xs text-gray-500">
-                      No {filterType} test cases in this suite.
-                    </p>
+                            <div className="mt-3 flex gap-2">
+                              <button
+                                className="tm-press rounded bg-amber-500 px-3 py-1 text-xs font-medium text-white hover:bg-amber-600 dark:bg-amber-400 dark:text-black dark:hover:bg-amber-300"
+                                onClick={() => handleAcceptSuggested(tc, idx)}
+                              >
+                                Accept
+                              </button>
+                              <button
+                                className="tm-press rounded bg-gray-200 px-3 py-1 text-xs font-medium text-gray-800 hover:bg-gray-300 dark:bg-slate-700 dark:text-gray-100 dark:hover:bg-slate-600"
+                                onClick={() => handleRejectSuggested(idx)}
+                              >
+                                Reject
+                              </button>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   )}
+
+                  <div className="mt-5 flex items-center justify-between gap-2 border-t pt-3 text-xs dark:border-slate-700">
+                    <span
+                      className="text-gray-500"
+                      title={reviewTrace ? `Took ${(reviewTrace.totalMs / 1000).toFixed(1)}s` : undefined}
+                    >
+                      {reviewStatus === "done"
+                        ? "Reviewed just now"
+                        : selectedSuite?.lastReviewedAt
+                          ? `Reviewed ${timeAgo(String(selectedSuite.lastReviewedAt))}`
+                          : "Reviewed earlier"}
+                    </span>
+                    <button onClick={handleFeedbackReview} disabled={!hasCases} className="rounded px-2 py-1 font-medium hover:bg-amber-100 dark:hover:bg-slate-800">
+                      Review again
+                    </button>
+                  </div>
                 </>
               )}
-            </section>
-          ) : (
-            <section className="w-2/3 pl-4">
-              <div className="flex flex-col w-full gap-2">
-                <div className="flex">
-                  <div className="w-[80%]">
-                    <Skeleton height={20} width={"50%"} />
-                    <Skeleton height={20} width={"25%"} />
-                  </div>
-                  <div className="w-[20%] mt-1.5 justify-end!">
-                    <Skeleton height={30} width={"100%"} />
-                  </div>
-                </div>
-
-                <div className="flex w-[74%] gap-5">
-                  <Skeleton height={20} width={"60px"} />
-                  <Skeleton height={20} width={"60px"} />
-                  <Skeleton height={20} width={"60px"} />
-                  <Skeleton height={20} width={"60px"} />
-                </div>
-              </div>
-              <div className="w-full mt-3">
-                <Skeleton
-                  height={80}
-                  count={10}
-                  width={"100%"}
-                  className="mb-2.5"
-                />
-              </div>
-            </section>
-          )}
-        </div>
-      </main>
+              {feedbackError && <p className="mt-2 text-xs text-red-600">{feedbackError}</p>}
+            </div>
+          </div>
+        </aside>
+      </div>
     </div>
   );
 }

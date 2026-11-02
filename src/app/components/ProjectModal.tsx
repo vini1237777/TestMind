@@ -4,6 +4,8 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { Project } from "../types/testmind";
 import { createProject } from "../actions/projects";
+import ProjectTile from "./ProjectTile";
+import Modal, { btnGhost, btnPrimary, fieldClass, labelClass } from "./Modal";
 
 type ProjectModalProps = {
   open: boolean;
@@ -48,66 +50,72 @@ export default function ProjectModal({
     }
   };
 
-  if (!open) return null;
+  const name = project.name.trim();
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="max-w-[800px] bg-white shadow-lg rounded-md w-[600px] dark:text-white dark:bg-gray-900">
-        <h2 className="text-sm font-medium text-amber-700 border-b border-gray-300 py-3 px-4 mb-4 dark:text-white">
-          Create Project
-        </h2>
-
-        <div className="flex flex-col gap-4 mt-4 mb-6 mx-6">
-          <label className="text-sm font-medium text-gray-800 dark:text-white">
-            Project Name
+    <Modal
+      open={open}
+      onClose={onClose}
+      busy={isSaving}
+      onSubmit={name ? handleSave : undefined}
+      title="Create project"
+      subtitle="A project groups related features, like an app or a service."
+      footer={
+        <>
+          <button type="button" className={btnGhost} onClick={onClose} disabled={isSaving}>
+            Cancel
+          </button>
+          <button type="button" className={btnPrimary} onClick={handleSave} disabled={isSaving || !name}>
+            {isSaving && <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/40 border-t-white" />}
+            {isSaving ? "Creating..." : "Create project"}
+          </button>
+        </>
+      }
+    >
+      <div className="space-y-4">
+        <div>
+          <label htmlFor="project-name" className={labelClass}>
+            Project name
           </label>
           <input
+            id="project-name"
             type="text"
-            placeholder="Project Name"
+            maxLength={80}
+            placeholder="Project name, e.g. Checkout service"
             value={project.name}
-            onChange={(e) =>
-              setProject((prev) => ({ ...prev, name: e.target.value }))
-            }
-            className="p-2 border border-gray-300 rounded focus:ring-2 focus:ring-amber-500 outline-none"
-          />
-
-          <label className="text-sm font-medium text-gray-800 dark:text-white">
-            Project Description
-          </label>
-          <input
-            type="text"
-            placeholder="Project Description"
-            value={project.description}
-            onChange={(e) =>
-              setProject((prev) => ({
-                ...prev,
-                description: e.target.value,
-              }))
-            }
-            className="p-2 border border-gray-300 rounded focus:ring-2 focus:ring-amber-500 outline-none"
+            onChange={(e) => setProject((prev) => ({ ...prev, name: e.target.value }))}
+            className={fieldClass}
           />
         </div>
 
-        <div className="border-t border-gray-300 flex justify-between items-center px-4 py-2">
-          <button
-            type="button"
-            className="h-8 px-3 text-sm rounded-md bg-gray-600 text-white hover:bg-gray-700 disabled:opacity-60"
-            onClick={onClose}
-            disabled={isSaving}
-          >
-            Close
-          </button>
+        <div>
+          <label htmlFor="project-description" className={labelClass}>
+            Description <span className="font-normal text-gray-400">(optional)</span>
+          </label>
+          <textarea
+            id="project-description"
+            rows={3}
+            maxLength={240}
+            placeholder="Project description: what it covers"
+            value={project.description}
+            onChange={(e) => setProject((prev) => ({ ...prev, description: e.target.value }))}
+            className={`${fieldClass} resize-none`}
+          />
+          <p className="mt-1 text-right text-[11px] text-gray-400">{project.description.length}/240</p>
+        </div>
 
-          <button
-            type="button"
-            className="h-8 px-3 text-sm rounded-md  dark:bg-gray-600 bg-amber-600 text-white hover:bg-amber-700  disabled:opacity-60 dark:hover:bg-gray-700 dark:text-white"
-            onClick={handleSave}
-            disabled={isSaving}
-          >
-            {isSaving ? "Saving..." : "Save"}
-          </button>
+        {/* Live preview of the card this will create */}
+        <div>
+          <p className="mb-1.5 text-xs text-gray-500">How it will look</p>
+          <div className="flex items-center gap-3 rounded-lg border border-dashed p-3">
+            <ProjectTile name={name} />
+            <div className="min-w-0">
+              <p className={`truncate text-sm font-semibold ${name ? "" : "text-gray-400"}`}>{name || "Your project"}</p>
+              <p className="truncate text-xs text-gray-500">{project.description.trim() || "No description."}</p>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }

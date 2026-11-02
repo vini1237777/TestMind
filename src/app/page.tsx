@@ -1,13 +1,5 @@
-"use client";
-
-import ProjectsPage from "./projects/page";
-import SentryTestButton from "./SentryTestButton";
+import Intro from "./components/Intro";
 
 export default function HomePage() {
-  return (
-    <div>
-      <ProjectsPage />
-      <SentryTestButton />
-    </div>
-  );
+  return <Intro />;
 }

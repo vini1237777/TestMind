@@ -1,18 +1,64 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
-import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import { Project } from "../types/testmind";
 import ProjectModal from "../components/ProjectModal";
 import CardSkeleton from "../components/CardSkeleton";
+import FailedTest from "../components/FailedTest";
+import ProjectCard from "../components/ProjectCard";
 
 export default function ProjectsPage() {
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
   const [hasLoaded, setHasLoaded] = useState(false);
+  const [loadFailed, setLoadFailed] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
+  const [query, setQuery] = useState("");
+  const [sort, setSort] = useState<"recent" | "newest" | "name" | "cases" | "score">("recent");
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  // "/" jumps to search, Escape clears it
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement;
+      const typing = el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable;
+      if (e.key === "/" && !typing) {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const list = q
+      ? projects.filter((p) => `${p.name} ${p.description ?? ""}`.toLowerCase().includes(q))
+      : [...projects];
+    const t = (d?: string | null) => (d ? new Date(d).getTime() : 0);
+    const by: Record<typeof sort, (a: Project, b: Project) => number> = {
+      recent: (a, b) => t(b.stats?.lastActivity ?? b.createdAt) - t(a.stats?.lastActivity ?? a.createdAt),
+      newest: (a, b) => t(b.createdAt) - t(a.createdAt),
+      name: (a, b) => a.name.localeCompare(b.name),
+      cases: (a, b) => (b.stats?.cases ?? 0) - (a.stats?.cases ?? 0),
+      score: (a, b) => (b.stats?.avgScore ?? -1) - (a.stats?.avgScore ?? -1),
+    };
+    list.sort(by[sort]);
+    return list;
+  }, [projects, query, sort]);
+
+  const totals = useMemo(() => {
+    const withStats = projects.filter((p) => p.stats);
+    const scored = withStats.filter((p) => typeof p.stats!.avgScore === "number");
+    return {
+      suites: withStats.reduce((n, p) => n + p.stats!.suites, 0),
+      cases: withStats.reduce((n, p) => n + p.stats!.cases, 0),
+      avg: scored.length ? Math.round(scored.reduce((n, p) => n + (p.stats!.avgScore as number), 0) / scored.length) : null,
+    };
+  }, [projects]);
 
   useEffect(() => {
     let isMounted = true;
@@ -25,11 +71,13 @@ export default function ProjectsPage() {
 
         if (res.status === 429) {
           toast.error("Too many requests. Please try again later.");
+          setLoadFailed("429 Too Many Requests (limit is 10 per minute)");
           return;
         }
 
         if (!res.ok) {
           toast.error("Failed to load projects.");
+          setLoadFailed(`${res.status} from /api/projects`);
           return;
         }
 
@@ -40,6 +88,7 @@ export default function ProjectsPage() {
       } catch (error) {
         console.error(error);
         toast.error("Something went wrong while loading projects.");
+        setLoadFailed("Network error reaching /api/projects");
       } finally {
         if (!isMounted) return;
         setHasLoaded(true);
@@ -51,26 +100,22 @@ export default function ProjectsPage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [attempt]);
 
   return (
-    <main className="max-w-full mx-4 px-4 py-8">
-      <header className="mb-6 flex items-center justify-between">
-        <div className="w-full">
+    <main className="tm-zoom-in max-w-full mx-4 px-4 py-8">
+      <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
+        <div>
           <h1 className="text-2xl font-semibold">Projects</h1>
-          {!hasLoaded ? (
-            <span className="w-[92%]">
-              <Skeleton height={20} width={"50%"} />
-            </span>
-          ) : (
-            <p className="text-sm text-gray-500">
-              Select a project to view its AI-generated test suites.
-            </p>
-          )}
+          <p className="text-sm text-gray-500">
+            {hasLoaded && projects.length > 0
+              ? `${projects.length} projects, ${totals.suites} test suites, ${totals.cases} test cases`
+              : "Group features by app or service, then generate and review their tests."}
+          </p>
         </div>
 
         <button
-          className="text-xs px-3 py-2 rounded bg-amber-500 text-white hover:bg-amber-300 dark:bg-gray-200 dark:text-black"
+          className="tm-press shrink-0 rounded bg-amber-500 px-3 py-2 text-xs font-medium text-white shadow-sm hover:bg-amber-600 dark:bg-amber-400 dark:text-black dark:hover:bg-amber-300"
           onClick={() => setIsProjectModalOpen(true)}
         >
           + New Project
@@ -79,29 +124,84 @@ export default function ProjectsPage() {
 
       {!hasLoaded ? (
         <CardSkeleton />
+      ) : loadFailed ? (
+        <FailedTest
+          compact
+          code="TC_503"
+          title="Projects should load"
+          expected="200 OK with a list of projects"
+          received={loadFailed}
+          hint="The database or cache did not answer in time. Everything else still works, so try again in a moment."
+          onRetry={() => {
+            setLoadFailed(null);
+            setHasLoaded(false);
+            setAttempt((a) => a + 1);
+          }}
+        />
       ) : projects.length === 0 ? (
-        <p className="text-sm text-gray-500">
-          No projects yet. Click{" "}
-          <span className="font-semibold">+ New Project</span> to create one.
-        </p>
+        <div className="tm-rise rounded-lg border border-dashed p-10 text-center dark:border-gray-700">
+          <h2 className="mt-2 font-semibold">No projects yet</h2>
+          <p className="mx-auto mt-1 max-w-sm text-sm text-gray-500">
+            Create a project, add a feature with a short description, and TestMind drafts the first test suite for you.
+          </p>
+          <button
+            onClick={() => setIsProjectModalOpen(true)}
+            className="tm-press mt-4 rounded bg-amber-500 px-4 py-2 text-xs font-medium text-white hover:bg-amber-600"
+          >
+            Create your first project
+          </button>
+        </div>
       ) : (
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {projects?.map((project) => (
-            <Link
-              key={project?.id}
-              href={`/projects/${project.id}`}
-              className="border rounded p-4 hover:shadow-2xl transition text-sm dark:hover:shadow-md dark:hover:shadow-white"
-            >
-              <h2 className="font-semibold mb-1">{project?.name}</h2>
-              <p className="text-xs text-gray-500 mb-2 line-clamp-2">
-                {project?.description}
-              </p>
-              <p className="text-[11px] text-gray-400">
-                Created: {new Date(project?.createdAt).toLocaleString()}
-              </p>
-            </Link>
+        <>
+
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          <div className="relative min-w-[220px] flex-1 sm:max-w-sm">
+            <input
+              ref={searchRef}
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => e.key === "Escape" && setQuery("")}
+              placeholder="Search projects"
+              aria-label="Search projects"
+              className="w-full rounded border px-3 py-1.5 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 dark:border-gray-700 dark:bg-gray-900"
+            />
+            {!query && (
+              <kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded border px-1.5 text-[10px] text-gray-400 dark:border-gray-700">/</kbd>
+            )}
+          </div>
+          <select
+            value={sort}
+            onChange={(e) => setSort(e.target.value as typeof sort)}
+            aria-label="Sort projects"
+            className="rounded border px-2 py-1.5 text-sm dark:border-gray-700 dark:bg-gray-900"
+          >
+            <option value="recent">Recently active</option>
+            <option value="newest">Newest first</option>
+            <option value="cases">Most test cases</option>
+            <option value="score">Highest score</option>
+            <option value="name">Name A to Z</option>
+          </select>
+          {query && (
+            <span className="ml-auto text-xs text-gray-500">
+              {visible.length} of {projects.length}
+            </span>
+          )}
+        </div>
+
+        {visible.length === 0 ? (
+          <p className="text-sm text-gray-500">
+            No projects match &ldquo;{query}&rdquo;.{" "}
+            <button className="underline text-amber-700" onClick={() => setQuery("")}>Clear search</button>
+          </p>
+        ) : (
+        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {visible.map((project, i) => (
+            <ProjectCard key={project.id} project={project} index={i} />
           ))}
         </section>
+        )}
+        </>
       )}
 
       <ProjectModal
