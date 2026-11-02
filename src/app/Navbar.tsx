@@ -49,7 +49,7 @@ export default function Navbar() {
   return (
     <div>
       <FeaturesModal key={openCount} open={featuresOpen} initialTab={featuresTab} onClose={() => setFeaturesOpen(false)} />
-      <nav className="tm-slide w-full bg-amber-300 h-12 flex items-center justify-between px-4 dark:bg-gray-200">
+      <nav className="tm-slide w-full bg-amber-300 h-12 flex items-center justify-between px-4 dark:bg-amber-400">
         <Link
           href="/"
           aria-label="TestMind home"
@@ -65,7 +65,7 @@ export default function Navbar() {
           <Link
             href="/"
             aria-current={active("/") ? "page" : undefined}
-            className={`text-sm font-medium rounded-md px-2 py-1 text-black transition-colors ${active("/") ? "bg-amber-200 dark:bg-gray-300" : "hover:bg-amber-200"}`}
+            className={`text-sm font-medium rounded-md px-2 py-1 text-black transition-colors ${active("/") ? "bg-amber-200 dark:bg-amber-300" : "hover:bg-amber-200"}`}
           >
             Home
           </Link>
@@ -73,14 +73,14 @@ export default function Navbar() {
             type="button"
             onClick={() => openFeatures("tour")}
             aria-haspopup="dialog"
-            className={`text-sm font-medium rounded-md px-2 py-1 text-black transition-colors ${featuresOpen ? "bg-amber-200 dark:bg-gray-300" : "hover:bg-amber-200"}`}
+            className={`text-sm font-medium rounded-md px-2 py-1 text-black transition-colors ${featuresOpen ? "bg-amber-200 dark:bg-amber-300" : "hover:bg-amber-200"}`}
           >
             Features
           </button>
           <Link
             href="/projects"
             aria-current={active("/projects") ? "page" : undefined}
-            className={`text-sm font-medium rounded-md px-2 py-1 text-black transition-colors ${active("/projects") ? "bg-amber-200 dark:bg-gray-300" : "hover:bg-amber-200"}`}
+            className={`text-sm font-medium rounded-md px-2 py-1 text-black transition-colors ${active("/projects") ? "bg-amber-200 dark:bg-amber-300" : "hover:bg-amber-200"}`}
           >
             Workspace
           </Link>

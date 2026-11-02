@@ -44,7 +44,7 @@ export default function FailedTest({ code, title, expected, received, hint, dige
           {digest && <p className="font-mono text-[11px] text-gray-400">trace id {digest}</p>}
           <div className="flex flex-wrap gap-2 pt-1">
             {onRetry && (
-              <button type="button" onClick={onRetry} className="rounded bg-amber-500 px-3 py-2 text-xs text-white hover:bg-amber-600 dark:bg-gray-200 dark:text-black">
+              <button type="button" onClick={onRetry} className="rounded bg-amber-500 px-3 py-2 text-xs text-white hover:bg-amber-600 dark:bg-amber-400 dark:text-black dark:hover:bg-amber-300">
                 Rerun test
               </button>
             )}
