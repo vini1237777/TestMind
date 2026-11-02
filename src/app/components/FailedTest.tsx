@@ -82,8 +82,8 @@ export default function FailedTest({ code, title, expected, received, hint, dige
             )}
             {!compact && (
               <>
-                <Link href="/" className="btn">Back to home</Link>
-                <Link href="/architecture" className="btn btn-ghost">How TestMind works</Link>
+                <Link href="/" className="btn">Return home</Link>
+                <Link href="/architecture" className="btn btn-ghost">Inspect architecture</Link>
               </>
             )}
           </div>

@@ -46,31 +46,31 @@ function Section({ id, eyebrow, title, children }: { id: string; eyebrow: string
 }
 
 const GUARDRAILS = [
-  { t: "JSON mode + Zod", d: "Every model reply is parsed and validated against a schema: 1 to 8 cases, type ∈ happy | negative | edge, non empty steps. Bad output fails the run instead of reaching the UI.", src: "src/lib/ai/schemas/test-case.ts" },
-  { t: "Deterministic nodes", d: "Normalization and dedupe are plain code, not prompts. Dedupe keys on type + normalized title, then renumbers ids.", src: "src/lib/ai/utils/test-case.ts" },
-  { t: "Error accumulation", d: "Graph state has an append only errors channel. Orchestrators throw if any node reported one, so partial results are never saved.", src: "src/lib/ai/graph/annotations.ts" },
-  { t: "Feedback loop", d: "The last review summary and score are fed into the next generation prompt, so regenerating targets the gaps the reviewer found.", src: "src/lib/ai/prompts/generate-tests.ts" },
+  { t: "JSON mode + Zod", d: "Every model completion must satisfy a strict contract: 1 to 8 cases, category restricted to happy | negative | edge, and populated step arrays. Malformed responses fail fast before touching the UI.", src: "src/lib/ai/schemas/test-case.ts" },
+  { t: "Deterministic nodes", d: "Data normalization and deduplication run in pure TypeScript rather than prompts. Logic matches on category plus normalized title before reindexing IDs.", src: "src/lib/ai/utils/test-case.ts" },
+  { t: "Error accumulation", d: "StateGraphs maintain an append only error log. If any node records a fault, the orchestrator aborts the run to prevent partial writes.", src: "src/lib/ai/graph/annotations.ts" },
+  { t: "Closed feedback loop", d: "Subsequent generation runs automatically ingest the previous audit score and gap analysis, steering the model toward previously missed edge cases.", src: "src/lib/ai/prompts/generate-tests.ts" },
 ];
 
 const OPS = [
-  { t: "Rate limiting", d: "Next.js proxy runs an Upstash fixed window limiter on /api/*: 10 requests per 60s per IP, 429 on breach.", src: "src/proxy.ts" },
-  { t: "Read cache", d: "Suite and project reads are cached in Redis (60 to 300s TTL) with s-maxage / stale-while-revalidate headers and an X-Cache marker.", src: "src/lib/cache.ts" },
-  { t: "Indexes", d: "Compound index on { projectId, createdAt } backs the most common query: a project's suites, newest first.", src: "src/app/models/TestSuite.ts" },
-  { t: "Tracing", d: "Each graph node records duration, model and token usage into state. The API returns the trace and the UI renders it per run.", src: "src/lib/ai/graph/trace.ts" },
-  { t: "Error monitoring", d: "Sentry on client, server and edge, tunneled through /monitoring so ad blockers don't drop events.", src: "next.config.ts" },
-  { t: "Delivery", d: "Multi stage Docker build of Next's standalone output, run by PM2 in cluster mode (2 instances, restart at 350 MB). Deployed on Railway.", src: "Dockerfile.prod" },
+  { t: "Edge rate limiting", d: "The Next.js proxy enforces an Upstash fixed window limit across /api/* routes at 10 requests per 60s per IP, returning 429 on quota exhaustion.", src: "src/proxy.ts" },
+  { t: "Distributed read cache", d: "Project and suite queries cache in Upstash Redis (60 to 300s TTL) paired with s-maxage / stale-while-revalidate headers and an explicit X-Cache diagnostic header.", src: "src/lib/cache.ts" },
+  { t: "Compound indexing", d: "A MongoDB compound index on { projectId, createdAt } accelerates the primary workspace access pattern: fetching a project's newest suites first.", src: "src/app/models/TestSuite.ts" },
+  { t: "Execution tracing", d: "Every graph node logs execution duration, model identifier, and token count directly into graph state, which the UI renders for each run.", src: "src/lib/ai/graph/trace.ts" },
+  { t: "Ad blocker proof telemetry", d: "Sentry instrumentation spans client, server, and edge runtimes, routed through a custom /monitoring tunnel so browser extensions cannot drop error events.", src: "next.config.ts" },
+  { t: "Containerized delivery", d: "Multi stage Docker build packaging Next.js standalone output, managed by PM2 in cluster mode (2 instances, 350 MB memory ceiling) on Railway.", src: "Dockerfile.prod" },
 ];
 
 export default function ArchitecturePage() {
   return (
     <Page>
     <article className="max-w-[980px]">
-      <p className="eyebrow">architecture</p>
-      <h1 className="font-display mt-2 text-[38px] font-extrabold leading-[1.05] sm:text-[52px]">How TestMind is built</h1>
+      <p className="eyebrow">system design</p>
+      <h1 className="font-display mt-2 text-[38px] font-extrabold leading-[1.05] sm:text-[52px]">Inside the TestMind Engine</h1>
       <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-muted">
-        TestMind treats the LLM as one unreliable step inside a deterministic pipeline. Generation and review are two small
-        LangGraph workflows. Model output is schema checked, post processed in plain code, and traced, so every result in
-        the UI can be explained.
+        TestMind treats the LLM as a single untrusted step inside a strict, deterministic pipeline. Generation and auditing run as
+        two isolated LangGraph workflows. Every model response is validated via Zod, normalized in plain TypeScript, and traced
+        for token and latency telemetry.
       </p>
 
       <nav className="mt-6 flex flex-wrap gap-2 text-[12.5px]" aria-label="On this page">
@@ -79,34 +79,34 @@ export default function ArchitecturePage() {
         ))}
       </nav>
 
-      <Section id="system" eyebrow="01 · system" title="Request path">
+      <Section id="system" eyebrow="01 · topology" title="Request lifecycle">
         <div className="panel grid gap-6 p-5 md:grid-cols-[1fr_1fr]">
           <div>
             <Box title="Browser" sub="React 19 · App Router client components" />
             <Down label="fetch /api/*" />
             <Box title="Next.js proxy" sub="Upstash rate limit · 10/60s/IP" tone="accent" />
             <Down />
-            <Box title="Route handlers & server actions" sub="input validation · 400 on bad specs" />
+            <Box title="Route handlers & server actions" sub="input validation · 400 on invalid specs" />
             <Down label="generate / review" />
-            <Box title="LangGraph orchestrator" sub="2 compiled StateGraphs · traced nodes" tone="accent" />
+            <Box title="LangGraph orchestrator" sub="2 compiled StateGraphs · traced execution nodes" tone="accent" />
             <Down />
-            <Box title="OpenAI gpt-4o-mini" sub="JSON response format → Zod" />
+            <Box title="OpenAI gpt-4o-mini" sub="strict JSON mode → Zod schema enforcement" />
           </div>
           <div className="flex flex-col gap-3 md:pt-[112px]">
-            <Box title="MongoDB (Mongoose)" sub="projects · features · suites" />
-            <Box title="Upstash Redis" sub="read cache · limiter state" />
-            <Box title="Sentry" sub="client · server · edge" />
+            <Box title="MongoDB (Mongoose)" sub="projects · features · test suites" />
+            <Box title="Upstash Redis" sub="distributed read cache · rate limiter state" />
+            <Box title="Sentry" sub="client · server · edge telemetry" />
             <p className="mt-2 text-[12.5px] leading-relaxed text-muted">
-              The route handler persists results only after the graph finishes cleanly, so a failed model call never leaves a half written suite.
+              Database writes occur strictly after the state graph completes without error, guaranteeing that a failed LLM call never persists corrupted or partial suite data.
             </p>
           </div>
         </div>
       </Section>
 
-      <Section id="workflows" eyebrow="02 · workflows" title="Two graphs, four nodes">
+      <Section id="workflows" eyebrow="02 · orchestration" title="Two graphs, four deterministic nodes">
         <p className="mb-5 max-w-2xl text-[14px] text-muted">
-          Node names live in one module that both the compiled graphs and this UI import (<Src path="src/lib/ai/graph/topology.ts" />), so the diagram can&apos;t drift from the code.
-          Each node is wrapped by a tracer that records timing and token usage.
+          Graph definitions and UI visualizers share a single source of truth for node identifiers (<Src path="src/lib/ai/graph/topology.ts" />), preventing
+          architectural drift. A telemetry wrapper instruments every node for execution timing and token consumption.
         </p>
         <div className="grid gap-4 md:grid-cols-2">
           {(Object.keys(WORKFLOWS) as (keyof typeof WORKFLOWS)[]).map((k) => (
@@ -127,12 +127,12 @@ export default function ArchitecturePage() {
           ))}
         </div>
         <p className="mt-4 text-[13px] text-muted">
-          <span className="text-fg font-medium">Why LangGraph over a single chain:</span> the first version was one LangChain call. Splitting it into
-          typed state + nodes made it possible to validate between steps, add the review loop without touching generation, and trace each step separately.
+          <span className="text-fg font-medium">Why LangGraph over a linear chain:</span> early prototypes used a single LangChain call. Moving to a typed state machine enabled strict inter node
+          validation, decoupled the review loop from initial generation, and unlocked per node observability.
         </p>
       </Section>
 
-      <Section id="guardrails" eyebrow="03 · reliability" title="LLM guardrails">
+      <Section id="guardrails" eyebrow="03 · resilience" title="Defensive LLM guardrails">
         <div className="grid gap-3 sm:grid-cols-2">
           {GUARDRAILS.map((g) => (
             <div key={g.t} className="panel p-4">
@@ -144,7 +144,7 @@ export default function ArchitecturePage() {
         </div>
       </Section>
 
-      <Section id="ops" eyebrow="04 · performance & ops" title="Running it in production">
+      <Section id="ops" eyebrow="04 · production ops" title="Performance and infrastructure">
         <div className="panel divide-y divide-line">
           {OPS.map((o) => (
             <div key={o.t} className="grid gap-1 p-4 sm:grid-cols-[180px_1fr_auto] sm:gap-4 sm:items-baseline">
@@ -158,7 +158,7 @@ export default function ArchitecturePage() {
           {[
             { v: "~40 → 420+", k: "cached API throughput (req/s)" },
             { v: "~2.5s → ~250ms", k: "API latency" },
-            { v: "1.18 GB → 281 MB", k: "Docker image, multi stage build" },
+            { v: "1.18 GB → 281 MB", k: "optimized Docker image footprint" },
           ].map((m) => (
             <div key={m.k} className="bg-panel p-4">
               <p className="font-mono text-[18px] font-semibold text-accent">{m.v}</p>
@@ -166,25 +166,25 @@ export default function ArchitecturePage() {
             </div>
           ))}
         </div>
-        <p className="mt-2 font-mono text-[11px] text-faint">Figures from load tests with autocannon, as documented in the README.</p>
+        <p className="mt-2 font-mono text-[11px] text-faint">Measured with autocannon load tests, as noted in the repository README.</p>
       </Section>
 
-      <Section id="testing" eyebrow="05 · testing" title="Deterministic end to end tests">
+      <Section id="testing" eyebrow="05 · verification" title="Deterministic end to end verification">
         <p className="max-w-2xl text-[14px] leading-relaxed text-muted">
-          The Playwright suite drives the real UI (create project → add feature → generate → review → accept a suggestion) but intercepts the three AI
-          routes with fixtures. That keeps the test fast, free and deterministic, and it deliberately feeds malformed shapes (uppercase types, a non array
-          <code className="mx-1 font-mono text-[12px] text-fg">suggestions</code>) to prove the UI tolerates them.
+          Playwright tests execute the full user journey (create project → define feature → generate → audit → merge suggestion) while intercepting
+          the three AI endpoints with deterministic fixtures. This keeps runs fast and free while injecting adversarial payloads (uppercase enums, a non array
+          <code className="mx-1 font-mono text-[12px] text-fg">suggestions</code>) to verify frontend resilience.
         </p>
         <p className="mt-2"><Src path="tests/e2e/testmind-complete-flow.spec.ts" /></p>
       </Section>
 
-      <Section id="next" eyebrow="06 · tradeoffs" title="What I&apos;d do next">
+      <Section id="next" eyebrow="06 · roadmap" title="Architectural tradeoffs and next steps">
         <ul className="space-y-2 text-[14px] text-muted">
           {[
-            ["Stream node progress", "The trace arrives when the run ends. Streaming graph events over SSE would light up each node as it finishes."],
-            ["Prompt regression evals", "A fixed set of specs with expected coverage, run in CI, so a prompt or model change can't silently lower quality."],
-            ["Sliding window limits per route", "One fixed window for all of /api/* is simple but treats a cheap read like an LLM call."],
-            ["Auth and multi tenancy", "Projects are global today; scoping by user is the first step to a real product."],
+            ["Real time SSE node streaming", "Telemetry currently resolves upon full graph completion. Streaming LangGraph events over Server Sent Events would illuminate each node live during execution."],
+            ["Automated prompt regression evals", "Running a golden dataset of specs against minimum coverage thresholds in CI would prevent prompt edits or model upgrades from silently degrading output quality."],
+            ["Granular sliding window rate limits", "A single fixed window across /api/* keeps the proxy simple, but separating cheap cached reads from expensive LLM calls is the logical next step."],
+            ["Multi tenant workspace isolation", "Projects currently share a global namespace for frictionless demo access. Scoping resources by authenticated user sessions is first in line."],
           ].map(([t, d]) => (
             <li key={t} className="flex gap-3"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" /><span><span className="text-fg font-medium">{t}.</span> {d}</span></li>
           ))}

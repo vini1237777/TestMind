@@ -56,10 +56,10 @@ export default function ProjectsPage() {
     <Page>
       <header className="mb-7 flex items-end justify-between gap-4">
         <div>
-          <p className="eyebrow">workspace</p>
+          <p className="eyebrow">engineering workspace</p>
           <h1 className="font-display mt-1 text-[34px] font-extrabold leading-none">Projects</h1>
           <p className="mt-2 text-[14px] text-muted">
-            {!hasLoaded ? "Loading" : loadError ? "Could not load projects" : `${projects.length} project${projects.length === 1 ? "" : "s"}. Open one to see its suites.`}
+            {!hasLoaded ? "Loading workspace" : loadError ? "Could not load projects" : `${projects.length} active project${projects.length === 1 ? "" : "s"}. Select one to inspect its test suites.`}
           </p>
         </div>
         <button className="btn btn-primary" onClick={() => setIsProjectModalOpen(true)}>
@@ -73,20 +73,20 @@ export default function ProjectsPage() {
         <FailedTest
           compact
           code={loadError.status === 429 ? "TC_429" : "TC_503"}
-          title="Projects should load"
-          expected="200 OK with a list of projects"
+          title="Assertion failed: workspace projects should load"
+          expected="HTTP 200 OK with project collection"
           received={loadError.message}
           hint={
             loadError.status === 429
-              ? "You hit the rate limiter. It protects the AI budget and resets within a minute."
-              : "The database or cache did not answer. The rest of the app still works, so try again or read how it is built."
+              ? "Rate limit quota exceeded (10 req/min/IP). This guardrail protects OpenAI token budgets and resets automatically within 60 seconds."
+              : "MongoDB or Upstash Redis timed out. Static routes remain online, so retry the request or explore the system architecture while connections recover."
           }
           onRetry={retry}
         />
       ) : projects.length === 0 ? (
         <div className="panel grid place-items-center px-6 py-16 text-center">
-          <p className="font-display text-[22px] font-extrabold">No projects yet</p>
-          <p className="mt-1 text-[14px] text-muted">Create one, add a feature, and generate your first suite.</p>
+          <p className="font-display text-[22px] font-extrabold">Your workspace is empty</p>
+          <p className="mt-1 text-[14px] text-muted">Initialize a project, define a feature spec, and generate your first verified test suite.</p>
         </div>
       ) : (
         <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
@@ -103,7 +103,7 @@ export default function ProjectsPage() {
                   <FiArrowUpRight className="transition-transform group-hover:rotate-45" />
                 </span>
               </div>
-              <p className="mt-1.5 line-clamp-2 min-h-[2.8em] text-[13.5px] leading-relaxed text-muted">{project.description || "No description"}</p>
+              <p className="mt-1.5 line-clamp-2 min-h-[2.8em] text-[13.5px] leading-relaxed text-muted">{project.description || "No description provided"}</p>
               <p className="mt-5 flex items-center justify-between border-t border-dashed border-line-strong pt-3 font-mono text-[11px] text-muted">
                 <span>{shortId(project.id)}</span>
                 <span title={new Date(project.createdAt).toLocaleString()}>{timeAgo(project.createdAt)}</span>

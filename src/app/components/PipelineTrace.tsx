@@ -62,16 +62,16 @@ export default function PipelineTrace({ workflow, status, trace }: { workflow: W
       <div className="mb-3 flex items-center justify-between gap-2">
         <p className="text-[13px] font-bold">{WORKFLOWS[workflow].label}</p>
         <p className="font-mono text-[11px]" aria-live="polite">
-          {running && <span className="font-semibold text-accent">running {fmtMs(elapsed)}</span>}
+          {running && <span className="font-semibold text-accent">executing {fmtMs(elapsed)}</span>}
           {status === "done" && trace && (
             <span className="text-muted">
               {fmtMs(trace.totalMs)}
               {tokens > 0 && <> · {tokens.toLocaleString()} tokens</>}
             </span>
           )}
-          {status === "done" && !trace && <span className="text-faint">no trace reported</span>}
-          {status === "error" && <span className="font-semibold text-negative">failed</span>}
-          {status === "idle" && <span className="text-faint">waiting</span>}
+          {status === "done" && !trace && <span className="text-faint">no telemetry recorded</span>}
+          {status === "error" && <span className="font-semibold text-negative">halted</span>}
+          {status === "idle" && <span className="text-faint">idle</span>}
         </p>
       </div>
 

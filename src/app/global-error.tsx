@@ -17,8 +17,8 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
           <div style={{ background: "#111827", color: "#fef3c7", padding: "10px 16px", fontFamily: "ui-monospace, monospace", fontSize: 12 }}>1 failed · 0 passed</div>
           <div style={{ padding: 20 }}>
             <p style={{ fontFamily: "ui-monospace, monospace", fontSize: 12, color: "#57534e", margin: 0 }}>TC_000</p>
-            <h1 style={{ fontSize: 22, margin: "4px 0 12px" }}>TestMind should start</h1>
-            <p style={{ fontSize: 14, color: "#57534e", lineHeight: 1.6 }}>The app failed before it could load. The error was reported. Try again in a moment.</p>
+            <h1 style={{ fontSize: 22, margin: "4px 0 12px" }}>Assertion failed: application root should mount</h1>
+            <p style={{ fontSize: 14, color: "#57534e", lineHeight: 1.6 }}>A critical error interrupted the initial load and was logged to Sentry. Trigger a fresh run in a moment.</p>
             {error.digest && <p style={{ fontFamily: "ui-monospace, monospace", fontSize: 11, color: "#a8a29e" }}>trace id {error.digest}</p>}
             <button onClick={reset} style={{ marginTop: 8, height: 38, padding: "0 16px", borderRadius: 10, border: "1.5px solid #111827", background: "#f59e0b", fontWeight: 600, boxShadow: "2px 2px 0 #111827", cursor: "pointer" }}>
               Rerun test
