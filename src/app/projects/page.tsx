@@ -60,7 +60,7 @@ export default function ProjectsPage() {
   }, [attempt]);
 
   return (
-    <main className="max-w-full mx-4 px-4 py-8">
+    <main className="tm-zoom-in max-w-full mx-4 px-4 py-8">
       <header className="mb-6 flex items-center justify-between">
         <div className="w-full">
           <h1 className="text-2xl font-semibold">Projects</h1>
