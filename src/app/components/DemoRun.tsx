@@ -84,7 +84,7 @@ export default function DemoRun() {
 
   return (
     <div className="overflow-hidden rounded-lg border shadow-xl dark:border-gray-700" aria-label="Animated demo of a TestMind run">
-      <div className="flex items-center justify-between bg-amber-300 px-3 py-1.5 text-xs text-black dark:bg-amber-400">
+      <div className="flex items-center justify-between bg-amber-300 px-3 py-1.5 text-xs text-black">
         <span className="font-semibold">TestMind</span>
         <span className="opacity-70">Recording</span>
       </div>

@@ -1,17 +1,15 @@
 import { initials, pick } from "../lib/format";
 
-// Solid, saturated colours so projects are easy to tell apart. Each project keeps its colour.
+// One warm family that sits with the amber navbar, plus deep teal as the single contrast.
+// Letters stay in amber tones so every tile reads as part of the same set. Each project keeps its colour.
 const TILES = [
+  "bg-black text-amber-300",
   "bg-amber-400 text-black",
-  "bg-orange-500 text-white",
-  "bg-rose-500 text-white",
-  "bg-fuchsia-600 text-white",
-  "bg-violet-600 text-white",
-  "bg-blue-600 text-white",
-  "bg-sky-500 text-white",
-  "bg-teal-500 text-white",
-  "bg-emerald-600 text-white",
-  "bg-lime-400 text-black",
+  "bg-orange-600 text-amber-50",
+  "bg-red-800 text-amber-200",
+  "bg-amber-800 text-amber-100",
+  "bg-teal-800 text-amber-200",
+  "bg-yellow-300 text-black",
 ] as const;
 
 /** Project initials on a tilted tile, the same shape as the TM logo. Tips the other way when its card is hovered. */
