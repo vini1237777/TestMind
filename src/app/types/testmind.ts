@@ -22,6 +22,8 @@ export type TestSuite = {
 
 export type ProjectStats = {
   suites: number;
+  /** Distinct features; older cached responses may not have it. */
+  features?: number;
   cases: number;
   happy: number;
   negative: number;
