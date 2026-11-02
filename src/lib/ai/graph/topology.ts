@@ -6,8 +6,8 @@ export const REVIEW_NODES = ["review_suite", "improve_suite"] as const;
 export type WorkflowKind = "generation" | "review";
 
 export const WORKFLOWS: Record<WorkflowKind, { id: string; label: string; nodes: readonly string[] }> = {
-  generation: { id: "langgraph_generation", label: "Generation graph", nodes: GENERATION_NODES },
-  review: { id: "langgraph_review", label: "Review graph", nodes: REVIEW_NODES },
+  generation: { id: "langgraph_generation", label: "Writing the tests", nodes: GENERATION_NODES },
+  review: { id: "langgraph_review", label: "Reviewing coverage", nodes: REVIEW_NODES },
 };
 
 export const NODE_INFO: Record<string, { label: string; kind: "llm" | "deterministic"; does: string }> = {

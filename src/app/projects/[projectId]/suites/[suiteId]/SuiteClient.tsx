@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import type { FeedbackResult } from "@/src/app/types/testmind";
@@ -360,6 +360,19 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
   const isFirstGeneration =
     !selectedSuite || (selectedSuite.testCases?.length ?? 0) === 0;
 
+  // Opened from "Run it for real" on the home page (?run=1): start the run once the suite is loaded.
+  const autoRan = useRef(false);
+  useEffect(() => {
+    if (autoRan.current || !selectedSuiteId || !isFirstGeneration) return;
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("run") !== "1") return;
+    autoRan.current = true;
+    url.searchParams.delete("run");
+    window.history.replaceState(null, "", url);
+    handleGenerate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedSuiteId, isFirstGeneration]);
+
   return (
     <div className="min-h-screen">
       <Breadcrumbs
@@ -423,7 +436,7 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
               className="tm-press inline-flex items-center gap-2 rounded bg-gray-900 px-4 py-2 text-xs font-medium text-white shadow-sm hover:bg-black disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-200 dark:text-black"
             >
               {isReviewing && <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/40 border-t-white" />}
-              {isReviewing ? "Reviewing..." : "Run AI Feedback Review"}
+              {isReviewing ? "Reviewing..." : "Review coverage"}
             </button>
             {hasChanges && (
               <button
@@ -690,7 +703,6 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
 
                   {(() => {
                     if (isGenerating || isReviewing || !selectedSuite.testCases.length) return null;
-                    const score = feedback?.score ?? selectedSuite.lastFeedbackScore ?? null;
                     const waiting = feedback?.suggestedTestCases?.length ?? 0;
                     const step =
                       waiting > 0
@@ -700,14 +712,7 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
                             cta: "Show suggestions",
                             run: () => document.getElementById("review-panel")?.scrollIntoView({ behavior: "smooth" }),
                           }
-                        : score === null
-                          ? {
-                              tone: "amber",
-                              text: "Not reviewed yet. A review scores coverage and lists what is missing.",
-                              cta: "Run review",
-                              run: handleFeedbackReview,
-                            }
-                          : null;
+                        : null;
                     if (!step) return null;
                     const tones: Record<string, string> = {
                       amber: "border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30",
@@ -849,7 +854,7 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
 
                   {filteredCases.length === 0 && (
                     <p className="text-xs text-gray-500">
-                      {cq ? `No test cases match "${caseQuery}".` : `No ${filterType} test cases in this suite.`}
+                      {cq ? `No test cases match "${caseQuery}".` : filterType === "all" ? "No test cases yet." : `No ${caseLabel(filterType.toUpperCase()).toLowerCase()} cases in this suite.`}
                     </p>
                   )}
                 </>
