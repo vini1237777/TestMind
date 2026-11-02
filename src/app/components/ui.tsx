@@ -112,7 +112,7 @@ export function timeAgo(iso?: string | null) {
 
 export function Modal({ title, children, footer, onClose }: { title: string; children: React.ReactNode; footer: React.ReactNode; onClose: () => void }) {
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/50 backdrop-blur-sm p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="fixed inset-0 z-50 grid place-items-center bg-transparent backdrop-blur-md p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div role="dialog" aria-modal="true" aria-label={title} className="panel animate-pop w-full max-w-[560px] overflow-hidden">
         <header className="border-b-[1.5px] border-line bg-accent-soft px-5 py-4">
           <h2 className="font-display text-[20px] font-extrabold">{title}</h2>
