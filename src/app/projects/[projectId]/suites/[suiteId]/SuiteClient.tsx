@@ -370,16 +370,12 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
         ]}
       />
       <main className="w-full">
-        <section className="mb-8 space-y-4 rounded-lg border bg-white p-5 shadow-sm dark:bg-gray-900">
+        <section className="mb-8 space-y-4">
           <div>
-            <div className="flex items-center justify-between">
-              <p className="text-[11px] uppercase tracking-wide text-gray-500">Feature</p>
-              {isDirty && <span className="tm-fade rounded-full bg-amber-100 px-2 py-0.5 text-[10px] text-amber-800">Unsaved changes</span>}
-            </div>
             <input
               type="text"
               aria-label="Feature name"
-              className="mt-1 w-full rounded border border-transparent px-2 py-1 -mx-2 text-xl font-semibold hover:border-gray-200 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500/30 dark:bg-transparent"
+              className="w-full rounded border border-transparent px-2 py-1 -mx-2 text-2xl font-semibold hover:border-gray-200 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500/30 dark:bg-transparent"
               value={name}
               onChange={(e) => {
                 setName(e.target.value);
@@ -389,8 +385,8 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
           </div>
 
           <div>
-            <label className="text-[11px] uppercase tracking-wide text-gray-500">
-              What should this feature do?
+            <label className="text-xs text-gray-500">
+              What this feature should do
             </label>
             <textarea
               className="mt-1 min-h-24 w-full rounded border p-3 text-sm leading-relaxed focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500/30 dark:bg-gray-950"
@@ -429,24 +425,31 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
               {isReviewing && <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/40 border-t-white" />}
               {isReviewing ? "Reviewing..." : "Run AI Feedback Review"}
             </button>
-            <button
-              onClick={handleSaveFeature}
-              disabled={isSavingFeature || !hasChanges || !name.trim()}
-              className="tm-press rounded border px-4 py-2 text-xs font-medium hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-gray-800"
-            >
-              {isSavingFeature ? "Saving..." : "Save Feature"}
-            </button>
+            {hasChanges && (
+              <button
+                onClick={handleSaveFeature}
+                disabled={isSavingFeature || !name.trim()}
+                className="tm-fade tm-press rounded border px-4 py-2 text-xs font-medium hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-gray-800"
+              >
+                {isSavingFeature ? "Saving..." : "Save Feature"}
+              </button>
+            )}
 
+            {!isFirstGeneration && !isDirty && !isGenerating && (
+              <span className="text-xs text-gray-400">Edit the description to generate a new version.</span>
+            )}
             {feedbackError && (
               <p className="text-xs text-red-600">{feedbackError}</p>
             )}
             {error && <p className="text-xs text-red-600">{error}</p>}
           </div>
 
-          <div className="grid gap-3 md:grid-cols-2">
-            <PipelineTrace workflow="generation" status={genStatus} trace={genTrace} />
-            <PipelineTrace workflow="review" status={reviewStatus} trace={reviewTrace} />
-          </div>
+          {(genStatus !== "idle" || reviewStatus !== "idle") && (
+            <div className="tm-slide grid gap-3 md:grid-cols-2">
+              {genStatus !== "idle" && <PipelineTrace workflow="generation" status={genStatus} trace={genTrace} />}
+              {reviewStatus !== "idle" && <PipelineTrace workflow="review" status={reviewStatus} trace={reviewTrace} />}
+            </div>
+          )}
 
           {feedback && (
             <div id="review-panel" className="tm-rise mt-6 scroll-mt-4 border-t pt-4">
@@ -569,7 +572,8 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
             )}
         </section>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+        <div className={`grid grid-cols-1 gap-6 border-t pt-6 ${testSuites.length > 1 ? "lg:grid-cols-[260px_minmax(0,1fr)]" : ""}`}>
+          {testSuites.length > 1 && (
           <aside className="lg:border-r lg:pr-6">
             <h2 className="mb-3 flex items-center justify-between text-sm font-semibold">
               Test Suites
@@ -622,6 +626,7 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
               </ul>
             )}
           </aside>
+          )}
 
           {hasLoaded ? (
             <section className="min-w-0">
@@ -629,27 +634,16 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
                 <p className="text-sm text-gray-500">Select a suite.</p>
               ) : (
                 <>
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <h2 className="font-semibold text-sm">
-                        {selectedSuite.name}
-                      </h2>
-                      <p className="text-[11px] text-gray-500">
-                        {new Date(selectedSuite.createdAt).toLocaleString()}
-                      </p>
-
-                      {feedback && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-50 text-[10px] font-medium text-emerald-700 border border-emerald-200">
-                          AI Reviewed
-                        </span>
-                      )}
-                      {lastReviewedAt && (
-                        <p className="text-[10px] text-gray-500 mt-1">
-                          Last reviewed at:{" "}
-                          {new Date(lastReviewedAt).toLocaleString()}
-                        </p>
-                      )}
-                    </div>
+                  <div className="mb-3 flex items-center justify-between gap-3">
+                    <p className="text-sm">
+                      <span className="font-semibold">{selectedSuite.testCases.length} test cases</span>
+                      <span className="text-gray-500">
+                        {(() => {
+                          const score = feedback?.score ?? selectedSuite.lastFeedbackScore;
+                          return typeof score === "number" ? `, ${feedback ? "AI reviewed" : "last review"} ${score}/100` : ", not reviewed yet";
+                        })()}
+                      </span>
+                    </p>
 
                     <div className="relative">
                       <button
@@ -690,32 +684,9 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
                     </div>
                   </div>
 
-                  {(() => {
-                    const c = typeCounts(selectedSuite.testCases);
-                    const score = feedback?.score ?? selectedSuite.lastFeedbackScore;
-                    return (
-                      <div className="mb-4 rounded border p-3 dark:border-gray-700">
-                        <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2 text-xs">
-                          <span>
-                            <span className="text-base font-semibold">{selectedSuite.testCases.length}</span> test cases
-                          </span>
-                          <span className="text-gray-500">
-                            {typeof score === "number" ? (
-                              <>
-                                Last review <span className="font-semibold text-gray-900 dark:text-white">{score}/100</span>
-                              </>
-                            ) : (
-                              "Not reviewed yet"
-                            )}
-                          </span>
-                        </div>
-                        <TypeBar cases={selectedSuite.testCases} showLegend />
-                        {c.negative + c.edge === 0 && selectedSuite.testCases.length > 0 && (
-                          <p className="mt-2 text-[11px] text-amber-700">Only happy paths so far. Run a review to find negative and edge cases.</p>
-                        )}
-                      </div>
-                    );
-                  })()}
+                  <div className="mb-5">
+                    <TypeBar cases={selectedSuite.testCases} />
+                  </div>
 
                   {(() => {
                     if (isGenerating || isReviewing || !selectedSuite.testCases.length) return null;
@@ -732,27 +703,14 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
                         : score === null
                           ? {
                               tone: "amber",
-                              text: "This suite has not been reviewed. A review scores coverage out of 100 and lists the cases that are missing.",
+                              text: "Not reviewed yet. A review scores coverage and lists what is missing.",
                               cta: "Run review",
                               run: handleFeedbackReview,
                             }
-                          : score < 85
-                            ? {
-                                tone: "gray",
-                                text: `Scored ${score}/100. Add the missing rules to the description and generate again; the next run uses this review to target the gaps.`,
-                                cta: null,
-                                run: null,
-                              }
-                            : {
-                                tone: "green",
-                                text: `Scored ${score}/100. Good coverage, ready to export.`,
-                                cta: "Export",
-                                run: () => setExportOpen(true),
-                              };
+                          : null;
+                    if (!step) return null;
                     const tones: Record<string, string> = {
-                      amber: "border-amber-300 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30",
-                      gray: "border-gray-200 bg-gray-50 dark:bg-gray-900",
-                      green: "border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950/30",
+                      amber: "border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30",
                     };
                     return (
                       <div className={`tm-rise mb-4 flex flex-wrap items-center gap-3 rounded-lg border px-3 py-2.5 ${tones[step.tone]}`}>
@@ -808,6 +766,7 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
                     </button>
                   </div>
 
+                  <div className={filteredCases.length ? "divide-y rounded-lg border" : ""}>
                   {filteredCases.map((tc, i) => {
                     const expanded = expandedIds.has(tc.id);
                     const type = String(tc.type).toLowerCase();
@@ -815,13 +774,13 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
                     return (
                       <div
                         key={tc.id}
-                        className="tm-rise border rounded mb-3 text-sm transition-shadow hover:shadow-md dark:border-gray-700 dark:bg-gray-900"
+                        className="tm-rise text-sm"
                         style={{ animationDelay: `${Math.min(i, 10) * 50}ms` }}
                       >
                         <button
                           onClick={() => toggleCase(tc.id)}
                           aria-expanded={expanded}
-                          className="flex w-full items-center gap-3 p-3 text-left"
+                          className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-gray-50 dark:hover:bg-gray-900"
                         >
                           <span title={tc.id} className="w-6 shrink-0 text-right text-xs tabular-nums text-gray-400">{i + 1}.</span>
                           <span className="min-w-0 flex-1 font-medium">{tc.title}</span>
@@ -886,6 +845,7 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
                       </div>
                     );
                   })}
+                  </div>
 
                   {filteredCases.length === 0 && (
                     <p className="text-xs text-gray-500">
