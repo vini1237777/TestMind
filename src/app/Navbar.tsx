@@ -57,10 +57,10 @@ export default function Navbar() {
             Workspace
           </Link>
           <Link
-            href="/architecture"
+            href="/tech"
             className="tm-underline text-sm font-medium rounded-md px-2 py-1 hover:bg-amber-200 text-black transition-colors"
           >
-            Architecture
+            Tech stack
           </Link>
           <button
             type="button"
