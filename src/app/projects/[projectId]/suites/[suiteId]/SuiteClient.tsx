@@ -756,7 +756,6 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
                     };
                     return (
                       <div className={`tm-rise mb-4 flex flex-wrap items-center gap-3 rounded-lg border px-3 py-2.5 ${tones[step.tone]}`}>
-                        <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Next step</span>
                         <p className="min-w-0 flex-1 text-xs">{step.text}</p>
                         {step.cta && step.run && (
                           <button

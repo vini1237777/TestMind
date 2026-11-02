@@ -50,6 +50,12 @@
 .tm-logo-tile { transform: rotate(-6deg); transition: transform .3s cubic-bezier(.3,1.6,.5,1); }
 .tm-logo:hover .tm-logo-tile { transform: rotate(6deg) scale(1.06); }
 
+/* Tour slides move in the direction you are going */
+@keyframes tm-tour-next { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
+@keyframes tm-tour-prev { from { opacity: 0; transform: translateX(-24px); } to { opacity: 1; transform: none; } }
+.tm-tour-next { animation: tm-tour-next .3s cubic-bezier(.2,.8,.2,1) backwards; }
+.tm-tour-prev { animation: tm-tour-prev .3s cubic-bezier(.2,.8,.2,1) backwards; }
+
 /* Typing caret in the demo */
 @keyframes tm-blink { 50% { opacity: 0; } }
 .tm-caret { display: inline-block; width: 2px; height: 1em; margin-left: 1px; vertical-align: -2px; background: #f59e0b; animation: tm-blink 1s steps(1) infinite; }

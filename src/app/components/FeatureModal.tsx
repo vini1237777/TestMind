@@ -95,7 +95,6 @@ export default function FeatureModal({
       onClose={onClose}
       busy={isSaving}
       onSubmit={isDisabled ? undefined : handleSave}
-      icon="🧪"
       title="Create new feature"
       subtitle="Describe one feature. TestMind turns it into a test suite you can generate and review."
       width="max-w-2xl"

@@ -7,12 +7,12 @@ import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import TestMindInfoCard from "./components/InformationCard";
+import FeaturesModal from "./components/FeaturesModal";
 
 export default function Navbar() {
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
+  const [featuresOpen, setFeaturesOpen] = useState(false);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -24,10 +24,6 @@ export default function Navbar() {
   const active = (href: string) =>
     href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(href + "/");
 
-  const handleButtonClick = () => {
-    setIsOpen((prev) => !prev);
-  };
-
   const handleThemeClick = () => {
     setTheme(isDark ? "light" : "dark");
   };
@@ -38,19 +34,18 @@ export default function Navbar() {
 
   return (
     <div>
-      {isOpen && <TestMindInfoCard open={isOpen} setIsOpen={setIsOpen} />}
+      <FeaturesModal open={featuresOpen} onClose={() => setFeaturesOpen(false)} />
       <nav className="tm-slide w-full bg-amber-300 h-12 flex items-center justify-between px-4 dark:bg-gray-200">
-        <button
-          type="button"
-          onClick={handleButtonClick}
-          aria-label="About TestMind"
+        <Link
+          href="/"
+          aria-label="TestMind home"
           className="tm-logo flex items-center gap-2 rounded-md px-1.5 py-1 hover:bg-amber-200 dark:text-black"
         >
           <span className="tm-logo-tile grid h-8 w-8 place-items-center rounded-lg bg-black text-[13px] font-black tracking-tight text-amber-300">
             TM
           </span>
           <span className="text-base font-semibold">TestMind</span>
-        </button>
+        </Link>
 
         <div className="flex items-center gap-1">
           <Link
@@ -60,6 +55,14 @@ export default function Navbar() {
           >
             Home
           </Link>
+          <button
+            type="button"
+            onClick={() => setFeaturesOpen(true)}
+            aria-haspopup="dialog"
+            className={`text-sm font-medium rounded-md px-2 py-1 text-black transition-colors ${featuresOpen ? "bg-amber-200 dark:bg-gray-300" : "hover:bg-amber-200"}`}
+          >
+            Features
+          </button>
           <Link
             href="/projects"
             aria-current={active("/projects") ? "page" : undefined}

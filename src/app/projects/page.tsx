@@ -52,13 +52,16 @@ export default function ProjectsPage() {
     return list;
   }, [projects, query, sort]);
 
-  // The most recently touched suite, so returning users land one click from their work
-  const resume = useMemo(() => {
-    const p = [...projects]
-      .filter((x) => x.stats?.lastSuite && x.stats.lastActivity)
-      .sort((a, b) => new Date(b.stats!.lastActivity!).getTime() - new Date(a.stats!.lastActivity!).getTime())[0];
-    return p ? { project: p, suite: p.stats!.lastSuite! } : null;
-  }, [projects]);
+  // Latest suite from the three most recently active projects
+  const recent = useMemo(
+    () =>
+      projects
+        .filter((x) => x.stats?.lastSuite && x.stats.lastActivity)
+        .sort((a, b) => new Date(b.stats!.lastActivity!).getTime() - new Date(a.stats!.lastActivity!).getTime())
+        .slice(0, 3)
+        .map((p) => ({ project: p, suite: p.stats!.lastSuite! })),
+    [projects],
+  );
 
   const totals = useMemo(() => {
     const withStats = projects.filter((p) => p.stats);
@@ -139,7 +142,7 @@ export default function ProjectsPage() {
             ["Avg review score", totals.avg === null ? "none yet" : `${totals.avg}/100`],
           ].map(([label, value]) => (
             <div key={label} className="bg-amber-50 px-4 py-3 dark:bg-gray-900">
-              <dt className="text-[11px] uppercase tracking-wide text-gray-500">{label}</dt>
+              <dt className="text-xs text-gray-500">{label}</dt>
               <dd className="text-xl font-semibold">{value}</dd>
             </div>
           ))}
@@ -178,31 +181,26 @@ export default function ProjectsPage() {
         </div>
       ) : (
         <>
-        {resume && !query && (
-          <Link
-            href={`/projects/${resume.project.id}/suites/${resume.suite.id}`}
-            className="tm-rise group mb-6 flex flex-col gap-3 rounded-lg border border-amber-300 bg-gradient-to-r from-amber-100 via-amber-50 to-white p-4 transition-shadow hover:shadow-[0_12px_30px_-12px_rgba(217,119,6,0.45)] sm:flex-row sm:items-center dark:border-amber-700 dark:from-amber-950/50 dark:via-gray-900 dark:to-gray-900"
-          >
-            <div className="min-w-0 flex-1">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-400">Pick up where you left off</p>
-              <p className="mt-0.5 truncate font-semibold">{resume.suite.name}</p>
-              <p className="text-xs text-gray-500">
-                in {resume.project.name}, {resume.suite.cases} cases, active {timeAgo(resume.project.stats!.lastActivity)}
-              </p>
-            </div>
-            <p className="text-xs text-gray-600 dark:text-gray-300">
-              {resume.suite.score === null ? (
-                <>Not reviewed yet. <b>Run a review</b> to score its coverage.</>
-              ) : resume.suite.score < 85 ? (
-                <>Scored <b>{resume.suite.score}/100</b>. A few gaps are left to close.</>
-              ) : (
-                <>Scored <b>{resume.suite.score}/100</b>. Ready to export.</>
-              )}
-            </p>
-            <span className="tm-press shrink-0 rounded bg-amber-500 px-4 py-2 text-center text-xs font-medium text-white group-hover:bg-amber-600 dark:bg-gray-200 dark:text-black">
-              Continue →
-            </span>
-          </Link>
+        {recent.length > 0 && !query && (
+          <section className="mb-8" aria-label="Recently opened suites">
+            <h2 className="mb-2 text-sm font-semibold">Recent</h2>
+            <ul className="divide-y rounded-lg border">
+              {recent.map(({ project: p, suite }) => (
+                <li key={suite.id}>
+                  <Link
+                    href={`/projects/${p.id}/suites/${suite.id}`}
+                    className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-6 gap-y-0.5 px-4 py-2.5 text-sm hover:bg-gray-50 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_70px_70px_100px] dark:hover:bg-gray-900"
+                  >
+                    <span className="truncate font-medium">{suite.name}</span>
+                    <span className="truncate text-xs text-gray-500 sm:text-sm">{p.name}</span>
+                    <span className="hidden text-gray-500 sm:block">{suite.cases} cases</span>
+                    <span className="hidden text-gray-500 sm:block">{suite.score === null ? "No score" : `${suite.score}/100`}</span>
+                    <span className="hidden text-right text-gray-400 sm:block">{timeAgo(p.stats!.lastActivity)}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
         )}
 
         <div className="mb-4 flex flex-wrap items-center gap-2">
