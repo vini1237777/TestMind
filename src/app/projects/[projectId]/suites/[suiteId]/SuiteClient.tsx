@@ -372,8 +372,20 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedSuiteId, isFirstGeneration]);
 
+  const versionIndex = selectedSuite ? testSuites.length - testSuites.findIndex((x) => x.id === selectedSuite.id) : 0;
+  const reviewScore = feedback?.score ?? selectedSuite?.lastFeedbackScore ?? null;
+  const reviewSummary = feedback?.summary ?? selectedSuite?.lastFeedbackSummary ?? "";
+  const hasCases = !!selectedSuite?.testCases.length;
+  const verdict = (n: number) =>
+    n >= 85
+      ? "Good coverage. Only small gaps left."
+      : n >= 60
+        ? "The basics are covered, but some failure and edge cases are missing."
+        : "Large parts of this feature are not tested yet.";
+  const cleanStep = (st: string) => st.replace(/^step\s*\d+\s*[:.]\s*/i, "");
+
   return (
-    <div className="min-h-screen">
+    <div className="mx-auto min-h-screen max-w-6xl">
       <Breadcrumbs
         items={[
           { label: "Projects", href: "/projects" },
@@ -381,454 +393,360 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
           { label: feature.name },
         ]}
       />
-      <main className="w-full">
-        <section className="mb-8 space-y-4">
-          <div>
-            <input
-              type="text"
-              aria-label="Feature name"
-              className="w-full rounded border border-transparent px-2 py-1 -mx-2 text-2xl font-semibold hover:border-gray-200 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500/30 dark:bg-transparent"
-              value={name}
-              onChange={(e) => {
-                setName(e.target.value);
-                setIsDirty(true);
-              }}
-            />
-          </div>
 
-          <div>
-            <label className="text-xs text-gray-500">
-              What this feature should do
-            </label>
-            <textarea
-              className="mt-1 min-h-24 w-full rounded border p-3 text-sm leading-relaxed focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500/30 dark:bg-gray-950"
-              value={description}
-              onChange={(e) => {
-                setDescription(e.target.value);
-                setIsDirty(true);
-              }}
-            />
-          </div>
+      {/* What is being tested */}
+      <section className="mt-2 max-w-3xl">
+        <input
+          type="text"
+          aria-label="Feature name"
+          className="-mx-2 w-full rounded border border-transparent px-2 py-1 text-2xl font-semibold hover:border-gray-200 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500/30 dark:bg-transparent"
+          value={name}
+          onChange={(e) => {
+            setName(e.target.value);
+            setIsDirty(true);
+          }}
+        />
+        <label htmlFor="feature-description" className="mt-3 block text-xs text-gray-500">
+          What this feature should do
+        </label>
+        <textarea
+          id="feature-description"
+          rows={3}
+          className="mt-1 w-full resize-y rounded border p-3 text-sm leading-relaxed focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500/30 dark:bg-gray-950"
+          value={description}
+          onChange={(e) => {
+            setDescription(e.target.value);
+            setIsDirty(true);
+          }}
+        />
 
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          {(isFirstGeneration || isDirty || isGenerating) && (
             <button
               onClick={handleGenerate}
-              disabled={
-                (!isFirstGeneration && !isDirty) ||
-                isGenerating ||
-                !name.trim() ||
-                !description.trim()
-              }
-              title={!isFirstGeneration && !isDirty ? "Edit the description to generate a new version" : undefined}
-              className="tm-press inline-flex items-center gap-2 rounded bg-amber-500 px-4 py-2 text-xs font-medium text-white shadow-sm hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={isGenerating || !name.trim() || !description.trim()}
+              className="tm-press inline-flex items-center gap-2 rounded bg-amber-500 px-4 py-2 text-xs font-medium text-white shadow-sm hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-200 dark:text-black"
             >
               {isGenerating && <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/40 border-t-white" />}
-              {isGenerating ? "Generating..." : "Generate Test Cases"}
+              {isGenerating ? "Writing test cases" : isFirstGeneration ? "Generate test cases" : "Generate a new version"}
             </button>
+          )}
+          {hasChanges && (
             <button
-              onClick={handleFeedbackReview}
-              disabled={
-                isReviewing ||
-                !selectedSuite ||
-                !selectedSuite.testCases.length
-              }
-              className="tm-press inline-flex items-center gap-2 rounded bg-gray-900 px-4 py-2 text-xs font-medium text-white shadow-sm hover:bg-black disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-200 dark:text-black"
+              onClick={handleSaveFeature}
+              disabled={isSavingFeature || !name.trim()}
+              className="tm-fade tm-press rounded border px-4 py-2 text-xs font-medium hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-gray-800"
             >
-              {isReviewing && <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/40 border-t-white" />}
-              {isReviewing ? "Reviewing..." : "Review coverage"}
+              {isSavingFeature ? "Saving" : "Save changes"}
             </button>
-            {hasChanges && (
-              <button
-                onClick={handleSaveFeature}
-                disabled={isSavingFeature || !name.trim()}
-                className="tm-fade tm-press rounded border px-4 py-2 text-xs font-medium hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-gray-800"
-              >
-                {isSavingFeature ? "Saving..." : "Save Feature"}
-              </button>
-            )}
-
-            {!isFirstGeneration && !isDirty && !isGenerating && (
-              <span className="text-xs text-gray-400">Edit the description to generate a new version.</span>
-            )}
-            {feedbackError && (
-              <p className="text-xs text-red-600">{feedbackError}</p>
-            )}
-            {error && <p className="text-xs text-red-600">{error}</p>}
+          )}
+          {!isFirstGeneration && !isDirty && !isGenerating && (
+            <p className="text-xs text-gray-500">Change the description to generate a new version.</p>
+          )}
+          {error && <p className="text-xs text-red-600">{error}</p>}
+        </div>
+        {genStatus !== "idle" && (
+          <div className="tm-slide mt-1">
+            <PipelineTrace workflow="generation" status={genStatus} trace={genTrace} />
           </div>
+        )}
+      </section>
 
-          {(genStatus !== "idle" || reviewStatus !== "idle") && (
-            <div className="tm-slide space-y-1">
-              {genStatus !== "idle" && <PipelineTrace workflow="generation" status={genStatus} trace={genTrace} />}
-              {reviewStatus !== "idle" && <PipelineTrace workflow="review" status={reviewStatus} trace={reviewTrace} />}
-            </div>
-          )}
-
-          {feedback && (
-            <div id="review-panel" className="tm-fade mt-6 max-w-3xl scroll-mt-4 border-t pt-5 text-sm">
-              <div className="flex items-baseline justify-between gap-4">
-                <h3 className="font-semibold">Review</h3>
-                <p className="tabular-nums">
-                  <span className="text-2xl font-semibold">{feedback.score}</span>
-                  <span className="text-gray-400"> / 100</span>
-                </p>
-              </div>
-              <p className="mt-1 text-gray-600 dark:text-gray-300">
-                {feedback.score >= 85
-                  ? "Good coverage. Only small gaps left."
-                  : feedback.score >= 60
-                    ? "The basics are covered, but some failure and edge cases are missing."
-                    : "Large parts of this feature are not tested yet."}{" "}
-                {feedback.summary}
-              </p>
-
-              {feedback.missingAreas.length > 0 && (
-                <>
-                  <p className="mt-4 font-medium">Not covered yet</p>
-                  <ul className="mt-1 list-disc space-y-0.5 pl-5 text-gray-600 marker:text-gray-400 dark:text-gray-300">
-                    {feedback.missingAreas.map((item, idx) => (
-                      <li key={idx}>{item}</li>
-                    ))}
-                  </ul>
-                </>
-              )}
-
-              {feedback.missingAreas.length === 0 && feedback.suggestions.length > 0 && (
-                <>
-                  <p className="mt-4 font-medium">Suggestions</p>
-                  <ul className="mt-1 list-disc space-y-0.5 pl-5 text-gray-600 marker:text-gray-400 dark:text-gray-300">
-                    {feedback.suggestions.map((item, idx) => (
-                      <li key={idx}>{item}</li>
-                    ))}
-                  </ul>
-                </>
-              )}
-            </div>
-          )}
-          {feedback?.suggestedTestCases &&
-            feedback.suggestedTestCases.length > 0 && (
-              <div className="mt-6 max-w-3xl border-t pt-5">
-                <h3 className="text-sm font-semibold">Suggested cases</h3>
-                <p className="mb-3 text-xs text-gray-500">Open one to see its steps. Add the ones you want.</p>
-
-                <ul className="divide-y rounded border">
-                  {feedback.suggestedTestCases.map((tc, idx) => (
-                    <li key={idx} className="tm-fade text-sm">
-                      <details className="group">
-                        <summary className="flex cursor-pointer list-none items-center gap-3 px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-800/60">
-                          <span className="min-w-0 flex-1 truncate">{tc.title}</span>
-                          <span className="shrink-0 text-[11px] text-gray-500">{caseLabel(tc.type)}</span>
-                          <button
-                            className="shrink-0 rounded bg-amber-500 px-2.5 py-1 text-xs text-white hover:bg-amber-600"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              handleAcceptSuggested(tc, idx);
-                            }}
-                          >
-                            Add
-                          </button>
-                          <button
-                            className="shrink-0 rounded px-2 py-1 text-xs text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              handleRejectSuggested(idx);
-                            }}
-                          >
-                            Skip
-                          </button>
-                        </summary>
-                        <div className="px-3 pb-3 pl-6 text-xs text-gray-600 dark:text-gray-300">
-                          <ol className="list-decimal space-y-0.5 pl-4">
-                            {tc.steps.map((st, i) => (
-                              <li key={i}>{st.replace(/^step\s*\d+\s*[:.]\s*/i, "")}</li>
-                            ))}
-                          </ol>
-                          <p className="mt-1.5">Expected: {tc.expected}</p>
-                        </div>
-                      </details>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-        </section>
-
-        <div className={`grid grid-cols-1 gap-6 border-t pt-6 ${testSuites.length > 1 ? "lg:grid-cols-[260px_minmax(0,1fr)]" : ""}`}>
-          {testSuites.length > 1 && (
-          <aside className="lg:border-r lg:pr-6">
-            <h2 className="mb-3 flex items-center justify-between text-sm font-semibold">
-              Test Suites
-              <span className="text-[11px] font-normal text-gray-500">{testSuites.length} {testSuites.length === 1 ? "version" : "versions"}</span>
-            </h2>
-
-            {testSuites.length === 0 ? (
-              hasLoaded ? (
-                <p className="text-xs text-gray-500">
-                  No suites yet. Generate test cases.
-                </p>
-              ) : (
-                <span className="w-[92%]">
-                  <Skeleton height={15} width={"100%"} />
-                  <Skeleton height={15} width={"70%"} />
-                </span>
-              )
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+        {/* The test cases */}
+        <section className="min-w-0 border border-amber-300 dark:border-gray-600">
+          {!hasLoaded ? (
+            isGenerating ? (
+              <p className="p-4 text-sm text-gray-500">The cases will appear here in a few seconds.</p>
             ) : (
-              <ul className="flex flex-col gap-2">
-                {testSuites?.map((suite) => (
-                  <li
-                    key={suite.id}
-                    onClick={() => {
-                      setSelectedSuiteId(suite.id);
+              <div className="p-4">
+                <Skeleton height={20} width="40%" />
+                <Skeleton height={44} count={6} className="mt-2" />
+              </div>
+            )
+          ) : !selectedSuite ? (
+            <p className="p-4 text-sm text-gray-500">Select a version.</p>
+          ) : (
+            <>
+              <div className="flex min-h-10 flex-wrap items-center gap-2 bg-amber-300 px-3 py-1.5 text-black dark:bg-gray-200">
+                <h2 className="text-sm font-semibold">
+                  Test cases <span className="font-normal">({selectedSuite.testCases.length})</span>
+                </h2>
+                {testSuites.length > 1 && (
+                  <select
+                    aria-label="Version"
+                    value={selectedSuite.id}
+                    onChange={(e) => {
+                      setSelectedSuiteId(e.target.value);
                       setExpandedIds(new Set());
                       setFilterType("all");
                     }}
-                    className={`cursor-pointer rounded-lg border border-l-4 p-3 text-xs transition-colors dark:bg-gray-900 ${
-                      suite.id === selectedSuiteId
-                        ? "border-amber-200 border-l-amber-500 bg-amber-50 dark:border-gray-700 dark:border-l-amber-500"
-                        : "border-l-transparent hover:bg-gray-50 dark:hover:bg-gray-800"
-                    }`}
+                    className="rounded-md border-0 bg-amber-200 px-2 py-1 text-xs text-black focus:outline-none focus:ring-2 focus:ring-black/30 dark:bg-gray-300"
                   >
-                    <div className="flex items-start justify-between gap-2">
-                      <span className="line-clamp-2 font-medium">{suite.name}</span>
-                      {suite?.lastFeedbackScore != null && (
-                        <span title="Review score" className="shrink-0 text-[11px] font-semibold text-gray-700 dark:text-gray-200">
-                          {suite.lastFeedbackScore}/100
-                        </span>
-                      )}
-                    </div>
-                    <div className="mt-2">
-                      <TypeBar cases={suite.testCases ?? []} />
-                    </div>
-                    <div className="mt-1.5 text-[10px] text-gray-500">
-                      {suite.testCases?.length ?? 0} cases, {timeAgo(suite.createdAt)}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </aside>
-          )}
-
-          {hasLoaded ? (
-            <section className="min-w-0">
-              {!selectedSuite ? (
-                <p className="text-sm text-gray-500">Select a suite.</p>
-              ) : (
-                <>
-                  <div className="mb-3 flex items-center justify-between gap-3">
-                    <p className="text-sm">
-                      <span className="font-semibold">{selectedSuite.testCases.length} test cases</span>
-                      <span className="text-gray-500">
-                        {(() => {
-                          const score = feedback?.score ?? selectedSuite.lastFeedbackScore;
-                          return typeof score === "number" ? `, reviewed ${score}/100` : ", not reviewed yet";
-                        })()}
-                      </span>
-                    </p>
-
-                    <div className="relative">
-                      <button
-                        onClick={() => setExportOpen((o) => !o)}
-                        disabled={!selectedSuite.testCases.length}
-                        aria-haspopup="menu"
-                        aria-expanded={exportOpen}
-                        className="text-xs px-3 py-1.5 border rounded hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors disabled:opacity-50"
-                      >
-                        Export ▾
-                      </button>
-                      {exportOpen && (
-                        <>
-                          <div className="fixed inset-0 z-10" onClick={() => setExportOpen(false)} />
-                          <div role="menu" className="tm-slide absolute right-0 z-20 mt-1 w-56 overflow-hidden rounded border bg-white text-xs shadow-lg dark:border-gray-700 dark:bg-gray-900">
-                            {[
-                              { label: "JSON", hint: "raw suite data", run: () => handleDownloadSuite(selectedSuite) },
-                              { label: "Playwright spec", hint: "one test per case", run: () => download(`${slug(selectedSuite.name)}.spec.ts`, toPlaywrightSpec(selectedSuite), "text/typescript") },
-                              { label: "CSV", hint: "for sheets or a test tool import", run: () => download(`${slug(selectedSuite.name)}.csv`, toCsv(selectedSuite), "text/csv") },
-                              { label: "Markdown", hint: "for a ticket or PR", run: () => download(`${slug(selectedSuite.name)}.md`, toMarkdown(selectedSuite), "text/markdown") },
-                            ].map((o) => (
-                              <button
-                                key={o.label}
-                                role="menuitem"
-                                onClick={() => {
-                                  o.run();
-                                  setExportOpen(false);
-                                }}
-                                className="flex w-full items-center justify-between px-3 py-2 text-left hover:bg-amber-50 dark:hover:bg-gray-800"
-                              >
-                                <span className="font-medium">{o.label}</span>
-                                <span className="text-[10px] text-gray-400">{o.hint}</span>
-                              </button>
-                            ))}
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="mb-5">
-                    <TypeBar cases={selectedSuite.testCases} />
-                  </div>
-
-
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {tabs.map((tab) => (
-                      <button
-                        key={tab.value}
-                        onClick={() =>
-                          setFilterType(
-                            tab.value as "all" | "happy" | "negative" | "edge"
-                          )
-                        }
-                        className={`px-3 py-1 text-xs rounded-full ${
-                          filterType === tab.value
-                            ? "bg-amber-500 text-white"
-                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                        }`}
-                      >
-                        {tab.label}
-                        <span className="ml-1 opacity-70">
-                          {tab.value === "all" ? selectedSuite.testCases.length : typeCounts(selectedSuite.testCases)[tab.value as "happy" | "negative" | "edge"]}
-                        </span>
-                      </button>
+                    {testSuites.map((v, i) => (
+                      <option key={v.id} value={v.id}>
+                        Version {testSuites.length - i}
+                        {i === 0 ? " (latest)" : ""}, {timeAgo(v.createdAt)}
+                        {v.lastFeedbackScore != null ? `, reviewed ${v.lastFeedbackScore}` : ""}
+                      </option>
                     ))}
-                    <input
-                      type="search"
-                      value={caseQuery}
-                      onChange={(e) => setCaseQuery(e.target.value)}
-                      placeholder="Search cases"
-                      aria-label="Search test cases"
-                      className="ml-auto w-40 rounded border px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500 dark:border-gray-700 dark:bg-gray-900"
-                    />
+                  </select>
+                )}
+
+                <div className="relative ml-auto">
+                  <button
+                    onClick={() => setExportOpen((o) => !o)}
+                    disabled={!hasCases}
+                    aria-haspopup="menu"
+                    aria-expanded={exportOpen}
+                    className="rounded-md px-2 py-1 text-sm font-medium transition-colors hover:bg-amber-200 disabled:opacity-50 dark:hover:bg-gray-300"
+                  >
+                    Export ▾
+                  </button>
+                  {exportOpen && (
+                    <>
+                      <div className="fixed inset-0 z-10" onClick={() => setExportOpen(false)} />
+                      <div role="menu" className="tm-slide absolute right-0 z-20 mt-1 w-56 overflow-hidden rounded border bg-white text-xs shadow-lg dark:border-gray-700 dark:bg-gray-900">
+                        {[
+                          { label: "Playwright spec", hint: "one test per case", run: () => download(`${slug(selectedSuite.name)}.spec.ts`, toPlaywrightSpec(selectedSuite), "text/typescript") },
+                          { label: "CSV", hint: "for a sheet or test tool", run: () => download(`${slug(selectedSuite.name)}.csv`, toCsv(selectedSuite), "text/csv") },
+                          { label: "Markdown", hint: "for a ticket or PR", run: () => download(`${slug(selectedSuite.name)}.md`, toMarkdown(selectedSuite), "text/markdown") },
+                          { label: "JSON", hint: "raw data", run: () => handleDownloadSuite(selectedSuite) },
+                        ].map((o) => (
+                          <button
+                            key={o.label}
+                            role="menuitem"
+                            onClick={() => {
+                              o.run();
+                              setExportOpen(false);
+                            }}
+                            className="flex w-full items-center justify-between px-3 py-2 text-left hover:bg-amber-50 dark:hover:bg-gray-800"
+                          >
+                            <span className="font-medium">{o.label}</span>
+                            <span className="text-[10px] text-gray-400">{o.hint}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              <div className="px-3 pt-3">
+              <TypeBar cases={selectedSuite.testCases} />
+
+              <div className="mt-3 flex flex-wrap items-center gap-1 border-b pb-3 text-sm dark:border-gray-700">
+                {tabs.map((tab) => {
+                  const count = tab.value === "all" ? selectedSuite.testCases.length : typeCounts(selectedSuite.testCases)[tab.value as "happy" | "negative" | "edge"];
+                  const on = filterType === tab.value;
+                  return (
                     <button
-                      onClick={() =>
-                        setExpandedIds(expandedIds.size >= filteredCases.length ? new Set() : new Set(filteredCases.map((t) => t.id)))
-                      }
-                      className="text-xs px-2 py-1 border rounded hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
+                      key={tab.value}
+                      onClick={() => setFilterType(tab.value as "all" | "happy" | "negative" | "edge")}
+                      className={`rounded-md px-2 py-1 transition-colors ${on ? "bg-amber-200 font-medium text-black dark:bg-gray-300" : "text-gray-600 hover:bg-amber-100 dark:text-gray-300 dark:hover:bg-gray-800"}`}
                     >
-                      {expandedIds.size >= filteredCases.length && filteredCases.length > 0 ? "Collapse all" : "Expand all"}
+                      {tab.value === "all" ? "All" : caseLabel(tab.value)} ({count})
                     </button>
-                  </div>
+                  );
+                })}
+                <div className="ml-auto flex items-center gap-2">
+                  <input
+                    type="search"
+                    value={caseQuery}
+                    onChange={(e) => setCaseQuery(e.target.value)}
+                    placeholder="Search cases"
+                    aria-label="Search test cases"
+                    className="w-40 rounded border px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/40 dark:border-gray-700 dark:bg-gray-900"
+                  />
+                  <button
+                    onClick={() => setExpandedIds(expandedIds.size >= filteredCases.length ? new Set() : new Set(filteredCases.map((t) => t.id)))}
+                    className="rounded-md px-2 py-1 text-xs hover:bg-amber-100 dark:hover:bg-gray-800"
+                  >
+                    {expandedIds.size >= filteredCases.length && filteredCases.length > 0 ? "Collapse all" : "Expand all"}
+                  </button>
+                </div>
+              </div>
 
-                  <div className={filteredCases.length ? "divide-y rounded-lg border" : ""}>
-                  {filteredCases.map((tc, i) => {
-                    const expanded = expandedIds.has(tc.id);
-                    const type = String(tc.type).toLowerCase();
-
-                    return (
-                      <div
-                        key={tc.id}
-                        className="tm-rise text-sm"
-                        style={{ animationDelay: `${Math.min(i, 10) * 50}ms` }}
+              </div>
+              <ul className="divide-y px-3 dark:divide-gray-700">
+                {filteredCases.map((tc, i) => {
+                  const expanded = expandedIds.has(tc.id);
+                  return (
+                    <li key={tc.id} className="tm-rise text-sm" style={{ animationDelay: `${Math.min(i, 10) * 40}ms` }}>
+                      <button
+                        onClick={() => toggleCase(tc.id)}
+                        aria-expanded={expanded}
+                        className="flex w-full items-center gap-3 px-1 py-2.5 text-left hover:bg-amber-50 dark:hover:bg-gray-900"
                       >
-                        <button
-                          onClick={() => toggleCase(tc.id)}
-                          aria-expanded={expanded}
-                          className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-gray-50 dark:hover:bg-gray-900"
-                        >
-                          <span title={tc.id} className="w-6 shrink-0 text-right text-xs tabular-nums text-gray-400">{i + 1}.</span>
-                          <span className="min-w-0 flex-1 font-medium">{tc.title}</span>
-                          <span className="shrink-0 text-xs text-gray-500">{caseLabel(type)}</span>
-                          <span className={`shrink-0 text-gray-400 transition-transform ${expanded ? "rotate-180" : ""}`} aria-hidden>▾</span>
-                        </button>
+                        <span title={tc.id} className="w-6 shrink-0 text-right text-xs tabular-nums text-gray-400">
+                          {i + 1}.
+                        </span>
+                        <span className="min-w-0 flex-1">{tc.title}</span>
+                        <span className="shrink-0 text-xs text-gray-500">{caseLabel(tc.type)}</span>
+                        <span className={`shrink-0 text-xs text-gray-400 transition-transform ${expanded ? "rotate-180" : ""}`} aria-hidden>
+                          ▾
+                        </span>
+                      </button>
 
-                        {expanded && (
-                          <div className="tm-slide border-t px-3 pb-3 pt-2 dark:border-gray-700">
-
-                            <p className="font-semibold text-xs">Steps:</p>
-                            <ol className="list-decimal list-inside text-gray-700 dark:text-white">
-                              {tc.steps.map((step, i) => (
-                                <li key={i}>{step}</li>
-                              ))}
-                            </ol>
-
-                            <p className="mt-2">
-                              <span className="font-semibold">Expected:</span>{" "}
-                              {tc.expected}
-                            </p>
-
-                            {tc.samplePayload && (
-                              <div className="mt-2">
-                                <p className="font-semibold text-xs mb-1">
-                                  Sample Payload:
-                                </p>
-                                <pre className="bg-gray-50 p-2 rounded border text-xs overflow-x-auto dark:bg-gray-950">
-                                  {JSON.stringify(tc.samplePayload, null, 2)}
-                                </pre>
-
-                                <button
-                                  onClick={() =>
-                                    navigator.clipboard
-                                      .writeText(
-                                        JSON.stringify(
-                                          tc.samplePayload,
-                                          null,
-                                          2
-                                        )
-                                      )
-                                      .then(() => toast.success("Copied!"))
-                                  }
-                                  className="text-[11px] underline mt-1"
-                                >
-                                  Copy payload
-                                </button>
-                              </div>
+                      {expanded && (
+                        <div className="tm-slide pb-4 pl-10 pr-2 text-[13px] text-gray-700 dark:text-gray-300">
+                          <ol className="list-decimal space-y-0.5 pl-4 marker:text-gray-400">
+                            {tc.steps.map((step, k) => (
+                              <li key={k}>{cleanStep(step)}</li>
+                            ))}
+                          </ol>
+                          <p className="mt-2">
+                            <span className="text-gray-500">Expected:</span> {tc.expected}
+                          </p>
+                          {tc.samplePayload && Object.keys(tc.samplePayload).length > 0 && (
+                            <pre className="mt-2 overflow-x-auto rounded bg-gray-50 p-2 text-xs dark:bg-gray-950">{JSON.stringify(tc.samplePayload, null, 2)}</pre>
+                          )}
+                          <div className="mt-2 flex gap-3 text-xs text-gray-500">
+                            {tc.samplePayload && Object.keys(tc.samplePayload).length > 0 && (
+                              <button
+                                className="underline-offset-2 hover:text-gray-800 hover:underline dark:hover:text-gray-200"
+                                onClick={() => navigator.clipboard.writeText(JSON.stringify(tc.samplePayload, null, 2)).then(() => toast.success("Payload copied"))}
+                              >
+                                Copy payload
+                              </button>
                             )}
                             <button
-                              onClick={() =>
-                                navigator.clipboard
-                                  .writeText(caseToMarkdown(tc))
-                                  .then(() => toast.success("Copied as Markdown"))
-                              }
-                              className="mt-3 text-[11px] border rounded px-2 py-1 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
+                              className="underline-offset-2 hover:text-gray-800 hover:underline dark:hover:text-gray-200"
+                              onClick={() => navigator.clipboard.writeText(caseToMarkdown(tc)).then(() => toast.success("Copied as Markdown"))}
                             >
                               Copy as Markdown
                             </button>
                           </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                  </div>
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
 
-                  {filteredCases.length === 0 && (
-                    <p className="text-xs text-gray-500">
-                      {cq ? `No test cases match "${caseQuery}".` : filterType === "all" ? "No test cases yet." : `No ${caseLabel(filterType.toUpperCase()).toLowerCase()} cases in this suite.`}
-                    </p>
-                  )}
-                </>
+              {filteredCases.length === 0 && (
+                <p className="px-3 py-6 text-sm text-gray-500">
+                  {cq ? `No test cases match "${caseQuery}".` : filterType === "all" ? "No test cases yet." : `No ${caseLabel(filterType).toLowerCase()} cases in this version.`}
+                </p>
               )}
-            </section>
-          ) : (
-            <section className="min-w-0">
-              <div className="flex flex-col w-full gap-2">
-                <div className="flex">
-                  <div className="w-[80%]">
-                    <Skeleton height={20} width={"50%"} />
-                    <Skeleton height={20} width={"25%"} />
-                  </div>
-                  <div className="w-[20%] mt-1.5 justify-end!">
-                    <Skeleton height={30} width={"100%"} />
-                  </div>
-                </div>
-
-                <div className="flex w-[74%] gap-5">
-                  <Skeleton height={20} width={"60px"} />
-                  <Skeleton height={20} width={"60px"} />
-                  <Skeleton height={20} width={"60px"} />
-                  <Skeleton height={20} width={"60px"} />
-                </div>
-              </div>
-              <div className="w-full mt-3">
-                <Skeleton
-                  height={80}
-                  count={10}
-                  width={"100%"}
-                  className="mb-2.5"
-                />
-              </div>
-            </section>
+              {testSuites.length > 1 && (
+                <p className="px-3 py-2 text-xs text-gray-500">
+                  Showing version {versionIndex} of {testSuites.length}.
+                </p>
+              )}
+            </>
           )}
-        </div>
-      </main>
+        </section>
+
+        {/* The review, kept beside the cases it talks about */}
+        <aside id="review-panel" className="scroll-mt-4 lg:sticky lg:top-4 lg:self-start">
+          <div className="border border-amber-300 text-sm dark:border-gray-600">
+            <div className="flex min-h-10 items-center justify-between gap-4 bg-amber-300 px-3 py-1.5 text-black dark:bg-gray-200">
+              <h2 className="font-semibold">Review</h2>
+              {reviewScore != null && !isReviewing && (
+                <p className="tabular-nums">
+                  <span className="font-bold">{reviewScore}</span>/100
+                </p>
+              )}
+            </div>
+            <div className="p-3">
+
+            {isReviewing ? (
+              <div className="mt-2">
+                <PipelineTrace workflow="review" status={reviewStatus} trace={reviewTrace} />
+              </div>
+            ) : reviewScore == null ? (
+              <>
+                <p className="text-gray-700 dark:text-gray-300">
+                  {hasCases
+                    ? "Not reviewed yet. A review reads these cases against the description, gives a score out of 100 and suggests what is missing."
+                    : "Once there are test cases, you can have them reviewed for gaps."}
+                </p>
+                <button
+                  onClick={handleFeedbackReview}
+                  disabled={!hasCases}
+                  className="tm-press mt-3 w-full rounded bg-amber-500 px-4 py-2 text-xs font-medium text-white shadow-sm hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-gray-200 dark:text-black"
+                >
+                  Review coverage
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="text-gray-700 dark:text-gray-300">
+                  <span className="font-medium text-black dark:text-white">{verdict(reviewScore)}</span> {reviewSummary}
+                </p>
+
+                {feedback && feedback.missingAreas.length > 0 && (
+                  <>
+                    <p className="mt-4 font-medium">Not covered yet</p>
+                    <ul className="mt-1 list-disc space-y-0.5 pl-5 text-gray-600 marker:text-gray-400 dark:text-gray-300">
+                      {feedback.missingAreas.map((item, idx) => (
+                        <li key={idx}>{item}</li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+
+                {feedback && feedback.suggestedTestCases.length > 0 && (
+                  <>
+                    <p className="mt-4 font-medium">Suggested cases</p>
+                    <p className="text-xs text-gray-500">Add the ones you want to this version.</p>
+                    <ul className="mt-2 divide-y border dark:divide-gray-700 dark:border-gray-700">
+                      {feedback.suggestedTestCases.map((tc, idx) => (
+                        <li key={idx} className="tm-fade">
+                          <details>
+                            <summary className="cursor-pointer list-none px-3 py-2 hover:bg-amber-50 dark:hover:bg-gray-800/60">
+                              <span className="block">{tc.title}</span>
+                              <span className="mt-1 flex items-center gap-2 text-xs">
+                                <span className="mr-auto text-gray-500">{caseLabel(tc.type)}</span>
+                                <button
+                                  className="rounded bg-amber-500 px-2.5 py-0.5 text-white hover:bg-amber-600"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    handleAcceptSuggested(tc, idx);
+                                  }}
+                                >
+                                  Add
+                                </button>
+                                <button
+                                  className="rounded px-2 py-0.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    handleRejectSuggested(idx);
+                                  }}
+                                >
+                                  Skip
+                                </button>
+                              </span>
+                            </summary>
+                            <div className="px-3 pb-3 text-xs text-gray-600 dark:text-gray-300">
+                              <ol className="list-decimal space-y-0.5 pl-4">
+                                {tc.steps.map((st, k) => (
+                                  <li key={k}>{cleanStep(st)}</li>
+                                ))}
+                              </ol>
+                              <p className="mt-1.5">Expected: {tc.expected}</p>
+                            </div>
+                          </details>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+
+                <div className="mt-4 flex items-center justify-between gap-2 border-t border-amber-200 pt-3 dark:border-gray-700">
+                  {reviewStatus === "done" ? <PipelineTrace workflow="review" status={reviewStatus} trace={reviewTrace} /> : <span className="text-xs text-gray-500">Reviewed earlier</span>}
+                  <button onClick={handleFeedbackReview} disabled={!hasCases} className="shrink-0 rounded-md px-2 py-1 text-xs font-medium hover:bg-amber-100 dark:hover:bg-gray-800">
+                    Review again
+                  </button>
+                </div>
+              </>
+            )}
+            {feedbackError && <p className="mt-2 text-xs text-red-600">{feedbackError}</p>}
+            </div>
+          </div>
+        </aside>
+      </div>
     </div>
   );
 }
