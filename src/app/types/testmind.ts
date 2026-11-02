@@ -28,6 +28,7 @@ export type ProjectStats = {
   edge: number;
   avgScore: number | null;
   lastActivity: string | null;
+  lastSuite?: { id: string; name: string; score: number | null; cases: number } | null;
 };
 
 export type Project = {

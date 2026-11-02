@@ -14,7 +14,7 @@ const TECH_STACK = [
 const STATS = [
   { val: "420+", label: "req/s" },
   { val: "250ms", label: "latency" },
-  { val: "−60%", label: "deploy time" },
+  { val: "281 MB", label: "image" },
 ];
 
 const PROBLEMS = [

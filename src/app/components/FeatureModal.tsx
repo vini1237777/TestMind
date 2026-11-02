@@ -4,6 +4,22 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import type { TestSuite } from "@/src/app/types/testmind";
 import { createSuite } from "@/src/app/actions/suites";
+import Modal, { btnGhost, btnPrimary, fieldClass, labelClass } from "./Modal";
+
+const EXAMPLES = [
+  {
+    name: "Password reset",
+    description: "Users request a reset link by email. The link expires after 30 minutes and works only once. The new password needs 8+ characters with a number.",
+  },
+  {
+    name: "Checkout with coupon",
+    description: "Shoppers can apply one coupon per order. Coupons have an expiry date and a minimum cart value. Totals update before payment.",
+  },
+  {
+    name: "Profile photo upload",
+    description: "Users upload a JPG or PNG up to 5 MB. Images are cropped to a square. The old photo is replaced only after the upload succeeds.",
+  },
+];
 
 export default function FeatureModal({
   projectId,
@@ -69,56 +85,92 @@ export default function FeatureModal({
     }
   };
 
-  if (!open) return null;
-
   const isDisabled = isSaving || !featureName.trim();
+  const words = description.trim() ? description.trim().split(/\s+/).length : 0;
+  const quality = words === 0 ? null : words < 12 ? "Short. Add rules and limits for better edge cases." : words < 25 ? "Good. A limit or error case or two more would help." : "Detailed. Expect strong negative and edge cases.";
 
   return (
-    <div className="tm-fade fixed inset-0 backdrop-blur-md flex items-center justify-center z-50">
-      <div className="tm-pop bg-white max-w-[800px] rounded shadow-xl border w-[600px] overflow-hidden dark:bg-gray-900">
-        <header className="px-4 py-3 border-b font-medium text-sm">
-          Create New Feature / Suite
-        </header>
-        <div className="px-4 py-4 flex flex-col gap-4">
-          <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium">Feature Name</label>
-            <input
-              type="text"
-              placeholder="Feature Name (e.g. User Login, Shopping Cart, etc.)"
-              value={featureName}
-              onChange={(e) => setFeatureName(e.target.value)}
-              className="p-2 border rounded focus:ring-2 focus:ring-amber-500 outline-none"
-            />
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium">Description</label>
-            <textarea
-              placeholder="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="p-2 border rounded h-20 focus:ring-2 focus:ring-amber-500 outline-none"
-            />
-          </div>
-        </div>
-
-        <footer className="flex justify-between px-4 py-2 border-t">
-          <button
-            className="px-3 py-1 text-sm rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-60 dark:text-black cursor-pointer"
-            onClick={onClose}
-            disabled={isSaving}
-          >
+    <Modal
+      open={open}
+      onClose={onClose}
+      busy={isSaving}
+      onSubmit={isDisabled ? undefined : handleSave}
+      icon="🧪"
+      title="Create new feature"
+      subtitle="Describe one feature. TestMind turns it into a test suite you can generate and review."
+      width="max-w-2xl"
+      footer={
+        <>
+          <button type="button" className={btnGhost} onClick={onClose} disabled={isSaving}>
             Cancel
           </button>
-          <button
-            className="px-3 py-1 text-sm rounded bg-amber-500 text-white disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
-            onClick={handleSave}
-            disabled={isDisabled}
-          >
-            {isSaving ? "Saving..." : "Save"}
+          <button type="button" className={btnPrimary} onClick={handleSave} disabled={isDisabled}>
+            {isSaving && <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/40 border-t-white" />}
+            {isSaving ? "Creating..." : "Create feature"}
           </button>
-        </footer>
+        </>
+      }
+    >
+      <div className="space-y-4">
+        <div className="flex flex-wrap items-center gap-1.5 text-xs">
+          <span className="text-gray-500">Start from an example:</span>
+          {EXAMPLES.map((ex) => (
+            <button
+              key={ex.name}
+              type="button"
+              onClick={() => {
+                setFeatureName(ex.name);
+                setDescription(ex.description);
+              }}
+              className={`rounded-full border px-2.5 py-0.5 transition-colors ${
+                featureName === ex.name
+                  ? "border-amber-500 bg-amber-500 text-white"
+                  : "border-amber-200 bg-amber-50 text-amber-800 hover:border-amber-400 hover:bg-amber-100 dark:border-gray-700 dark:bg-gray-800 dark:text-amber-300"
+              }`}
+            >
+              {ex.name}
+            </button>
+          ))}
+        </div>
+
+        <div>
+          <label htmlFor="feature-name" className={labelClass}>
+            Feature name
+          </label>
+          <input
+            id="feature-name"
+            type="text"
+            maxLength={100}
+            placeholder="Feature name, e.g. User login"
+            value={featureName}
+            onChange={(e) => setFeatureName(e.target.value)}
+            className={fieldClass}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="feature-description" className={labelClass}>
+            What should it do?
+          </label>
+          <textarea
+            id="feature-description"
+            rows={5}
+            placeholder="Description: what the feature does, its rules and limits"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className={`${fieldClass} resize-y leading-relaxed`}
+          />
+          <div className="mt-1.5 flex items-center gap-2 text-[11px]">
+            <div className="h-1 w-24 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800" aria-hidden>
+              <div
+                className={`h-full rounded-full transition-[width,background-color] duration-300 ${words < 12 ? "bg-red-400" : words < 25 ? "bg-amber-400" : "bg-green-500"}`}
+                style={{ width: `${Math.min(100, (words / 30) * 100)}%` }}
+              />
+            </div>
+            <span className="text-gray-500">{quality ?? "Tip: mention limits, expiry times and error cases."}</span>
+          </div>
+        </div>
       </div>
-    </div>
+    </Modal>
   );
 }

@@ -30,11 +30,17 @@ export async function GET(req: NextRequest) {
         edge: number;
         avgScore: number | null;
         lastActivity: Date | null;
+        lastSuiteId: unknown;
+        lastSuiteName: string | null;
+        lastSuiteScore: number | null;
+        lastSuiteCases: number;
       }>([
+        { $sort: { createdAt: 1 } },
         {
           $project: {
             projectId: 1,
             createdAt: 1,
+            featureName: 1,
             lastReviewedAt: 1,
             lastFeedbackScore: 1,
             cases: { $size: { $ifNull: ["$testCases", []] } },
@@ -53,6 +59,10 @@ export async function GET(req: NextRequest) {
             edge: { $sum: "$edge" },
             avgScore: { $avg: "$lastFeedbackScore" },
             lastActivity: { $max: { $ifNull: ["$lastReviewedAt", "$createdAt"] } },
+            lastSuiteId: { $last: "$_id" },
+            lastSuiteName: { $last: "$featureName" },
+            lastSuiteScore: { $last: "$lastFeedbackScore" },
+            lastSuiteCases: { $last: "$cases" },
           },
         },
       ]),
@@ -76,6 +86,9 @@ export async function GET(req: NextRequest) {
             edge: s?.edge ?? 0,
             avgScore: s?.avgScore == null ? null : Math.round(s.avgScore),
             lastActivity: s?.lastActivity ?? null,
+            lastSuite: s?.lastSuiteId
+              ? { id: String(s.lastSuiteId), name: s.lastSuiteName ?? "", score: s.lastSuiteScore ?? null, cases: s.lastSuiteCases ?? 0 }
+              : null,
           },
         };
       }),
