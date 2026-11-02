@@ -24,6 +24,7 @@ export async function GET(req: NextRequest) {
       TestSuite.aggregate<{
         _id: string;
         suites: number;
+        features: string[];
         cases: number;
         happy: number;
         negative: number;
@@ -53,6 +54,7 @@ export async function GET(req: NextRequest) {
           $group: {
             _id: "$projectId",
             suites: { $sum: 1 },
+            features: { $addToSet: "$featureName" },
             cases: { $sum: "$cases" },
             happy: { $sum: "$happy" },
             negative: { $sum: "$negative" },
@@ -80,6 +82,7 @@ export async function GET(req: NextRequest) {
           createdAt: p.createdAt,
           stats: {
             suites: s?.suites ?? 0,
+            features: s?.features?.length ?? 0,
             cases: s?.cases ?? 0,
             happy: s?.happy ?? 0,
             negative: s?.negative ?? 0,
