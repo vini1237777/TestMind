@@ -14,22 +14,22 @@ export const NODE_INFO: Record<string, { label: string; kind: "llm" | "determini
   generate_test_cases: {
     label: "Generate",
     kind: "llm",
-    does: "Prompts gpt-4o-mini in JSON mode with the spec and the last review summary, then validates the reply against a Zod schema.",
+    does: "Invokes gpt-4o-mini in JSON mode with the feature spec and prior audit context, enforcing structural integrity through Zod.",
   },
   validate_generated_cases: {
     label: "Validate",
     kind: "deterministic",
-    does: "Normalizes ids and steps and fails the run loudly if the model returned nothing usable.",
+    does: "Normalizes test identifiers and step sequences, halting execution immediately if the payload fails quality checks.",
   },
   review_suite: {
     label: "Review",
     kind: "llm",
-    does: "Scores coverage out of 100, lists missing areas and proposes new cases, all schema validated.",
+    does: "Evaluates suite completeness out of 100, pinpoints untested edge conditions, and outputs schema verified test additions.",
   },
   improve_suite: {
     label: "Improve",
     kind: "deterministic",
-    does: "Merges suggestions into the suite and dedupes on type + normalized title.",
+    does: "Merges accepted recommendations into the active suite and deduplicates entries by category and normalized title.",
   },
 };
 

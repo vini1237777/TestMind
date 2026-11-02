@@ -6,7 +6,7 @@ import { TypePill, type CaseType } from "../ui";
 
 // A scripted replay of the shape of a real run, used on the landing page so
 // visitors see the product move without spending an LLM call.
-const SPEC = "Users reset their password with an emailed link. Links expire after 30 minutes and work once.";
+const SPEC = "Users reset their password via an emailed link. Links expire after 30 minutes and work only once.";
 const NODES = [
   { label: "Generate", kind: "LLM", ms: 2840 },
   { label: "Validate", kind: "code", ms: 3 },
@@ -65,7 +65,7 @@ export default function DemoRun() {
         <span className="rounded-full border border-line-strong px-2 py-0.5 font-mono text-[10.5px] text-muted">demo replay</span>
       </div>
 
-      <p className="eyebrow">spec</p>
+      <p className="eyebrow">input spec</p>
       <p className={`mt-1 min-h-[3.2em] text-[13.5px] leading-relaxed ${typing ? "caret" : ""}`}>{SPEC.slice(0, p.typed)}</p>
 
       <div className="mt-4 grid grid-cols-4 gap-1.5">
@@ -100,7 +100,7 @@ export default function DemoRun() {
       </ul>
 
       <div className={`mt-3 flex items-center justify-between rounded-lg border-[1.5px] border-dashed border-line-strong px-3 py-2 transition-opacity duration-500 ${p.score ? "opacity-100" : "opacity-0"}`}>
-        <span className="text-[12.5px] font-semibold">Coverage score</span>
+        <span className="text-[12.5px] font-semibold">Coverage audit score</span>
         <span className="font-display text-[22px] font-extrabold text-happy">{p.score ? SCORE : 0}<span className="text-[13px] text-muted">/100</span></span>
       </div>
     </div>

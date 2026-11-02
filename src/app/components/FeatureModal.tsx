@@ -71,12 +71,12 @@ export default function FeatureModal({
         </>
       }
     >
-      <Field label="Feature">
-        <input autoFocus type="text" className="field" placeholder="Feature name, e.g. Password reset"
+      <Field label="Feature title">
+        <input autoFocus type="text" className="field" placeholder="e.g. Password reset flow"
           value={featureName} onChange={(e) => setFeatureName(e.target.value)} />
       </Field>
-      <Field label="Spec" hint="Write it like a ticket: behavior, rules, limits. The more specific, the better the edge cases.">
-        <textarea className="field min-h-28 resize-y" placeholder="e.g. Users request a reset link by email. Links expire after 30 minutes and can be used once. Unknown emails get the same response."
+      <Field label="Technical specification" hint="Detail exact behaviors, constraints, and state transitions. Sharp specs yield sharper edge cases.">
+        <textarea className="field min-h-28 resize-y" placeholder="e.g. Users request a reset link via email. Links expire after 30 minutes and work once. Unregistered emails return an identical response to prevent enumeration."
           value={description} onChange={(e) => setDescription(e.target.value)} />
       </Field>
     </Modal>

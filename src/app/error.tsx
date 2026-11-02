@@ -12,10 +12,10 @@ export default function RouteError({ error, reset }: { error: Error & { digest?:
   return (
     <FailedTest
       code="TC_500"
-      title="This page should render"
-      expected="A working screen"
+      title="Assertion failed: page should render cleanly"
+      expected="An interactive workspace view"
       received={error.message ? `${error.name}: ${error.message}` : "An unexpected error"}
-      hint="Something broke on our side and it has been reported automatically. Rerunning usually fixes a flaky dependency like the database waking up."
+      hint="An unhandled exception occurred and was sent to Sentry. Retrying usually resolves a slow first connection to the database."
       digest={error.digest}
       onRetry={reset}
     />
