@@ -10,6 +10,21 @@ const STEPS = [
   { title: "Export", text: "Merge the suggestions, then download JSON or a Playwright spec." },
 ];
 
+const RIBBON = ["happy path", "negative case", "edge case", "coverage 86/100", "Zod validated", "LangGraph", "two model calls", "Playwright export", "rate limited", "traced per node"];
+
+/** "TestMind" letters that hop and change colour under the pointer. */
+function Hop({ word }: { word: string }) {
+  return (
+    <span className="tm-hop">
+      {word.split("").map((ch, i) => (
+        <span key={i} className="tm-hop-l" style={{ ["--i" as string]: i }}>
+          {ch}
+        </span>
+      ))}
+    </span>
+  );
+}
+
 function Words({ text, start = 0 }: { text: string; start?: number }) {
   return (
     <>
@@ -24,13 +39,25 @@ function Words({ text, start = 0 }: { text: string; start?: number }) {
 
 export default function Intro() {
   return (
-    <div id="landing" className="mx-4 px-4">
+    <div id="landing" className="relative isolate">
+      {/* soft colour glows drifting behind the hero */}
+      <div className="tm-aurora" aria-hidden>
+        <i />
+        <i />
+        <i />
+      </div>
+
+      <div className="mx-4 px-4">
       {/* What it is, next to a replay of one run */}
       <section className="grid grid-cols-1 items-center gap-10 py-10 lg:grid-cols-[1fr_minmax(0,500px)]">
         <div>
           <p className="tm-fade text-xs text-gray-500">Proof of concept built with Next.js, LangGraph and OpenAI</p>
           <h2 className="mt-2 text-2xl font-semibold md:text-3xl">
-            <Words text="TestMind writes test cases from a feature description, then reviews them." />
+            <span className="tm-word" style={{ animationDelay: "0ms" }}>
+              <Hop word="TestMind" />
+              &nbsp;
+            </span>
+            <Words text="writes test cases from a feature description, then reviews them." start={60} />
           </h2>
           <p className="tm-rise mt-3 max-w-xl text-sm text-gray-600 dark:text-gray-300" style={{ animationDelay: "450ms" }}>
             You describe what a feature should do. One model call drafts happy, negative and edge cases. A second call scores how well
@@ -42,7 +69,7 @@ export default function Intro() {
           </p>
           <div className="tm-rise mt-5 flex flex-wrap items-center gap-3" style={{ animationDelay: "650ms" }}>
             <TryNow />
-            <Link href="/architecture" className="tm-press rounded border px-3 py-2 text-xs hover:bg-amber-50 dark:border-gray-700 dark:hover:bg-gray-800">
+            <Link data-magnetic href="/architecture" className="tm-press rounded border px-3 py-2 text-xs hover:bg-amber-50 dark:border-gray-700 dark:hover:bg-gray-800">
               Architecture notes
             </Link>
           </div>
@@ -52,9 +79,25 @@ export default function Intro() {
         </div>
 
         <div className="tm-pop" style={{ animationDelay: "300ms" }}>
-          <DemoRun />
+          <div data-tilt="4" className="tm-run-border rounded-xl p-[2px]">
+            <DemoRun />
+          </div>
         </div>
       </section>
+      </div>
+
+      {/* QA vocabulary scrolling past on a tilted strip */}
+      <div className="tm-ribbon-wrap" aria-hidden>
+        <div className="tm-ribbon">
+          <div className="tm-ribbon-track">
+            {[...RIBBON, ...RIBBON].map((w, i) => (
+              <span key={i}>{w}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="mx-4 px-4">
 
       {/* How a run works */}
       <section className="border-t py-8 dark:border-gray-800">
@@ -64,7 +107,7 @@ export default function Intro() {
         <ol className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-4">
           {STEPS.map((s, i) => (
             <Reveal key={s.title} delay={i * 120}>
-              <li className="tm-lift h-full list-none rounded border p-3 hover:shadow-md dark:border-gray-700">
+              <li data-tilt="8" className="tm-shine h-full list-none rounded border bg-white p-3 dark:bg-[#020617] hover:shadow-md dark:border-gray-700">
                 <p className="text-sm font-semibold">
                   <span className="mr-2 text-amber-600">{i + 1}</span>
                   {s.title}
@@ -75,6 +118,7 @@ export default function Intro() {
           ))}
         </ol>
       </section>
+      </div>
     </div>
   );
 }

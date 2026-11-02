@@ -28,6 +28,7 @@ export default function TryNow() {
   return (
     <button
       type="button"
+      data-magnetic
       onClick={go}
       className="tm-press tm-attention rounded-full bg-amber-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-amber-600 dark:bg-gray-200 dark:text-black"
     >
