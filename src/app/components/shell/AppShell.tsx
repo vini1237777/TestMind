@@ -46,7 +46,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() || "/";
 
   return (
-    <div className="min-h-screen">
+    <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-40 border-b-[1.5px] border-[#111827] bg-nav">
         <div className="mx-auto flex h-14 max-w-[1240px] items-center justify-between gap-3 px-4 sm:px-6 lg:px-10">
           <Link href="/" className="group flex items-center gap-2.5">
@@ -84,7 +84,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <main className="min-w-0">{children}</main>
+      {/* flex-1 pushes the footer to the bottom on short pages */}
+      <main className="min-w-0 flex-1">{children}</main>
 
       <footer className="border-t border-line">
         <div className="mx-auto flex max-w-[1240px] flex-col gap-2 px-4 py-6 text-[12.5px] text-muted sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-10">
