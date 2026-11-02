@@ -36,7 +36,7 @@ export default function ProjectCard({ project, index }: { project: Project; inde
         </div>
         {!empty &&
           (s!.avgScore === null ? (
-            <span className="shrink-0 rounded-full border border-dashed border-amber-300 px-2 py-0.5 text-[10px] text-amber-700 dark:text-amber-400" title="No suite in this project has been reviewed yet">
+            <span className="shrink-0 text-[11px] text-gray-400" title="No suite in this project has been reviewed yet">
               Not reviewed
             </span>
           ) : (
