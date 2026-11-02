@@ -84,7 +84,7 @@ export default function DemoRun() {
   const progress = Math.max(0, Math.min(p.node + (done ? 0 : 0.5), NODES.length)) / NODES.length;
 
   return (
-    <div className="overflow-hidden rounded-lg border shadow-xl dark:border-gray-700" aria-label="Animated demo of a TestMind run">
+    <div className="overflow-hidden rounded-[10px] shadow-xl" aria-label="Animated demo of a TestMind run">
       <div className="flex items-center justify-between bg-amber-300 px-3 py-1.5 text-xs text-black dark:bg-gray-200">
         <span className="font-semibold">TestMind</span>
         <span className="flex items-center gap-1.5">
