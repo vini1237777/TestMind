@@ -8,12 +8,15 @@ import { EXAMPLE } from "../lib/example";
 // work without spending an LLM call on every page view.
 const FEATURE = EXAMPLE.feature;
 const SPEC = EXAMPLE.description;
+// What the status line says while each step runs.
+const STATUS = ["Writing test cases", "Checking them", "Reviewing coverage", "Adding what was missing"];
 const NODES = [
-  { label: "Generate", kind: "AI", ms: 2840 },
-  { label: "Validate", kind: "code", ms: 3 },
-  { label: "Review", kind: "AI", ms: 2210 },
-  { label: "Improve", kind: "code", ms: 2 },
+  { ms: 2840 }, // write cases
+  { ms: 3 }, // check them
+  { ms: 2210 }, // review coverage
+  { ms: 2 }, // merge
 ];
+const TOTAL_MS = NODES.reduce((s, n) => s + n.ms, 0);
 type CaseType = "HAPPY" | "NEGATIVE" | "EDGE";
 const CASES: { id: string; type: CaseType; title: string }[] = [
   { id: "TC_1", type: "HAPPY", title: "Valid link lets the user set a new password" },
@@ -78,24 +81,17 @@ export default function DemoRun() {
 
   const typing = p.typed < SPEC.length;
   const done = p.node >= NODES.length;
-  const progress = Math.max(0, Math.min(p.node + (done ? 0 : 0.5), NODES.length)) / NODES.length;
 
   return (
     <div className="overflow-hidden rounded-lg border shadow-xl dark:border-gray-700" aria-label="Animated demo of a TestMind run">
       <div className="flex items-center justify-between bg-amber-300 px-3 py-1.5 text-xs text-black dark:bg-gray-200">
         <span className="font-semibold">TestMind</span>
-        <span className="flex items-center gap-1.5">
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-600 opacity-60" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-600" />
-          </span>
-          demo replay
-        </span>
+        <span className="opacity-70">Recording</span>
       </div>
 
       <div className="space-y-3 bg-white p-4 text-sm dark:bg-gray-900">
         <div>
-          <p className="text-[11px] uppercase text-gray-500">Feature</p>
+          <p className="text-[11px] text-gray-500">Feature</p>
           <p className="mt-1 rounded border px-2 py-1.5 text-sm dark:border-gray-700">{FEATURE}</p>
         </div>
         <div>
@@ -106,40 +102,31 @@ export default function DemoRun() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <span
             className={`rounded px-3 py-1.5 text-xs text-white transition-all duration-150 ${
-              p.clicked ? "scale-95 bg-amber-600" : "bg-amber-500"
+              p.clicked && !done ? "scale-95 bg-amber-600" : "bg-amber-500"
             } dark:bg-gray-200 dark:text-black`}
           >
-            {p.clicked && !done ? "Generating…" : "Generate Test Cases"}
+            Generate Test Cases
           </span>
-          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
-            <div className="h-full rounded-full bg-amber-400 transition-[width] duration-500 ease-out" style={{ width: `${progress * 100}%` }} />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-4 gap-1.5">
-          {NODES.map((n, i) => {
-            const ok = p.node > i;
-            const active = p.node === i;
-            return (
-              <div
-                key={n.label}
-                className={`rounded border px-2 py-1.5 transition-colors duration-300 ${
-                  ok ? "tm-pop border-amber-300 bg-amber-50 dark:border-amber-700 dark:bg-amber-950/40" : active ? "tm-ring border-amber-300" : "border-gray-200 dark:border-gray-700"
-                }`}
-              >
-                <p className="text-[11px] font-medium">
-                  {ok && "✔ "}
-                  {n.label}
-                </p>
-                <p className={`text-[10px] ${n.kind === "AI" ? "text-amber-600" : "text-gray-400"}`}>
-                  {ok ? (n.ms >= 1000 ? `${(n.ms / 1000).toFixed(1)}s` : `${n.ms}ms`) : active ? "working…" : n.kind}
-                </p>
-              </div>
-            );
-          })}
+          {p.clicked && (
+            <span className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300" aria-live="polite">
+              {done ? (
+                <>
+                  <span aria-hidden className="text-amber-600">✓</span>
+                  Done
+                  <span className="text-gray-400">in {(TOTAL_MS / 1000).toFixed(1)}s</span>
+                </>
+              ) : (
+                <>
+                  <span aria-hidden className="h-3 w-3 animate-spin rounded-full border-2 border-amber-500 border-t-transparent" />
+                  {STATUS[Math.max(p.node, 0)]}
+                  <span className="tm-dots" aria-hidden />
+                </>
+              )}
+            </span>
+          )}
         </div>
 
         <ul className="min-h-[170px] space-y-1.5">

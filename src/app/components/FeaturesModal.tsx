@@ -42,17 +42,13 @@ function UnderTheHood() {
   return (
     <div className="tm-tour-next space-y-7 text-sm">
       <section>
-        <h3 className="font-semibold">Measured results</h3>
-        <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
-          {RESULTS.map((r) => (
-            <div key={r.label} className="rounded-md border p-3">
-              <p className="text-xl font-semibold text-amber-600 dark:text-amber-400">{r.value}</p>
-              <p className="text-xs text-gray-500">
-                {r.label}, {r.was}
-              </p>
-            </div>
+        <h3 className="font-semibold">How a run works</h3>
+        <p className="mt-0.5 text-xs text-gray-500">Orchestrated with LangGraph.</p>
+        <ol className="mt-2 list-decimal space-y-1.5 pl-5 marker:text-gray-400">
+          {FLOW.map((line) => (
+            <li key={line}>{line}</li>
           ))}
-        </div>
+        </ol>
       </section>
 
       <section>
@@ -68,36 +64,25 @@ function UnderTheHood() {
       </section>
 
       <section>
-        <h3 className="font-semibold">How a run works</h3>
-        <p className="mt-0.5 text-xs text-gray-500">OpenAI gpt-4o-mini in JSON mode, orchestrated with LangGraph.</p>
-        <div className="mt-3 rounded-md border bg-gray-50 p-3 dark:bg-gray-900">
-          <ol className="flex flex-col items-stretch gap-1.5 sm:flex-row sm:items-center">
-            {FLOW.map((f, n) => (
-              <li key={f.step} className="contents">
-                <div
-                  className={`tm-rise flex-1 rounded border bg-white px-2.5 py-2 dark:bg-gray-950 ${f.kind === "AI" ? "border-amber-300 dark:border-amber-700" : ""}`}
-                  style={{ animationDelay: `${n * 90}ms` }}
-                >
-                  <p className="flex items-center justify-between text-xs font-medium">
-                    {f.step}
-                    <span className={`text-[10px] font-normal ${f.kind === "AI" ? "text-amber-700 dark:text-amber-400" : "text-gray-400"}`}>{f.kind}</span>
-                  </p>
-                  <p className="text-[11px] text-gray-500">{f.note}</p>
-                </div>
-                {n < FLOW.length - 1 && (
-                  <span aria-hidden className="text-center text-gray-400 sm:px-0.5">
-                    <span className="sm:hidden">↓</span>
-                    <span className="hidden sm:inline">→</span>
-                  </span>
-                )}
-              </li>
+        <h3 className="font-semibold">What changed after tuning</h3>
+        <table className="mt-2 w-full text-left">
+          <thead className="text-xs text-gray-500">
+            <tr>
+              <th className="py-1 font-normal"></th>
+              <th className="py-1 font-normal">Before</th>
+              <th className="py-1 font-normal">After</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y">
+            {RESULTS.map((r) => (
+              <tr key={r.label}>
+                <td className="py-1.5 pr-3">{r.label}</td>
+                <td className="py-1.5 pr-3 text-gray-500">{r.was}</td>
+                <td className="py-1.5 font-medium">{r.value}</td>
+              </tr>
             ))}
-          </ol>
-          <p className="mt-2 flex items-center gap-1.5 text-[11px] text-gray-500">
-            <span aria-hidden className="text-amber-600">↺</span>
-            The review score feeds the next run, so it aims at what was missed.
-          </p>
-        </div>
+          </tbody>
+        </table>
       </section>
 
       <section>
@@ -108,8 +93,7 @@ function UnderTheHood() {
               <p className="mb-1 text-xs text-gray-500">{g.group}</p>
               <ul className="space-y-1">
                 {g.items.map(([title, what]) => (
-                  <li key={title} className="flex gap-2">
-                    <span aria-hidden className="text-amber-600">✔</span>
+                  <li key={title}>
                     <span>
                       <span className="font-medium">{title}</span> <span className="text-gray-500">{what}</span>
                     </span>

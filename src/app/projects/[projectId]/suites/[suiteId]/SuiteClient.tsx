@@ -458,7 +458,7 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
           </div>
 
           {(genStatus !== "idle" || reviewStatus !== "idle") && (
-            <div className="tm-slide grid gap-3 md:grid-cols-2">
+            <div className="tm-slide space-y-1">
               {genStatus !== "idle" && <PipelineTrace workflow="generation" status={genStatus} trace={genTrace} />}
               {reviewStatus !== "idle" && <PipelineTrace workflow="review" status={reviewStatus} trace={reviewTrace} />}
             </div>
