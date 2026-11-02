@@ -24,9 +24,6 @@ export default function ProjectPageClient({
     ? Math.round(scored.reduce((n, s) => n + (s.lastFeedbackScore as number), 0) / scored.length)
     : null;
 
-  const scoreTone = (n: number) =>
-    n >= 80 ? "border-green-200 bg-green-50 text-green-700" : n >= 60 ? "border-amber-200 bg-amber-50 text-amber-700" : "border-red-200 bg-red-50 text-red-700";
-
   return (
     <>
       <Breadcrumbs items={[{ label: "Projects", href: "/projects" }, { label: project.name || "Project" }]} />
@@ -85,7 +82,7 @@ export default function ProjectPageClient({
               <div className="mb-1 flex items-start justify-between gap-2">
                 <h2 className="font-semibold">{suite.featureName}</h2>
                 {typeof suite.lastFeedbackScore === "number" && (
-                  <span title="Last AI review score" className={`shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-semibold ${scoreTone(suite.lastFeedbackScore)}`}>
+                  <span title="Last AI review score" className="shrink-0 text-xs font-semibold text-gray-700 dark:text-gray-200">
                     {suite.lastFeedbackScore}/100
                   </span>
                 )}
