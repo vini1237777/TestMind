@@ -13,3 +13,9 @@ export function getOpenAIClient() {
 
   return client;
 }
+
+export type LlmUsage = {
+  model?: string;
+  promptTokens?: number;
+  completionTokens?: number;
+};

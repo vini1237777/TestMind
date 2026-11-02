@@ -1,4 +1,5 @@
 import type { FeedbackResult, TestCase } from "@/src/app/types/testmind";
+import type { RunTrace } from "@/src/lib/ai/graph/topology";
 import { runSuiteReviewGraph } from "@/src/lib/ai/graph/workflows/suite-review.graph";
 
 export async function runReviewWorkflow(input: {
@@ -7,7 +8,8 @@ export async function runReviewWorkflow(input: {
   projectId?: string;
   suiteId?: string;
   currentTestCases: TestCase[];
-}): Promise<{ feedback: FeedbackResult; improvedTestCases: TestCase[] }> {
+}): Promise<{ feedback: FeedbackResult; improvedTestCases: TestCase[]; trace: RunTrace }> {
+  const t0 = performance.now();
   const graphState = await runSuiteReviewGraph(input);
 
   if (graphState.errors.length > 0) {
@@ -21,5 +23,10 @@ export async function runReviewWorkflow(input: {
   return {
     feedback: graphState.feedback,
     improvedTestCases: graphState.improvedTestCases,
+    trace: {
+      workflow: "review",
+      totalMs: Math.round(performance.now() - t0),
+      nodes: graphState.trace,
+    },
   };
 }

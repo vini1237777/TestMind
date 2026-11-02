@@ -1,4 +1,5 @@
 import ProjectPageClient from "./ProjectPageClient";
+import { Page } from "@/src/app/components/shell/AppShell";
 import { ProjectPageProps, TestCase } from "@/src/app/types/testmind";
 import { getProjectById } from "@/src/app/actions/projects";
 import { getSuitesByProject } from "@/src/app/actions/suites";
@@ -44,8 +45,8 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   }));
 
   return (
-    <main className="max-w-full mx-auto px-4 py-8">
+    <Page>
       <ProjectPageClient project={project} suites={suites} />
-    </main>
+    </Page>
   );
 }
