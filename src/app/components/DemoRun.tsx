@@ -139,21 +139,17 @@ export default function DemoRun() {
           ))}
         </ul>
 
-        <div className={`rounded border border-amber-200 bg-amber-50 px-3 py-2 transition-opacity duration-500 dark:border-gray-700 dark:bg-gray-800 ${p.score >= 0 ? "opacity-100" : "opacity-0"}`}>
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold">AI review score</span>
-            <span className="text-lg font-bold text-amber-600">
-              {Math.max(p.score, 0)}
-              <span className="text-xs font-normal text-gray-500">/100</span>
+        <div className={`border-t pt-3 text-xs transition-opacity duration-500 dark:border-gray-700 ${p.score >= 0 ? "opacity-100" : "opacity-0"}`}>
+          <p className="flex items-baseline justify-between">
+            <span className="font-medium">Review</span>
+            <span className="tabular-nums">
+              <span className="text-base font-semibold">{SCORE}</span>
+              <span className="text-gray-400"> / 100</span>
             </span>
-          </div>
-          <ul className="mt-1 space-y-0.5">
-            {GAPS.slice(0, p.gaps).map((g) => (
-              <li key={g} className="tm-slide text-[11px] text-gray-600 dark:text-gray-300">
-                + Missing: {g}
-              </li>
-            ))}
-          </ul>
+          </p>
+          <p className={`mt-0.5 text-gray-600 transition-opacity duration-500 dark:text-gray-300 ${p.gaps > 0 ? "opacity-100" : "opacity-0"}`}>
+            Not covered yet: {GAPS.join(", ").toLowerCase()}.
+          </p>
         </div>
       </div>
     </div>

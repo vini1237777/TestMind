@@ -6,7 +6,6 @@ import toast from "react-hot-toast";
 import type { FeedbackResult } from "@/src/app/types/testmind";
 import { Feature, TestCase, TestSuite } from "@/src/app/types/testmind";
 import { updateFeature } from "@/src/app/actions/features";
-import ScoreBadge from "@/src/app/components/ScoreBadge";
 import Skeleton from "react-loading-skeleton";
 import PipelineTrace, { type RunStatus } from "@/src/app/components/PipelineTrace";
 import type { RunTrace } from "@/src/lib/ai/graph/topology";
@@ -465,119 +464,87 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
           )}
 
           {feedback && (
-            <div id="review-panel" className="tm-rise mt-6 scroll-mt-4 border-t pt-4">
-              <h3 className="text-sm font-semibold mb-2">AI Feedback Review</h3>
-
-              <div className="flex items-center gap-2 mb-2">
-                <ScoreBadge score={feedback.score} />
-                <p className="text-xs text-gray-600">AI Coverage Score</p>
-              </div>
-              {feedback && (
-                <p className="text-[12px] mb-2">
-                  <span className="font-semibold">Coverage:</span>{" "}
-                  {feedback.score >= 85
-                    ? "Strong (good coverage with minor improvements)"
-                    : feedback.score >= 60
-                    ? "Moderate (covers basics but missing important edge/negative cases)"
-                    : "Weak (significant gaps in test coverage)"}
+            <div id="review-panel" className="tm-fade mt-6 max-w-3xl scroll-mt-4 border-t pt-5 text-sm">
+              <div className="flex items-baseline justify-between gap-4">
+                <h3 className="font-semibold">Review</h3>
+                <p className="tabular-nums">
+                  <span className="text-2xl font-semibold">{feedback.score}</span>
+                  <span className="text-gray-400"> / 100</span>
                 </p>
-              )}
-
-              <p className="text-xs mb-2 dark:bg-gray-800">
-                <span className="font-semibold">Summary:</span>{" "}
+              </div>
+              <p className="mt-1 text-gray-600 dark:text-gray-300">
+                {feedback.score >= 85
+                  ? "Good coverage. Only small gaps left."
+                  : feedback.score >= 60
+                    ? "The basics are covered, but some failure and edge cases are missing."
+                    : "Large parts of this feature are not tested yet."}{" "}
                 {feedback.summary}
               </p>
 
               {feedback.missingAreas.length > 0 && (
-                <div className="mb-2">
-                  <p className="text-xs font-semibold mb-1">
-                    Missing / Weak Areas:
-                  </p>
-                  <div className="flex flex-wrap gap-2">
+                <>
+                  <p className="mt-4 font-medium">Not covered yet</p>
+                  <ul className="mt-1 list-disc space-y-0.5 pl-5 text-gray-600 marker:text-gray-400 dark:text-gray-300">
                     {feedback.missingAreas.map((item, idx) => (
-                      <span
-                        key={idx}
-                        className="rounded border border-amber-200 bg-amber-50 px-2 py-1 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
-                      >
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {feedback.suggestions.length > 0 && (
-                <div className="mb-2">
-                  <p className="text-xs font-semibold mb-1">
-                    Improvement Suggestions:
-                  </p>
-                  <ul className="flex flex-col gap-1 text-xs text-gray-700">
-                    {feedback.suggestions.map((s, i) => (
-                      <li key={i} className="flex items-start gap-1">
-                        <span className="text-green-600">✔</span>
-                        {s}
-                      </li>
+                      <li key={idx}>{item}</li>
                     ))}
                   </ul>
-                </div>
+                </>
+              )}
+
+              {feedback.missingAreas.length === 0 && feedback.suggestions.length > 0 && (
+                <>
+                  <p className="mt-4 font-medium">Suggestions</p>
+                  <ul className="mt-1 list-disc space-y-0.5 pl-5 text-gray-600 marker:text-gray-400 dark:text-gray-300">
+                    {feedback.suggestions.map((item, idx) => (
+                      <li key={idx}>{item}</li>
+                    ))}
+                  </ul>
+                </>
               )}
             </div>
           )}
           {feedback?.suggestedTestCases &&
             feedback.suggestedTestCases.length > 0 && (
-              <div className="mt-6 border-t pt-4  dark:bg-gray-800">
-                <h3 className="font-semibold text-sm mb-2">
-                  AI Suggested Test Cases
-                </h3>
+              <div className="mt-6 max-w-3xl border-t pt-5">
+                <h3 className="text-sm font-semibold">Suggested cases</h3>
+                <p className="mb-3 text-xs text-gray-500">Open one to see its steps. Add the ones you want.</p>
 
-                <ul className="flex flex-col gap-4">
+                <ul className="divide-y rounded border">
                   {feedback.suggestedTestCases.map((tc, idx) => (
-                    <li
-                      key={idx}
-                      className="tm-rise border rounded p-3 shadow-sm bg-gray-50 text-sm dark:bg-gray-900"
-                      style={{ animationDelay: `${idx * 80}ms` }}
-                    >
-                      <div className="flex justify-between mb-1">
-                        <span className="text-xs text-gray-500">
-                          {caseLabel(tc.type)}
-                        </span>
-                      </div>
-
-                      <h4 className="font-semibold">{tc.title}</h4>
-
-                      <p className="mt-1 font-semibold text-xs">Steps:</p>
-                      <ol className="list-decimal list-inside text-xs">
-                        {tc.steps.map((s, i) => (
-                          <li key={i}>{s}</li>
-                        ))}
-                      </ol>
-
-                      <p className="mt-2 text-xs">
-                        <span className="font-semibold">Expected:</span>{" "}
-                        {tc.expected}
-                      </p>
-
-                      {tc.samplePayload && (
-                        <pre className="mt-2 bg-white p-2 border rounded text-xs overflow-x-auto dark:bg-gray-800">
-                          {JSON.stringify(tc.samplePayload, null, 2)}
-                        </pre>
-                      )}
-
-                      <div className="flex gap-2 mt-3">
-                        <button
-                          className="px-3 py-1 text-xs bg-amber-500 text-white rounded hover:bg-amber-600"
-                          onClick={() => handleAcceptSuggested(tc, idx)}
-                        >
-                          Accept
-                        </button>
-
-                        <button
-                          className="px-3 py-1 text-xs bg-gray-300 rounded hover:bg-gray-400"
-                          onClick={() => handleRejectSuggested(idx)}
-                        >
-                          Reject
-                        </button>
-                      </div>
+                    <li key={idx} className="tm-fade text-sm">
+                      <details className="group">
+                        <summary className="flex cursor-pointer list-none items-center gap-3 px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-800/60">
+                          <span className="min-w-0 flex-1 truncate">{tc.title}</span>
+                          <span className="shrink-0 text-[11px] text-gray-500">{caseLabel(tc.type)}</span>
+                          <button
+                            className="shrink-0 rounded bg-amber-500 px-2.5 py-1 text-xs text-white hover:bg-amber-600"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleAcceptSuggested(tc, idx);
+                            }}
+                          >
+                            Add
+                          </button>
+                          <button
+                            className="shrink-0 rounded px-2 py-1 text-xs text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleRejectSuggested(idx);
+                            }}
+                          >
+                            Skip
+                          </button>
+                        </summary>
+                        <div className="px-3 pb-3 pl-6 text-xs text-gray-600 dark:text-gray-300">
+                          <ol className="list-decimal space-y-0.5 pl-4">
+                            {tc.steps.map((st, i) => (
+                              <li key={i}>{st.replace(/^step\s*\d+\s*[:.]\s*/i, "")}</li>
+                            ))}
+                          </ol>
+                          <p className="mt-1.5">Expected: {tc.expected}</p>
+                        </div>
+                      </details>
                     </li>
                   ))}
                 </ul>
@@ -623,7 +590,7 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
                     <div className="flex items-start justify-between gap-2">
                       <span className="line-clamp-2 font-medium">{suite.name}</span>
                       {suite?.lastFeedbackScore != null && (
-                        <span title="AI review score" className="shrink-0 text-[11px] font-semibold text-gray-700 dark:text-gray-200">
+                        <span title="Review score" className="shrink-0 text-[11px] font-semibold text-gray-700 dark:text-gray-200">
                           {suite.lastFeedbackScore}/100
                         </span>
                       )}
@@ -653,7 +620,7 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
                       <span className="text-gray-500">
                         {(() => {
                           const score = feedback?.score ?? selectedSuite.lastFeedbackScore;
-                          return typeof score === "number" ? `, ${feedback ? "AI reviewed" : "last review"} ${score}/100` : ", not reviewed yet";
+                          return typeof score === "number" ? `, reviewed ${score}/100` : ", not reviewed yet";
                         })()}
                       </span>
                     </p>
@@ -701,36 +668,6 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
                     <TypeBar cases={selectedSuite.testCases} />
                   </div>
 
-                  {(() => {
-                    if (isGenerating || isReviewing || !selectedSuite.testCases.length) return null;
-                    const waiting = feedback?.suggestedTestCases?.length ?? 0;
-                    const step =
-                      waiting > 0
-                        ? {
-                            tone: "amber",
-                            text: `${waiting} suggested ${waiting === 1 ? "case is" : "cases are"} waiting from the review. Accept the ones you want to add.`,
-                            cta: "Show suggestions",
-                            run: () => document.getElementById("review-panel")?.scrollIntoView({ behavior: "smooth" }),
-                          }
-                        : null;
-                    if (!step) return null;
-                    const tones: Record<string, string> = {
-                      amber: "border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30",
-                    };
-                    return (
-                      <div className={`tm-rise mb-4 flex flex-wrap items-center gap-3 rounded-lg border px-3 py-2.5 ${tones[step.tone]}`}>
-                        <p className="min-w-0 flex-1 text-xs">{step.text}</p>
-                        {step.cta && step.run && (
-                          <button
-                            onClick={step.run}
-                            className="tm-press shrink-0 rounded bg-gray-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-black dark:bg-gray-200 dark:text-black"
-                          >
-                            {step.cta}
-                          </button>
-                        )}
-                      </div>
-                    );
-                  })()}
 
                   <div className="flex flex-wrap gap-2 mb-4">
                     {tabs.map((tab) => (
