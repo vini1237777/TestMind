@@ -1,6 +1,7 @@
 import { typeCounts } from "../lib/export-playwright";
 
-const COLORS = { happy: "bg-green-500", negative: "bg-red-500", edge: "bg-amber-500" } as const;
+// Amber shades that sit with the theme, rather than a traffic light
+const COLORS = { happy: "bg-amber-300", negative: "bg-amber-500", edge: "bg-amber-700" } as const;
 
 /**
  * Stacked bar of happy, negative and edge cases. A suite heavy on happy paths
@@ -24,7 +25,7 @@ export default function TypeBar({ cases, counts, showLegend = false }: { cases?:
           {(Object.keys(COLORS) as (keyof typeof COLORS)[]).map((k) => (
             <span key={k} className="flex items-center gap-1">
               <span className={`h-2 w-2 rounded-full ${COLORS[k]}`} />
-              {c[k]} {k}
+              {c[k]} {k === "happy" ? "happy path" : k === "edge" ? "edge case" : "negative"}
             </span>
           ))}
         </div>

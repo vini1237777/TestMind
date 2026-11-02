@@ -13,6 +13,7 @@ import type { RunTrace } from "@/src/lib/ai/graph/topology";
 import { caseToMarkdown, download, slug, toCsv, toMarkdown, toPlaywrightSpec, typeCounts } from "@/src/app/lib/export-playwright";
 import Breadcrumbs from "@/src/app/components/Breadcrumbs";
 import TypeBar from "@/src/app/components/TypeBar";
+import { caseLabel } from "@/src/app/lib/case-label";
 import { timeAgo } from "@/src/app/lib/format";
 
 const tabs = [
@@ -27,11 +28,6 @@ type SuiteCaseProps = {
   projectName?: string;
 };
 
-const TYPE_BADGE: Record<string, string> = {
-  happy: "border-green-200 bg-green-50 text-green-700 dark:border-green-900 dark:bg-green-950/40 dark:text-green-400",
-  negative: "border-red-200 bg-red-50 text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-400",
-  edge: "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-400",
-};
 
 export default function SuiteCase({ feature, projectName = "Project" }: SuiteCaseProps) {
   const router = useRouter();
@@ -485,7 +481,7 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
                     {feedback.missingAreas.map((item, idx) => (
                       <span
                         key={idx}
-                        className="px-2 py-1 bg-red-100 text-red-700 rounded text-xs"
+                        className="rounded border border-amber-200 bg-amber-50 px-2 py-1 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
                       >
                         {item}
                       </span>
@@ -526,8 +522,8 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
                       style={{ animationDelay: `${idx * 80}ms` }}
                     >
                       <div className="flex justify-between mb-1">
-                        <span className="uppercase text-xs text-gray-600">
-                          {tc.type}
+                        <span className="text-xs text-gray-500">
+                          {caseLabel(tc.type)}
                         </span>
                       </div>
 
@@ -610,10 +606,8 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
                     <div className="flex items-start justify-between gap-2">
                       <span className="line-clamp-2 font-medium">{suite.name}</span>
                       {suite?.lastFeedbackScore != null && (
-                        <span title="AI review score" className={`shrink-0 rounded-full border px-1.5 py-0.5 text-[10px] font-semibold ${
-                          suite.lastFeedbackScore >= 80 ? "border-green-200 bg-green-50 text-green-700" : suite.lastFeedbackScore >= 60 ? "border-amber-200 bg-amber-50 text-amber-700" : "border-red-200 bg-red-50 text-red-700"
-                        }`}>
-                          {suite.lastFeedbackScore}
+                        <span title="AI review score" className="shrink-0 text-[11px] font-semibold text-gray-700 dark:text-gray-200">
+                          {suite.lastFeedbackScore}/100
                         </span>
                       )}
                     </div>
@@ -830,9 +824,9 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
                           aria-expanded={expanded}
                           className="flex w-full items-center gap-3 p-3 text-left"
                         >
-                          <span title={tc.id} className="w-14 shrink-0 truncate font-mono text-xs text-gray-500">{tc.id}</span>
+                          <span title={tc.id} className="w-6 shrink-0 text-right text-xs tabular-nums text-gray-400">{i + 1}.</span>
                           <span className="min-w-0 flex-1 font-medium">{tc.title}</span>
-                          <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] uppercase ${TYPE_BADGE[type] ?? "text-gray-500"}`}>{type}</span>
+                          <span className="shrink-0 text-xs text-gray-500">{caseLabel(type)}</span>
                           <span className={`shrink-0 text-gray-400 transition-transform ${expanded ? "rotate-180" : ""}`} aria-hidden>▾</span>
                         </button>
 
@@ -882,7 +876,7 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
                               onClick={() =>
                                 navigator.clipboard
                                   .writeText(caseToMarkdown(tc))
-                                  .then(() => toast.success(`${tc.id} copied as Markdown`))
+                                  .then(() => toast.success("Copied as Markdown"))
                               }
                               className="mt-3 text-[11px] border rounded px-2 py-1 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
                             >

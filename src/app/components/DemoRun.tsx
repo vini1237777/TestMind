@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { caseLabel } from "../lib/case-label";
 
 // A scripted replay shaped like a real run. It lets visitors watch the product
 // work without spending an LLM call on every page view.
@@ -23,11 +24,6 @@ const CASES: { id: string; type: CaseType; title: string }[] = [
 const SCORE = 86;
 const GAPS = ["Rate limit on reset requests", "Reset while already logged in"];
 
-const TYPE_STYLE: Record<CaseType, string> = {
-  HAPPY: "text-green-700 dark:text-green-400",
-  NEGATIVE: "text-red-600 dark:text-red-400",
-  EDGE: "text-amber-600 dark:text-amber-400",
-};
 
 type Phase = { typed: number; clicked: boolean; node: number; cases: number; score: number; gaps: number };
 const START: Phase = { typed: 0, clicked: false, node: -1, cases: 0, score: -1, gaps: 0 };
@@ -148,9 +144,9 @@ export default function DemoRun() {
         <ul className="min-h-[170px] space-y-1.5">
           {CASES.slice(0, p.cases).map((c) => (
             <li key={c.id} className="tm-rise flex items-center gap-2 rounded border px-2.5 py-1.5 dark:border-gray-700">
-              <span className="w-9 text-[11px] text-gray-500">{c.id}</span>
+              <span className="w-4 text-right text-[11px] tabular-nums text-gray-400">{CASES.indexOf(c) + 1}.</span>
               <span className="flex-1 truncate text-xs">{c.title}</span>
-              <span className={`text-[10px] font-medium ${TYPE_STYLE[c.type]}`}>{c.type}</span>
+              <span className="text-[11px] text-gray-500">{caseLabel(c.type)}</span>
             </li>
           ))}
         </ul>

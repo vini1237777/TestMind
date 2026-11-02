@@ -152,7 +152,7 @@ test("user can create project, add feature, and generate test cases", async ({
 
   await page.getByRole("button", { name: "Generate Test Cases" }).click();
 
-  await expect(page.getByText("TC_1")).toBeVisible();
+  await expect(page.getByText("Valid input generates tests")).toBeVisible();
 
   page.on("request", (request) => {
     console.log("Request:", request.method(), request.url());
