@@ -84,7 +84,7 @@ export default function DemoRun() {
 
   return (
     <div className="overflow-hidden rounded-lg border shadow-xl dark:border-gray-700" aria-label="Animated demo of a TestMind run">
-      <div className="flex items-center justify-between bg-amber-300 px-3 py-1.5 text-xs text-black dark:bg-gray-200">
+      <div className="flex items-center justify-between bg-amber-300 px-3 py-1.5 text-xs text-black dark:bg-amber-400">
         <span className="font-semibold">TestMind</span>
         <span className="opacity-70">Recording</span>
       </div>
@@ -106,7 +106,7 @@ export default function DemoRun() {
           <span
             className={`rounded px-3 py-1.5 text-xs text-white transition-all duration-150 ${
               p.clicked && !done ? "scale-95 bg-amber-600" : "bg-amber-500"
-            } dark:bg-gray-200 dark:text-black`}
+            } dark:bg-amber-400 dark:text-black`}
           >
             Generate Test Cases
           </span>

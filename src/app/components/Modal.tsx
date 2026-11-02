@@ -103,4 +103,4 @@ export const fieldClass =
 export const labelClass = "mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300";
 export const btnGhost = "rounded-md px-3 py-2 text-sm text-gray-600 hover:bg-gray-200/70 disabled:opacity-50 dark:text-gray-300 dark:hover:bg-gray-800";
 export const btnPrimary =
-  "tm-press inline-flex items-center gap-2 rounded-md bg-amber-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-200 dark:text-black";
+  "tm-press inline-flex items-center gap-2 rounded-md bg-amber-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-amber-400 dark:text-black dark:hover:bg-amber-300";

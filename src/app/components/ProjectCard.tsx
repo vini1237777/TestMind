@@ -1,18 +1,8 @@
 import Link from "next/link";
 import type { Project } from "../types/testmind";
-import ScoreRing from "./ScoreRing";
 import TypeBar from "./TypeBar";
-import { initials, pick, timeAgo } from "../lib/format";
-
-// Warm tiles that sit with the amber theme
-const TILES = [
-  "bg-amber-100 text-amber-800",
-  "bg-orange-100 text-orange-800",
-  "bg-yellow-100 text-yellow-800",
-  "bg-rose-100 text-rose-800",
-  "bg-lime-100 text-lime-800",
-  "bg-stone-200 text-stone-800",
-] as const;
+import ProjectTile from "./ProjectTile";
+import { timeAgo } from "../lib/format";
 
 export default function ProjectCard({ project, index }: { project: Project; index: number }) {
   const s = project.stats;
@@ -21,13 +11,11 @@ export default function ProjectCard({ project, index }: { project: Project; inde
   return (
     <Link
       href={`/projects/${project.id}`}
-      className="tm-rise group flex flex-col rounded-lg border border-gray-200 bg-white p-4 text-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-amber-400 hover:shadow-[0_12px_30px_-12px_rgba(217,119,6,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 dark:border-gray-700 dark:bg-gray-900 dark:hover:border-amber-500"
+      className="tm-rise group flex flex-col rounded-lg border border-gray-200 bg-white p-4 text-sm transition-all duration-200 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:border-black hover:shadow-[4px_4px_0_0_#fcd34d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-amber-400 dark:hover:shadow-[4px_4px_0_0_rgba(251,191,36,0.35)]"
       style={{ animationDelay: `${Math.min(index, 12) * 45}ms` }}
     >
       <div className="flex items-start gap-3">
-        <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-lg text-sm font-bold ${pick(project.id || project.name, TILES)}`} aria-hidden>
-          {initials(project.name)}
-        </span>
+        <ProjectTile name={project.name} />
         <div className="min-w-0 flex-1">
           <h2 className="truncate font-semibold">{project.name}</h2>
           <p className="text-[11px] text-gray-400">
@@ -40,7 +28,10 @@ export default function ProjectCard({ project, index }: { project: Project; inde
               Not reviewed
             </span>
           ) : (
-            <ScoreRing score={s!.avgScore} size={40} />
+            <span className="shrink-0 text-right tabular-nums" title="Average review score">
+              <span className="text-lg font-bold leading-none">{s!.avgScore}</span>
+              <span className="text-[11px] text-gray-400">/100</span>
+            </span>
           ))}
       </div>
 

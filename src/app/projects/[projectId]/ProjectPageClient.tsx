@@ -40,7 +40,7 @@ export default function ProjectPageClient({
           </p>
         </div>
         <button
-          className="tm-press shrink-0 rounded bg-amber-500 px-3 py-2 text-xs font-medium text-white shadow-sm hover:bg-amber-600 dark:bg-gray-200 dark:text-black"
+          className="tm-press shrink-0 rounded bg-amber-500 px-3 py-2 text-xs font-medium text-white shadow-sm hover:bg-amber-600 dark:bg-amber-400 dark:text-black dark:hover:bg-amber-300"
           onClick={() => setOpenFeatureModal(true)}
         >
           + New Feature
@@ -56,26 +56,26 @@ export default function ProjectPageClient({
           </p>
           <button
             onClick={() => setOpenFeatureModal(true)}
-            className="tm-press mt-4 rounded bg-amber-500 px-4 py-2 text-xs font-medium text-white hover:bg-amber-600"
+            className="tm-press mt-4 rounded bg-amber-500 px-4 py-2 text-xs font-medium text-white hover:bg-amber-600 dark:bg-amber-400 dark:text-black dark:hover:bg-amber-300"
           >
             Add the first feature
           </button>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-lg border">
-          <div className="hidden grid-cols-[minmax(0,1fr)_160px_80px_90px_120px] gap-4 border-b bg-gray-50 px-4 py-2 text-xs text-gray-500 md:grid dark:bg-gray-900">
+        <div className="border border-amber-300 dark:border-amber-500/40">
+          <div className="hidden grid-cols-[minmax(0,1fr)_160px_80px_90px_120px] gap-4 bg-amber-300 px-4 py-2 text-xs font-semibold text-black md:grid dark:bg-amber-400">
             <span>Feature</span>
             <span>Case mix</span>
             <span className="text-right">Cases</span>
             <span className="text-right">Score</span>
             <span className="text-right">Updated</span>
           </div>
-          <ul className="divide-y">
+          <ul className="divide-y dark:divide-slate-800">
             {localSuites.map((suite, i) => (
               <li key={suite.id} className="tm-rise" style={{ animationDelay: `${Math.min(i, 12) * 30}ms` }}>
                 <Link
                   href={`/projects/${project.id}/suites/${suite.id}`}
-                  className="grid grid-cols-1 gap-1 px-4 py-3 text-sm transition-colors hover:bg-amber-50/60 md:grid-cols-[minmax(0,1fr)_160px_80px_90px_120px] md:items-center md:gap-4 dark:hover:bg-gray-900"
+                  className="grid grid-cols-1 gap-1 px-4 py-3 text-sm transition-colors hover:bg-amber-50 md:grid-cols-[minmax(0,1fr)_160px_80px_90px_120px] md:items-center md:gap-4 dark:hover:bg-slate-900"
                 >
                   <span className="min-w-0">
                     <span className="block truncate font-medium">{suite.featureName}</span>
