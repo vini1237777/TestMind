@@ -46,13 +46,19 @@ export default function Navbar() {
         <div className="flex items-center gap-1">
           <Link
             href="/"
-            className="text-sm font-medium rounded-md px-2 py-1 hover:bg-amber-200 text-black transition-colors"
+            className="tm-underline text-sm font-medium rounded-md px-2 py-1 hover:bg-amber-200 text-black transition-colors"
+          >
+            Home
+          </Link>
+          <Link
+            href="/projects"
+            className="tm-underline text-sm font-medium rounded-md px-2 py-1 hover:bg-amber-200 text-black transition-colors"
           >
             Workspace
           </Link>
           <Link
             href="/architecture"
-            className="text-sm font-medium rounded-md px-2 py-1 hover:bg-amber-200 text-black transition-colors"
+            className="tm-underline text-sm font-medium rounded-md px-2 py-1 hover:bg-amber-200 text-black transition-colors"
           >
             Architecture
           </Link>

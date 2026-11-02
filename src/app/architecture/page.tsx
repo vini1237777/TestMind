@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { NODE_INFO, WORKFLOWS } from "@/src/lib/ai/graph/topology";
 
 export const metadata: Metadata = {
-  title: "Architecture · TestMind",
+  title: "TestMind Architecture",
   description: "How TestMind turns a feature spec into a reviewed test suite: LangGraph workflows, schema validated LLM output, rate limiting, caching and tracing.",
 };
 
@@ -78,23 +78,23 @@ export default function ArchitecturePage() {
         ))}
       </nav>
 
-      <Section id="system" eyebrow="01 · topology" title="Request lifecycle">
+      <Section id="system" eyebrow="topology" title="Request lifecycle">
         <div className="rounded-lg border bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900 grid gap-6 p-5 md:grid-cols-[1fr_1fr]">
           <div>
-            <Box title="Browser" sub="React 19 · App Router client components" />
+            <Box title="Browser" sub="React 19 App Router client components" />
             <Down label="fetch /api/*" />
-            <Box title="Next.js proxy" sub="Upstash rate limit · 10/60s/IP" tone="accent" />
+            <Box title="Next.js proxy" sub="Upstash rate limit, 10 requests per 60s per IP" tone="accent" />
             <Down />
-            <Box title="Route handlers & server actions" sub="input validation · 400 on invalid specs" />
+            <Box title="Route handlers & server actions" sub="input validation, 400 on invalid specs" />
             <Down label="generate / review" />
-            <Box title="LangGraph orchestrator" sub="2 compiled StateGraphs · traced execution nodes" tone="accent" />
+            <Box title="LangGraph orchestrator" sub="2 compiled StateGraphs with traced execution nodes" tone="accent" />
             <Down />
             <Box title="OpenAI gpt-4o-mini" sub="strict JSON mode → Zod schema enforcement" />
           </div>
           <div className="flex flex-col gap-3 md:pt-[112px]">
-            <Box title="MongoDB (Mongoose)" sub="projects · features · test suites" />
-            <Box title="Upstash Redis" sub="distributed read cache · rate limiter state" />
-            <Box title="Sentry" sub="client · server · edge telemetry" />
+            <Box title="MongoDB (Mongoose)" sub="projects, features, test suites" />
+            <Box title="Upstash Redis" sub="distributed read cache and rate limiter state" />
+            <Box title="Sentry" sub="client, server and edge telemetry" />
             <p className="mt-2 text-[12.5px] leading-relaxed text-gray-500 dark:text-gray-400">
               Database writes occur strictly after the state graph completes without error, guaranteeing that a failed LLM call never persists corrupted or partial suite data.
             </p>
@@ -102,7 +102,7 @@ export default function ArchitecturePage() {
         </div>
       </Section>
 
-      <Section id="workflows" eyebrow="02 · orchestration" title="Two graphs, four deterministic nodes">
+      <Section id="workflows" eyebrow="orchestration" title="Two graphs, four deterministic nodes">
         <p className="mb-5 max-w-2xl text-[14px] text-gray-500 dark:text-gray-400">
           Graph definitions and UI visualizers share a single source of truth for node identifiers (<Src path="src/lib/ai/graph/topology.ts" />), preventing
           architectural drift. A telemetry wrapper instruments every node for execution timing and token consumption.
@@ -131,7 +131,7 @@ export default function ArchitecturePage() {
         </p>
       </Section>
 
-      <Section id="guardrails" eyebrow="03 · resilience" title="Defensive LLM guardrails">
+      <Section id="guardrails" eyebrow="resilience" title="Defensive LLM guardrails">
         <div className="grid gap-3 sm:grid-cols-2">
           {GUARDRAILS.map((g) => (
             <div key={g.t} className="rounded-lg border bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900 p-4">
@@ -143,7 +143,7 @@ export default function ArchitecturePage() {
         </div>
       </Section>
 
-      <Section id="ops" eyebrow="04 · production ops" title="Performance and infrastructure">
+      <Section id="ops" eyebrow="production ops" title="Performance and infrastructure">
         <div className="rounded-lg border bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
           {OPS.map((o) => (
             <div key={o.t} className="grid gap-1 p-4 sm:grid-cols-[180px_1fr_auto] sm:gap-4 sm:items-baseline">
@@ -168,7 +168,7 @@ export default function ArchitecturePage() {
         <p className="mt-2 font-mono text-[11px] text-gray-400">Measured with autocannon load tests, as noted in the repository README.</p>
       </Section>
 
-      <Section id="testing" eyebrow="05 · verification" title="Deterministic end to end verification">
+      <Section id="testing" eyebrow="verification" title="Deterministic end to end verification">
         <p className="max-w-2xl text-[14px] leading-relaxed text-gray-500 dark:text-gray-400">
           Playwright tests execute the full user journey (create project → define feature → generate → audit → merge suggestion) while intercepting
           the three AI endpoints with deterministic fixtures. This keeps runs fast and free while injecting adversarial payloads (uppercase enums, a non array
@@ -177,7 +177,7 @@ export default function ArchitecturePage() {
         <p className="mt-2"><Src path="tests/e2e/testmind-complete-flow.spec.ts" /></p>
       </Section>
 
-      <Section id="next" eyebrow="06 · roadmap" title="Architectural tradeoffs and next steps">
+      <Section id="next" eyebrow="roadmap" title="Architectural tradeoffs and next steps">
         <ul className="space-y-2 text-[14px] text-gray-500 dark:text-gray-400">
           {[
             ["Real time SSE node streaming", "Telemetry currently resolves upon full graph completion. Streaming LangGraph events over Server Sent Events would illuminate each node live during execution."],

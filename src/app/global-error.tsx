@@ -14,7 +14,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
     <html lang="en">
       <body style={{ margin: 0, minHeight: "100vh", display: "grid", placeItems: "center", background: "#fffdf7", color: "#111827", fontFamily: "system-ui, sans-serif", padding: 16 }}>
         <div role="alert" style={{ maxWidth: 520, width: "100%", border: "1.5px solid #111827", borderRadius: 14, boxShadow: "3px 3px 0 #111827", background: "#fff", overflow: "hidden" }}>
-          <div style={{ background: "#111827", color: "#fef3c7", padding: "10px 16px", fontFamily: "ui-monospace, monospace", fontSize: 12 }}>1 failed · 0 passed</div>
+          <div style={{ background: "#111827", color: "#fef3c7", padding: "10px 16px", fontFamily: "ui-monospace, monospace", fontSize: 12 }}>1 failed, 0 passed</div>
           <div style={{ padding: 20 }}>
             <p style={{ fontFamily: "ui-monospace, monospace", fontSize: 12, color: "#57534e", margin: 0 }}>TC_000</p>
             <h1 style={{ fontSize: 22, margin: "4px 0 12px" }}>Assertion failed: application root should mount</h1>

@@ -84,7 +84,7 @@ export default function TestMindInfoCard({
             </div>
 
             <p className="text-[11px] font-semibold text-amber-500 dark:text-amber-400 uppercase tracking-widest mb-1.5">
-              AI · QA Automation
+              AI QA Automation
             </p>
             <h2 className="text-[19px] font-semibold text-gray-900 dark:text-amber-50 leading-tight mb-1.5">
               TestMind
