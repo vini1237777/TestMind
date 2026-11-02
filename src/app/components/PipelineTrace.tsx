@@ -52,7 +52,7 @@ export default function PipelineTrace({ workflow, status, trace }: { workflow: W
         <span className="font-semibold">{WORKFLOWS[workflow].label}</span>
         <span aria-live="polite" className="text-gray-500">
           {running && <span className="font-medium text-amber-600">running {fmtMs(elapsed)}</span>}
-          {status === "done" && trace && <>{fmtMs(trace.totalMs)}{tokens > 0 && <> · {tokens.toLocaleString()} tokens</>}</>}
+          {status === "done" && trace && <>{fmtMs(trace.totalMs)}{tokens > 0 && <>, {tokens.toLocaleString()} tokens</>}</>}
           {status === "done" && !trace && "done"}
           {status === "error" && <span className="text-red-600">failed</span>}
           {status === "idle" && "idle"}
@@ -87,7 +87,7 @@ export default function PipelineTrace({ workflow, status, trace }: { workflow: W
                   <span className={info?.kind === "llm" ? "text-amber-600" : "text-gray-400"}>{info?.kind === "llm" ? "AI" : "code"}</span>
                 </div>
                 <p className="mt-1 min-h-[14px] text-[11px] text-gray-500">
-                  {t ? <>{fmtMs(t.durationMs)}{t.output && <> · {t.output}</>}</> : running ? "working…" : ""}
+                  {t ? <>{fmtMs(t.durationMs)}{t.output && <>, {t.output}</>}</> : running ? "working…" : ""}
                 </p>
               </div>
               {i < nodes.length - 1 && <Edge active={running} />}

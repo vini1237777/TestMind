@@ -27,7 +27,7 @@ export default function FailedTest({ code, title, expected, received, hint, dige
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
           </span>
-          1 failed · 0 passed
+          1 failed, 0 passed
         </div>
         <div className="space-y-3 bg-white p-5 text-sm dark:bg-gray-900">
           <div>
