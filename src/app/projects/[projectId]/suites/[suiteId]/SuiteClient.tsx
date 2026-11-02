@@ -503,7 +503,7 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
             <p className="p-4 text-sm text-gray-500">Select a version.</p>
           ) : (
             <>
-              <div className="flex min-h-10 flex-wrap items-center gap-2 bg-amber-300 px-3 py-1.5 text-black dark:bg-amber-400">
+              <div className="flex min-h-10 flex-wrap items-center gap-2 bg-amber-300 px-3 py-1.5 text-black">
                 <h2 className="text-sm font-semibold">
                   Test cases <span className="font-normal">({selectedSuite.testCases.length})</span>
                 </h2>
@@ -516,7 +516,7 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
                       setExpandedIds(new Set());
                       setFilterType("all");
                     }}
-                    className="rounded-md border-0 bg-amber-200 px-2 py-1 text-xs text-black focus:outline-none focus:ring-2 focus:ring-black/30 dark:bg-amber-300"
+                    className="rounded-md border-0 bg-amber-200 px-2 py-1 text-xs text-black focus:outline-none focus:ring-2 focus:ring-black/30"
                   >
                     {testSuites.map((v, i) => (
                       <option key={v.id} value={v.id}>
@@ -534,7 +534,7 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
                     disabled={!hasCases}
                     aria-haspopup="menu"
                     aria-expanded={exportOpen}
-                    className="rounded-md px-2 py-1 text-sm font-medium transition-colors hover:bg-amber-200 disabled:opacity-50 dark:hover:bg-amber-300"
+                    className="rounded-md px-2 py-1 text-sm font-medium transition-colors hover:bg-amber-200 disabled:opacity-50"
                   >
                     Export ▾
                   </button>
@@ -676,7 +676,7 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
         {/* The review, kept beside the cases it talks about */}
         <aside id="review-panel" className="scroll-mt-4 lg:sticky lg:top-4 lg:self-start">
           <div className="border border-amber-300 text-sm dark:border-amber-500/40">
-            <div className="flex min-h-10 items-center justify-between gap-4 bg-amber-300 px-3 py-1.5 text-black dark:bg-amber-400">
+            <div className="flex min-h-10 items-center justify-between gap-4 bg-amber-300 px-3 py-1.5 text-black">
               <h2 className="font-semibold">Review</h2>
               {reviewScore != null && !isReviewing && (
                 <p className="tabular-nums">
@@ -687,7 +687,7 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
             {/* Score as a strip under the header, the same shape as the case mix */}
             {reviewScore != null && !isReviewing && (
               <div className="h-1 bg-amber-100 dark:bg-slate-800" title={`${reviewScore} out of 100`}>
-                <div className="tm-grow h-full bg-black dark:bg-amber-300" style={{ width: `${reviewScore}%` }} />
+                <div className="tm-grow h-full bg-amber-600" style={{ width: `${reviewScore}%` }} />
               </div>
             )}
 
