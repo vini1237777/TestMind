@@ -2,7 +2,6 @@ import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import Navbar from "./Navbar";
-import Motion from "./components/Motion";
 // import NextTopLoader from "nextjs-toploader";
 import "react-loading-skeleton/dist/skeleton.css";
 import HolyLoader from "holy-loader";
@@ -22,7 +21,6 @@ export default function RootLayout({
           enableSystem={false}
         >
           <Toaster />
-          <Motion />
           <Navbar />
           <main className="min-h-screen">{children}</main>
         </ThemeProvider>

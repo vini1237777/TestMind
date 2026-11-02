@@ -20,15 +20,15 @@
 @keyframes tm-shake { 0%,100% { transform: translateX(0); } 20%,60% { transform: translateX(-6px); } 40%,80% { transform: translateX(6px); } }
 @keyframes tm-word { from { opacity: 0; transform: translateY(.35em); } to { opacity: 1; transform: none; } }
 
-.tm-rise { animation: tm-rise .5s cubic-bezier(.2,.8,.2,1) backwards; }
-.tm-pop { animation: tm-pop .25s cubic-bezier(.2,.8,.2,1) backwards; }
+.tm-rise { animation: tm-rise .5s cubic-bezier(.2,.8,.2,1) both; }
+.tm-pop { animation: tm-pop .25s cubic-bezier(.2,.8,.2,1) both; }
 .tm-fade { animation: tm-fade .25s ease both; }
 .tm-grow { transform-origin: left; animation: tm-grow .8s cubic-bezier(.2,.8,.2,1) both; }
 .tm-slide { animation: tm-slide .25s ease both; }
 .tm-flow { animation: tm-flow .6s linear infinite; }
 .tm-ring { animation: tm-ring 1.4s ease-out infinite; }
 .tm-shake { animation: tm-shake .5s ease-in-out .15s both; }
-.tm-word { display: inline-block; animation: tm-word .55s cubic-bezier(.2,.8,.2,1) backwards; }
+.tm-word { display: inline-block; animation: tm-word .55s cubic-bezier(.2,.8,.2,1) both; }
 
 /* Cards lift on hover */
 .tm-lift { transition: transform .2s ease, box-shadow .2s ease; }
@@ -64,47 +64,7 @@
 #landing { transition: transform .45s cubic-bezier(.2,.8,.2,1), opacity .45s ease; transform-origin: 50% 0; }
 .tm-zoom-out { transform: scale(.92); opacity: .25; }
 @keyframes tm-zoom-in { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
-.tm-zoom-in { animation: tm-zoom-in .6s cubic-bezier(.2,.8,.2,1) backwards; transform-origin: 50% 0; }
-
-/* Letters in "TestMind" hop and warm up under the pointer */
-.tm-hop-l { display: inline-block; transition: transform .45s cubic-bezier(.3,1.6,.5,1), color .4s; }
-.tm-hop-l:hover { transform: translateY(-.18em) rotate(-6deg); color: #f59e0b; }
-.tm-hop:hover .tm-hop-l { color: #d97706; }
-.tm-hop:hover .tm-hop-l:nth-child(3n+2) { color: #ea580c; }
-.tm-hop:hover .tm-hop-l:nth-child(3n) { color: #e11d48; }
-
-/* Soft glows behind the hero */
-@keyframes tm-drift { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(60px, 40px) scale(1.15); } }
-.tm-aurora { position: absolute; inset: 0 0 auto 0; height: 720px; z-index: -1; overflow: hidden; pointer-events: none; }
-.tm-aurora i { position: absolute; width: 420px; height: 420px; border-radius: 50%; filter: blur(90px); opacity: .28; animation: tm-drift 22s ease-in-out infinite alternate; }
-.tm-aurora i:nth-child(1) { background: #fcd34d; top: -10%; left: -6%; }
-.tm-aurora i:nth-child(2) { background: #fdba74; top: 25%; right: -8%; animation-duration: 26s; animation-delay: -6s; }
-.tm-aurora i:nth-child(3) { background: #fda4af; top: 50%; left: 35%; opacity: .18; animation-duration: 30s; animation-delay: -12s; }
-.dark .tm-aurora i { opacity: .12; }
-
-/* A border that runs around the demo panel */
-@property --tm-ang { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
-@keyframes tm-run { to { --tm-ang: 360deg; } }
-.tm-run-border { background: conic-gradient(from var(--tm-ang), #e5e7eb 0deg, #f59e0b 60deg, #fb7185 120deg, #e5e7eb 180deg, #e5e7eb 360deg); animation: tm-run 5s linear infinite; }
-.dark .tm-run-border { background: conic-gradient(from var(--tm-ang), #374151 0deg, #f59e0b 60deg, #fb7185 120deg, #374151 180deg, #374151 360deg); }
-
-/* Tilted ribbon of QA words */
-@keyframes tm-loop { to { transform: translateX(-50%); } }
-.tm-ribbon-wrap { overflow: hidden; padding: 28px 0; }
-.tm-ribbon { width: 110vw; margin-left: -5vw; transform: rotate(-2deg); background: #fcd34d; color: #111827; border-top: 1px solid #111827; border-bottom: 1px solid #111827; padding: 10px 0; overflow: hidden; white-space: nowrap; font-weight: 700; font-size: .85rem; letter-spacing: .02em; }
-.dark .tm-ribbon { background: #e5e7eb; }
-.tm-ribbon-track { display: inline-flex; gap: 28px; animation: tm-loop 40s linear infinite; }
-.tm-ribbon-track span::after { content: "✦"; margin-left: 28px; color: #ea580c; }
-.tm-ribbon:hover .tm-ribbon-track { animation-play-state: paused; }
-
-/* Light sweeps across a card on hover, and a glow follows the pointer */
-.tm-shine { position: relative; overflow: hidden; transform-style: preserve-3d; will-change: transform; }
-.tm-shine::before { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .3s; background: radial-gradient(240px circle at var(--mx, 50%) var(--my, 50%), rgba(251, 191, 36, .18), transparent 60%); }
-.tm-shine::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, .55) 50%, transparent 70%); transform: translateX(-120%); transition: transform .9s; }
-.dark .tm-shine::after { background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, .08) 50%, transparent 70%); }
-.tm-shine:hover::before { opacity: 1; }
-.tm-shine:hover::after { transform: translateX(120%); }
-.tm-shine:hover { box-shadow: 0 18px 40px -18px rgba(217, 119, 6, .45); }
+.tm-zoom-in { animation: tm-zoom-in .6s cubic-bezier(.2,.8,.2,1) both; transform-origin: 50% 0; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
