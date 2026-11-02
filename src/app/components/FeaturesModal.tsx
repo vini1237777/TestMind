@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import Modal, { btnGhost, btnPrimary } from "./Modal";
-import { MODEL, OPTIMISATIONS, REPO, RESULTS, STACK } from "../lib/tech-info";
+import { FLOW, OPTIMISATIONS, REPO, RESULTS, STACK } from "../lib/tech-info";
 
 // Real screenshots of the app, each with one short caption.
 const SLIDES = [
@@ -68,31 +68,61 @@ function UnderTheHood() {
       </section>
 
       <section>
-        <h3 className="font-semibold">The AI model</h3>
-        <dl className="mt-2 space-y-2">
-          {MODEL.map((m) => (
-            <div key={m.k}>
-              <dt className="font-medium">{m.k}</dt>
-              <dd className="text-gray-600 dark:text-gray-300">{m.v}</dd>
-            </div>
-          ))}
-        </dl>
+        <h3 className="font-semibold">How a run works</h3>
+        <p className="mt-0.5 text-xs text-gray-500">OpenAI gpt-4o-mini in JSON mode, orchestrated with LangGraph.</p>
+        <div className="mt-3 rounded-md border bg-gray-50 p-3 dark:bg-gray-900">
+          <ol className="flex flex-col items-stretch gap-1.5 sm:flex-row sm:items-center">
+            {FLOW.map((f, n) => (
+              <li key={f.step} className="contents">
+                <div
+                  className={`tm-rise flex-1 rounded border bg-white px-2.5 py-2 dark:bg-gray-950 ${f.kind === "AI" ? "border-amber-300 dark:border-amber-700" : ""}`}
+                  style={{ animationDelay: `${n * 90}ms` }}
+                >
+                  <p className="flex items-center justify-between text-xs font-medium">
+                    {f.step}
+                    <span className={`text-[10px] font-normal ${f.kind === "AI" ? "text-amber-700 dark:text-amber-400" : "text-gray-400"}`}>{f.kind}</span>
+                  </p>
+                  <p className="text-[11px] text-gray-500">{f.note}</p>
+                </div>
+                {n < FLOW.length - 1 && (
+                  <span aria-hidden className="text-center text-gray-400 sm:px-0.5">
+                    <span className="sm:hidden">↓</span>
+                    <span className="hidden sm:inline">→</span>
+                  </span>
+                )}
+              </li>
+            ))}
+          </ol>
+          <p className="mt-2 flex items-center gap-1.5 text-[11px] text-gray-500">
+            <span aria-hidden className="text-amber-600">↺</span>
+            The review score feeds the next run, so it aims at what was missed.
+          </p>
+        </div>
       </section>
 
       <section>
         <h3 className="font-semibold">Optimisations</h3>
-        <ul className="mt-2 space-y-2.5">
-          {OPTIMISATIONS.map((o) => (
-            <li key={o.title}>
-              <p className="font-medium">{o.title}</p>
-              <p className="text-gray-600 dark:text-gray-300">{o.text}</p>
-            </li>
+        <div className="mt-2 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+          {OPTIMISATIONS.map((g) => (
+            <div key={g.group}>
+              <p className="mb-1 text-xs text-gray-500">{g.group}</p>
+              <ul className="space-y-1">
+                {g.items.map(([title, what]) => (
+                  <li key={title} className="flex gap-2">
+                    <span aria-hidden className="text-amber-600">✔</span>
+                    <span>
+                      <span className="font-medium">{title}</span> <span className="text-gray-500">{what}</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           ))}
-        </ul>
-        <p className="mt-4 text-xs text-gray-500">
-          Code and load test notes are on{" "}
+        </div>
+        <p className="mt-5 text-xs text-gray-500">
+          Details and load test notes are in the{" "}
           <a href={REPO} target="_blank" rel="noreferrer" className="underline hover:text-amber-700">
-            GitHub
+            GitHub README
           </a>
           .
         </p>
