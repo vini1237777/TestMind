@@ -7,7 +7,9 @@ export default function HomePage() {
   return (
     <div>
       <Intro />
-      <ProjectsPage />
+      <section id="workspace" className="scroll-mt-4 border-t dark:border-gray-800">
+        <ProjectsPage />
+      </section>
     </div>
   );
 }
