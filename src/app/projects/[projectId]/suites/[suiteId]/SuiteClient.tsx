@@ -144,7 +144,7 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
     const loadSuites = async () => {
       try {
         const res = await fetch(`/api/suites?projectId=${feature.projectId}`, {
-          next: { revalidate: 60 },
+          cache: "no-store",
         });
         if (!res.ok) return;
 

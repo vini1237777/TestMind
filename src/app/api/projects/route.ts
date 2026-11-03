@@ -1,6 +1,6 @@
 import Project from "@/src/app/models/Project";
 import TestSuite from "@/src/app/models/TestSuite";
-import { getCache, setCache } from "@/src/lib/cache";
+import { clearListCache, getCache, setCache } from "@/src/lib/cache";
 import { connectDB } from "@/src/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -126,6 +126,7 @@ export async function POST(req: Request) {
     name: name.trim(),
     description: description?.trim() || "",
   });
+  await clearListCache();
 
   return NextResponse.json(
     {

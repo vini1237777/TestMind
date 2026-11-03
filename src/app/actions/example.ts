@@ -4,6 +4,7 @@ import { connectDB } from "@/src/lib/mongodb";
 import ProjectModel from "@/src/app/models/Project";
 import TestSuiteModel from "@/src/app/models/TestSuite";
 import { EXAMPLE } from "@/src/app/lib/example";
+import { clearListCache } from "@/src/lib/cache";
 
 /**
  * Finds the shared example feature, creating it the first time.
@@ -28,5 +29,6 @@ export async function openExample(): Promise<{ projectId: string; suiteId: strin
     description: EXAMPLE.description,
     testCases: [],
   });
+  await clearListCache();
   return { projectId: project._id.toString(), suiteId: suite._id.toString(), isNew: true };
 }

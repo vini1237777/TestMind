@@ -5,6 +5,7 @@ import { Feature } from "../types/testmind";
 import { connectDB } from "@/src/lib/mongodb";
 import FeatureModel from "../models/Feature";
 import { revalidatePath } from "next/cache";
+import { clearListCache } from "@/src/lib/cache";
 
 type FeatureDb = {
   _id: Types.ObjectId;
@@ -42,6 +43,7 @@ export async function createFeature(data: {
     description,
   })) as FeatureDb;
 
+  await clearListCache();
   revalidatePath(`/projects/${data.projectId}`);
 
   return mapFeature(doc);
@@ -62,5 +64,6 @@ export async function updateFeature(
     { new: true }
   ).lean();
 
+  await clearListCache();
   return updated;
 }

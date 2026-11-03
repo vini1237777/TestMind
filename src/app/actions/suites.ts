@@ -5,7 +5,7 @@ import { connectDB } from "@/src/lib/mongodb";
 import TestSuiteModel from "@/src/app/models/TestSuite";
 import type { TestSuite, TestCase } from "@/src/app/types/testmind";
 import { revalidatePath } from "next/cache";
-import { getCache, setCache } from "@/src/lib/cache";
+import { clearListCache, getCache, setCache } from "@/src/lib/cache";
 
 export type TestSuiteDb = {
   _id: Types.ObjectId;
@@ -110,6 +110,7 @@ export async function createSuite(data: {
     lastReviewedAt: lastReviewedAt || null,
   })) as TestSuiteDb;
 
+  await clearListCache();
   revalidatePath(`/projects/${data.projectId}`);
   return mapSuite(doc);
 }
@@ -121,5 +122,6 @@ export async function addTestCasesToSuite(suiteId: string, newCases: TestCase[])
 
   doc.testCases = [...doc.testCases, ...newCases];
   await doc.save();
+  await clearListCache();
   return mapSuite(doc.toObject());
 }

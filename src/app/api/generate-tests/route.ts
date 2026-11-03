@@ -4,6 +4,7 @@ import type { TestCase } from "@/src/app/types/testmind";
 import { runGenerationWorkflow } from "@/src/lib/ai/services/suite-orchestrator/run-generation";
 import { connectDB } from "@/src/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
+import { clearListCache } from "@/src/lib/cache";
 
 export async function POST(req: NextRequest) {
   try {
@@ -54,6 +55,7 @@ export async function POST(req: NextRequest) {
         },
         { new: true }
       ).lean<TestSuiteDb>();
+      await clearListCache();
 
       if (updated) {
         return NextResponse.json(

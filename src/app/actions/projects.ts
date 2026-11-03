@@ -4,6 +4,7 @@ import type { Project } from "@/src/app/types/testmind";
 import { connectDB } from "@/src/lib/mongodb";
 import { Types } from "mongoose";
 import ProjectModel from "@/src/app/models/Project";
+import { clearListCache } from "@/src/lib/cache";
 
 type ProjectDb = {
   _id: Types.ObjectId;
@@ -59,5 +60,6 @@ export async function createProject(data: {
     description,
   })) as ProjectDb;
 
+  await clearListCache();
   return mapProjectFromDb(doc);
 }

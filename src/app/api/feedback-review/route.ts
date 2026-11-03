@@ -3,6 +3,7 @@ import TestSuite from "@/src/app/models/TestSuite";
 import type { TestCase } from "@/src/app/types/testmind";
 import { runReviewWorkflow } from "@/src/lib/ai/services/suite-orchestrator/run-review";
 import { connectDB } from "@/src/lib/mongodb";
+import { clearListCache } from "@/src/lib/cache";
 
 export async function POST(req: NextRequest) {
   try {
@@ -49,6 +50,8 @@ export async function POST(req: NextRequest) {
         lastFeedbackSummary: feedback.summary,
         lastReviewedAt: new Date(),
       });
+      // So the project page and project list show the new score straight away.
+      await clearListCache();
     }
 
     return NextResponse.json(
