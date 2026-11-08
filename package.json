@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "node server.js",
+    "worker": "tsx src/worker/generation-worker.ts",
     "start:pm2": "pm2-runtime ecosystem.config.js",
     "lint": "eslint",
     "test:e2e": "playwright test",
