@@ -10,4 +10,14 @@ export const apps = [
       PORT: process.env.PORT || 8080,
     },
   },
+  {
+    name: "testmind-worker",
+    script: "generation-worker.cjs",
+    exec_mode: "fork",
+    instances: 1,
+    max_memory_restart: "350M",
+    env: {
+      NODE_ENV: "production",
+    },
+  },
 ];
