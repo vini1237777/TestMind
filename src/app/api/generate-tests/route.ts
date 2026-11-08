@@ -1,6 +1,7 @@
-import { revalidatePath } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
-import { generateAndSaveSuite } from "@/src/lib/ai/services/suite-orchestrator/generate-and-save";
+import { enqueueGeneration, QueueBusyError } from "@/src/lib/queue/generation-queue";
+
+const OBJECT_ID = /^[a-f\d]{24}$/i;
 
 export async function POST(req: NextRequest) {
   try {
@@ -24,8 +25,12 @@ export async function POST(req: NextRequest) {
     if (!projectId) {
       return NextResponse.json({ error: "projectId is required." }, { status: 400 });
     }
+    // A bad id would only fail after the worker had paid for the model call.
+    if (!OBJECT_ID.test(String(projectId)) || (suiteId && !OBJECT_ID.test(String(suiteId)))) {
+      return NextResponse.json({ error: "Invalid project or suite id." }, { status: 400 });
+    }
 
-    const result = await generateAndSaveSuite({
+    const jobId = await enqueueGeneration({
       featureName: feature,
       description: desc,
       projectId,
@@ -35,13 +40,18 @@ export async function POST(req: NextRequest) {
       lastReviewedAt,
     });
 
-    revalidatePath(`/projects/${result.projectId}`);
-    return NextResponse.json(result, { status: 200 });
+    return NextResponse.json({ jobId }, { status: 202 });
   } catch (error: unknown) {
-    console.error("LangGraph Generation Error:", error);
+    if (error instanceof QueueBusyError) {
+      return NextResponse.json(
+        { error: "A lot of people are generating right now. Please try again in a minute." },
+        { status: 503 },
+      );
+    }
+    console.error("Generation enqueue error:", error);
     return NextResponse.json(
-      { error: "Failed to generate test cases via LangGraph workflow." },
-      { status: 500 }
+      { error: "Generation isn't available right now. Please try again in a minute." },
+      { status: 503 },
     );
   }
 }
