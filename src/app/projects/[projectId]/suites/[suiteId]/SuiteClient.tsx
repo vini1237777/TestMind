@@ -14,6 +14,7 @@ import Breadcrumbs from "@/src/app/components/Breadcrumbs";
 import TypeBar from "@/src/app/components/TypeBar";
 import { caseLabel } from "@/src/app/lib/case-label";
 import { timeAgo } from "@/src/app/lib/format";
+import { runGeneration } from "@/src/app/lib/generate-tests";
 
 const tabs = [
   { label: "All", value: "all" },
@@ -207,23 +208,18 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
     setGenStatus("running");
 
     try {
-      const res = await fetch("/api/generate-tests", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          featureName: name.trim(),
-          description: description.trim(),
-          projectId: feature.projectId,
-          suiteId: selectedSuiteId,
-          // The last review steers the next generation prompt.
-          lastFeedbackScore: feedback?.score ?? selectedSuite?.lastFeedbackScore ?? null,
-          lastFeedbackSummary: feedback?.summary ?? selectedSuite?.lastFeedbackSummary ?? "",
-          lastReviewedAt: lastReviewedAt || selectedSuite?.lastReviewedAt || "",
-        }),
+      const { ok, data } = await runGeneration({
+        featureName: name.trim(),
+        description: description.trim(),
+        projectId: feature.projectId,
+        suiteId: selectedSuiteId,
+        // The last review steers the next generation prompt.
+        lastFeedbackScore: feedback?.score ?? selectedSuite?.lastFeedbackScore ?? null,
+        lastFeedbackSummary: feedback?.summary ?? selectedSuite?.lastFeedbackSummary ?? "",
+        lastReviewedAt: lastReviewedAt || selectedSuite?.lastReviewedAt || "",
       });
 
-      const data = await res.json();
-      if (!res.ok) {
+      if (!ok) {
         setGenStatus("error");
         setError(data.error || "Failed to generate test cases");
         return;

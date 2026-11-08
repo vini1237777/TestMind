@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useEffect } from "react";
 import toast from "react-hot-toast";
 import { TestCase, TestSuite } from "../types/testmind";
+import { runGeneration } from "@/src/app/lib/generate-tests";
 
 const tabs = [
   { label: "All", value: "all" },
@@ -46,19 +47,12 @@ export default function Feature() {
     setIsGenerating(true);
 
     try {
-      const res = await fetch("/api/generate-tests", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ featureName, description }),
-      });
+      const { ok, data } = await runGeneration({ featureName, description });
 
-      if (!res.ok) {
-        const errorBody = await res?.json().catch(() => null);
-        setError(errorBody?.error || "Failed to generate test cases");
+      if (!ok) {
+        setError(data?.error || "Failed to generate test cases");
         return;
       }
-
-      const data = await res?.json();
 
       const cases: TestCase[] = data?.testCases || [];
 
