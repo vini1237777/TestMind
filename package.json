@@ -10,6 +10,7 @@
     "build:worker": "esbuild src/worker/generation-worker.ts --bundle --platform=node --target=node20 --outfile=dist/generation-worker.cjs --external:@mongodb-js/zstd --external:kerberos --external:snappy --external:aws4 --external:mongodb-client-encryption --external:gcp-metadata --external:socks --external:@aws-sdk/credential-providers",
     "start:pm2": "pm2-runtime ecosystem.config.js",
     "lint": "eslint",
+    "bench:cache": "node benchmarks/run-cache-benchmark.mjs",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed"
