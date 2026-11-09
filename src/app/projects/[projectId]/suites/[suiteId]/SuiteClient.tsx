@@ -6,7 +6,9 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import type { FeedbackResult } from "@/src/app/types/testmind";
 import { TestCase, TestSuite } from "@/src/app/types/testmind";
-import { updateFeature } from "@/src/app/actions/features";
+import { deleteFeature, deleteTestCase, editFeature } from "@/src/app/actions/suites";
+import ConfirmDelete from "@/src/app/components/ConfirmDelete";
+import CaseModal from "@/src/app/components/CaseModal";
 import { CaseRowsSkeleton, ReviewSkeleton } from "@/src/app/components/Skeletons";
 import PipelineTrace, { type RunStatus } from "@/src/app/components/PipelineTrace";
 import type { RunTrace } from "@/src/lib/ai/graph/topology";
@@ -37,6 +39,9 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
   const [description, setDescription] = useState(feature.description ?? "");
 
   const [isSavingFeature, setIsSavingFeature] = useState(false);
+  const [deleteFeatureOpen, setDeleteFeatureOpen] = useState(false);
+  const [editingCase, setEditingCase] = useState<TestCase | null>(null);
+  const [deletingCase, setDeletingCase] = useState<TestCase | null>(null);
 
   const [testSuites, setTestSuites] = useState<TestSuite[]>([feature]);
   const [selectedSuiteId, setSelectedSuiteId] = useState<string | null>(feature.id);
@@ -174,18 +179,65 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
     setIsSavingFeature(true);
 
     try {
-      await updateFeature(feature.id, {
+      const suiteId = selectedSuiteId ?? feature.id;
+      const result = await editFeature(suiteId, {
         name: name.trim(),
         description: description.trim(),
       });
+      if ("error" in result) {
+        toast.error(result.error);
+        return;
+      }
 
-      toast.success("Feature updated!");
+      setTestSuites((prev) =>
+        prev.map((s) => ({
+          ...s,
+          name: name.trim(),
+          featureName: name.trim(),
+          ...(s.id === suiteId ? { description: description.trim() } : {}),
+        })),
+      );
+      toast.success("Feature saved");
       router.refresh();
     } catch (err) {
       console.error(err);
-      toast.error("Failed to update feature.");
+      toast.error("Could not save the feature. Please try again.");
     } finally {
       setIsSavingFeature(false);
+    }
+  };
+
+  const replaceCases = (testCases: TestCase[]) =>
+    setTestSuites((prev) => prev.map((s) => (s.id === selectedSuiteId ? { ...s, testCases } : s)));
+
+  const handleDeleteFeature = async () => {
+    try {
+      const result = await deleteFeature(selectedSuiteId ?? feature.id);
+      if ("error" in result) {
+        toast.error(result.error);
+        return;
+      }
+      toast.success("Feature deleted");
+      router.push(`/projects/${feature.projectId}`);
+      router.refresh();
+    } catch {
+      toast.error("Could not delete the feature. Please try again.");
+    }
+  };
+
+  const handleDeleteCase = async () => {
+    if (!deletingCase || !selectedSuiteId) return;
+    try {
+      const result = await deleteTestCase(selectedSuiteId, deletingCase.id);
+      if ("error" in result) {
+        toast.error(result.error);
+        return;
+      }
+      replaceCases(result.testCases);
+      setDeletingCase(null);
+      toast.success("Test case deleted");
+    } catch {
+      toast.error("Could not delete the test case. Please try again.");
     }
   };
 
@@ -415,6 +467,40 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
         ]}
       />
 
+      <ConfirmDelete
+        open={deleteFeatureOpen}
+        onClose={() => setDeleteFeatureOpen(false)}
+        title="Delete feature"
+        actionLabel="Delete feature"
+        onConfirm={handleDeleteFeature}
+      >
+        <p>
+          This deletes <span className="font-semibold">{feature.featureName}</span>
+          {testSuites.length > 1 ? `, all ${testSuites.length} versions` : ""} and its test cases. It cannot be undone.
+        </p>
+      </ConfirmDelete>
+
+      <ConfirmDelete
+        open={Boolean(deletingCase)}
+        onClose={() => setDeletingCase(null)}
+        title="Delete test case"
+        actionLabel="Delete test case"
+        onConfirm={handleDeleteCase}
+      >
+        <p>
+          This deletes <span className="font-semibold">{deletingCase?.title}</span> from this version.
+        </p>
+      </ConfirmDelete>
+
+      {selectedSuiteId && (
+        <CaseModal
+          suiteId={selectedSuiteId}
+          testCase={editingCase}
+          onClose={() => setEditingCase(null)}
+          onSaved={replaceCases}
+        />
+      )}
+
       {/* What is being tested */}
       <section className="mt-2 max-w-3xl">
         <input
@@ -465,6 +551,13 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
             <p className="text-xs text-gray-500">Change the description to generate a new version.</p>
           )}
           {error && <p className="text-xs text-red-600">{error}</p>}
+          <button
+            onClick={() => setDeleteFeatureOpen(true)}
+            disabled={isGenerating}
+            className="ml-auto text-xs text-red-700 underline-offset-2 hover:underline disabled:opacity-50 dark:text-red-400"
+          >
+            Delete feature
+          </button>
         </div>
         {genStatus !== "idle" && (
           <div className="tm-slide mt-1">
@@ -633,6 +726,18 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
                               onClick={() => navigator.clipboard.writeText(caseToMarkdown(tc)).then(() => toast.success("Copied as Markdown"))}
                             >
                               Copy as Markdown
+                            </button>
+                            <button
+                              className="underline-offset-2 hover:text-gray-800 hover:underline dark:hover:text-gray-200"
+                              onClick={() => setEditingCase(tc)}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              className="text-red-700 underline-offset-2 hover:underline dark:text-red-400"
+                              onClick={() => setDeletingCase(tc)}
+                            >
+                              Delete
                             </button>
                           </div>
                         </div>
