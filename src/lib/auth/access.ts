@@ -34,6 +34,18 @@ export async function ownedProjectIds(user: CurrentUser) {
   return projects.map((project) => project._id.toString());
 }
 
+// Projects made before sign in existed go to the account named in OWNER_EMAIL.
+export async function claimOwnerlessProjects(user: CurrentUser) {
+  const owner = process.env.OWNER_EMAIL?.trim().toLowerCase();
+  if (!owner || owner !== user.email) return 0;
+  await connectDB();
+  const result = await ProjectModel.updateMany(
+    { $or: [{ ownerId: { $exists: false } }, { ownerId: null }] },
+    { ownerId: user.id },
+  );
+  return result.modifiedCount;
+}
+
 // For API routes: the signed in user, or the response to send back.
 export async function apiUser(): Promise<{ user: CurrentUser } | { response: NextResponse }> {
   const user = await getCurrentUser();
