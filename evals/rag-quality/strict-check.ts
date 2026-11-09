@@ -10,7 +10,8 @@ type SavedRun = Run & {
 };
 
 const DIR = path.join(process.cwd(), "evals/rag-quality");
-const runs = JSON.parse(fs.readFileSync(path.join(DIR, "results-runs.json"), "utf8")) as SavedRun[];
+const name = process.argv[2] ?? "results";
+const runs = JSON.parse(fs.readFileSync(path.join(DIR, `${name}-runs.json`), "utf8")) as SavedRun[];
 
 const strict: Run[] = runs.map((run) => {
   const text = run.testCases.map((item) => [item.title, ...item.steps, item.expected].join(" ")).join(" ");
@@ -31,5 +32,5 @@ const output = {
   strictProjectCoverage: compare(strict, "projectCoverage"),
   numberedRulesOnly: compare(numbered, "projectCoverage"),
 };
-fs.writeFileSync(path.join(DIR, "strict-results.json"), `${JSON.stringify(output, null, 2)}\n`);
+fs.writeFileSync(path.join(DIR, `${name}-strict.json`), `${JSON.stringify(output, null, 2)}\n`);
 console.log(JSON.stringify(output, null, 2));
