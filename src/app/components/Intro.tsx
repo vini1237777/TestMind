@@ -1,4 +1,3 @@
-import VisitorCount from "./VisitorCount";
 import DemoRun from "./DemoRun";
 import OpenFeatures from "./OpenFeatures";
 import TryNow from "./TryNow";
@@ -49,7 +48,6 @@ export default function Intro() {
               How it&apos;s built
             </OpenFeatures>
           </p>
-          <VisitorCount />
         </div>
 
         <div className="tm-pop relative" style={{ animationDelay: "300ms" }}>

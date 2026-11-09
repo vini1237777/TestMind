@@ -15,8 +15,8 @@ export default function VisitorCount() {
   if (visitors === null) return null;
 
   return (
-    <p className="mt-2 text-xs text-gray-500" data-testid="visitor-count">
+    <span className="hidden whitespace-nowrap px-2 text-sm font-medium text-black sm:inline" data-testid="visitor-count">
       {visitors.toLocaleString("en-IN")} {visitors === 1 ? "visitor" : "visitors"}
-    </p>
+    </span>
   );
 }

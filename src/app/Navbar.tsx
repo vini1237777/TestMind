@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import FeaturesModal, { type FeaturesTab } from "./components/FeaturesModal";
+import VisitorCount from "./components/VisitorCount";
 
 export default function Navbar() {
   const { resolvedTheme, setTheme } = useTheme();
@@ -62,6 +63,7 @@ export default function Navbar() {
         </Link>
 
         <div className="flex items-center gap-1">
+          <VisitorCount />
           <Link
             href="/"
             aria-current={active("/") ? "page" : undefined}
