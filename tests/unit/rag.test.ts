@@ -261,6 +261,7 @@ describe("when retrieval cannot run", () => {
     const result = await m.retrieve.retrieveSimilarCases(PROJECT, "checkout");
     assert.deepEqual(result.cases, []);
     assert.equal(result.embedding?.length, 256);
+    assert.equal(result.failed, true);
   });
 
   test("an embedding failure means no context, not an error", async () => {
@@ -268,6 +269,8 @@ describe("when retrieval cannot run", () => {
     assert.deepEqual(await m.retrieve.retrieveSimilarCases(PROJECT, "checkout"), {
       cases: [],
       embedding: null,
+      bestScore: null,
+      failed: true,
     });
   });
 });
@@ -326,6 +329,23 @@ describe("the generation graph", () => {
     }
   });
 
+  const withResults = async (found: { text: string; score: number }[]) => {
+    const aggregate = mock.method(m.Chunk, "aggregate", () => ({ option: async () => found }));
+    try {
+      return (await run()).trace[0].output;
+    } finally {
+      aggregate.mock.restore();
+    }
+  };
+
+  test("the trace tells an empty search from weak matches", async () => {
+    assert.equal(await withResults([]), "Search found nothing");
+    assert.equal(
+      await withResults([{ text: "weak", score: 0.68 }]),
+      "Below minimum score, best 0.68",
+    );
+  });
+
   test("with RAG off nothing is embedded and the prompt has no context", async () => {
     delete process.env.RAG;
     const state = await run();
@@ -337,7 +357,7 @@ describe("the generation graph", () => {
 
   test("a missing index still generates", async () => {
     const state = await run();
-    assert.equal(state.trace[0].output, "No matching cases");
+    assert.equal(state.trace[0].output, "Search failed");
     assert.ok(!prompts[0].includes("existing_cases"));
     assert.equal(state.generatedTestCases.length, 4);
   });

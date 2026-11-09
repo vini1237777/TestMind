@@ -16,6 +16,9 @@ export type Retrieval = {
   cases: RetrievedCase[];
   // Passed on to the semantic cache, so one generation pays for one embedding.
   embedding: number[] | null;
+  // Explains an empty result in the run trace.
+  bestScore: number | null;
+  failed: boolean;
 };
 
 // Atlas reports cosine as (1 + cosine) / 2, so 0.72 here is a cosine of 0.44.
@@ -82,9 +85,14 @@ export async function retrieveSimilarCases(
     const found = await TestCaseChunk.aggregate<RetrievedCase>(
       similarCasesPipeline(projectId, embedding, excludeSuiteId) as never[],
     ).option({ maxTimeMS: SEARCH_TIMEOUT_MS });
-    return { cases: selectContext(found), embedding };
+    return {
+      cases: selectContext(found),
+      embedding,
+      bestScore: found.length ? Math.max(...found.map((item) => item.score)) : null,
+      failed: false,
+    };
   } catch (err) {
     console.error("[rag] retrieval failed:", (err as Error).message);
-    return { cases: [], embedding };
+    return { cases: [], embedding, bestScore: null, failed: true };
   }
 }

@@ -12,7 +12,7 @@ export async function retrieveContextNode(
       return { update: {}, meta: { output: "Skipped" } };
     }
 
-    const { cases, embedding } = await retrieveSimilarCases(
+    const { cases, embedding, bestScore, failed } = await retrieveSimilarCases(
       state.projectId,
       semanticCacheText(state.featureName, state.description),
       state.suiteId,
@@ -23,7 +23,11 @@ export async function retrieveContextNode(
       meta: {
         output: cases.length
           ? `${cases.length} cases, top score ${cases[0].score.toFixed(2)}`
-          : "No matching cases",
+          : failed
+            ? "Search failed"
+            : bestScore === null
+              ? "Search found nothing"
+              : `Below minimum score, best ${bestScore.toFixed(2)}`,
       },
     };
   });
