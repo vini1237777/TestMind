@@ -83,12 +83,19 @@ flowchart LR
 
 ### Results
 
-List cache on `GET /api/suites`, measured locally with `npm run bench:cache` ([method, limits and raw output](benchmarks/results/results.md)):
+List cache on `GET /api/suites`, measured locally on 2026-11-09 with `npm run bench:cache`. Raw summaries are in [`benchmarks/results`](benchmarks/results).
 
 | | Cache off | Cache on |
 |---|---|---|
 | Median throughput | 159 req/s | 234 req/s |
+| Range throughput, 3 runs | 152 to 163 req/s | 186 to 235 req/s |
 | Median p50 latency | 294 ms | 198 ms |
+| Median p99 latency | 491 ms | 449 ms |
+| Failed requests | 0 | 0 |
+
+autocannon sent 50 connections for 30 seconds per run, against one Next.js process with local MongoDB and Redis and 30 suites of 8 cases each. `upstash-local.mjs` serves the Upstash REST API on top of local Redis, and each request sends a different `x-real-ip` so the rate limiter runs without rejecting the load.
+
+These are local numbers, not production numbers. An Apple M2 laptop ran the app and the load generator, MongoDB was on the same machine, and production runs 2 web processes.
 
 Generation queue, measured locally with a stubbed 5-second model:
 
