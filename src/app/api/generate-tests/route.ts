@@ -1,12 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GenerateTestsBodySchema, parseBody } from "@/src/lib/api/request-schemas";
+import { connectDB } from "@/src/lib/mongodb";
 import { enqueueGeneration, QueueBusyError } from "@/src/lib/queue/generation-queue";
+import { DUPLICATE_FEATURE_ERROR, isFeatureNameTaken } from "@/src/lib/suites/names";
 
 export async function POST(req: NextRequest) {
   try {
     // A bad id would only fail after the worker had paid for the model call.
     const body = await parseBody(req, GenerateTestsBodySchema);
     if (!body.ok) return body.response;
+
+    await connectDB();
+    const { projectId, featureName, suiteId } = body.data;
+    if (await isFeatureNameTaken(projectId, featureName, suiteId)) {
+      return NextResponse.json({ error: DUPLICATE_FEATURE_ERROR }, { status: 409 });
+    }
 
     const jobId = await enqueueGeneration(body.data);
 

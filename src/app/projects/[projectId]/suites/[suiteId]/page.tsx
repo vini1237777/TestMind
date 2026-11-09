@@ -17,6 +17,7 @@ export default async function SuitePage({ params }: SuitePageProps) {
   const project = await getProjectById(String(doc.projectId)).catch(() => null);
 
   const suite = {
+    ...doc,
     id: doc.id.toString(),
     name: doc.name,
     featureName: doc.featureName,
