@@ -16,6 +16,7 @@ import {
 // this process. It measures the embeddings and the threshold, not Atlas itself.
 const DIR = path.join(process.cwd(), "evals/rag");
 const BATCH_SIZE = 50;
+const THRESHOLDS = [0.65, 0.68, 0.7, 0.72, 0.75, 0.78];
 
 async function embedAll(texts: string[]) {
   const vectors: number[][] = [];
@@ -47,7 +48,7 @@ async function main() {
 
   const answerable = rows.filter(({ query }) => query.relevant.length > 0);
   const unrelated = rows.filter(({ query }) => query.relevant.length === 0);
-  const minScore = Number(process.env.RAG_MIN_SCORE) || 0.75;
+  const minScore = Number(process.env.RAG_MIN_SCORE) || 0.72;
 
   const results = {
     model: "text-embedding-3-small",
@@ -63,6 +64,31 @@ async function main() {
     answerableWithoutContext: answerable.filter(({ ranked }) => ranked[0].score < minScore).length,
     lowestTopScoreAnswerable: Math.min(...answerable.map(({ ranked }) => ranked[0].score)),
     highestTopScoreUnrelated: Math.max(...unrelated.map(({ ranked }) => ranked[0].score)),
+    // What would reach the prompt at each score: top 5 results at or above it.
+    thresholds: THRESHOLDS.map((score) => {
+      const kept = rows.map(({ query, ranked }) => ({
+        query,
+        kept: ranked.slice(0, 5).filter((item) => item.score >= score),
+      }));
+      const fromAnswerable = kept.filter(({ query }) => query.relevant.length > 0);
+      const sent = fromAnswerable.flatMap(({ query, kept: items }) =>
+        items.map((item) => query.relevant.includes(item.id)),
+      );
+      return {
+        score,
+        answerableWithContext: fromAnswerable.filter(({ kept: items }) => items.length > 0).length,
+        unrelatedWithContext: kept.filter(
+          ({ query, kept: items }) => query.relevant.length === 0 && items.length > 0,
+        ).length,
+        casesSent: sent.length,
+        relevantShare: sent.length ? sent.filter(Boolean).length / sent.length : 0,
+        recall: mean(
+          fromAnswerable.map(({ query, kept: items }) =>
+            recallAt(items, query.relevant, 5),
+          ),
+        ),
+      };
+    }),
     runAt: new Date().toISOString(),
   };
 
