@@ -81,7 +81,7 @@ const share = (flags: boolean[]) =>
   flags.length ? flags.filter(Boolean).length / flags.length : 0;
 
 async function main() {
-  const dataset = JSON.parse(fs.readFileSync(path.join(DIR, "dataset.json"), "utf8")) as {
+  const dataset = JSON.parse(fs.readFileSync(path.join(DIR, argValue("dataset") ?? "dataset.json"), "utf8")) as {
     saved: TestCase[];
     features: Feature[];
   };
