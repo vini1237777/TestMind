@@ -1,0 +1,17 @@
+{
+  "name": "test_case_chunks_vector",
+  "collectionName": "testcasechunks",
+  "type": "vectorSearch",
+  "definition": {
+    "fields": [
+      {
+        "type": "vector",
+        "path": "embedding",
+        "numDimensions": 256,
+        "similarity": "cosine"
+      },
+      { "type": "filter", "path": "projectId" },
+      { "type": "filter", "path": "suiteId" }
+    ]
+  }
+}
