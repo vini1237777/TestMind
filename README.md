@@ -75,6 +75,7 @@ flowchart LR
 | **Edge rate limiting** | Upstash fixed window in the Next.js proxy protects the LLM budget. | [`proxy.ts`](src/proxy.ts) |
 | **Background worker for generation** | A model call takes seconds. The API returns a job id immediately, and concurrency stays capped at 3 however many requests arrive. | [`generation-worker.ts`](src/worker/generation-worker.ts) |
 | **Gemini fallback** | If OpenAI fails, times out or returns output that fails the Zod schema, Gemini serves the same prompt. There are no retries before the switch, so an outage costs one attempt. | [`complete-json.ts`](src/lib/ai/llm/complete-json.ts) |
+| **Vector cache in Redis** | When turned on, a new suite whose feature is near identical to an earlier one in the project reuses its cases instead of paying for a model call. Vectors are compared in Node, so it works on any Redis, and each project is capped at 200 entries. | [`semantic-cache.ts`](src/lib/ai/cache/semantic-cache.ts) |
 | **Polling instead of SSE** | It survives proxies and restarts and needs no open connection, at the cost of up to 1.5s extra delay. The status route only reads job state, so it skips the rate limit. | [`generate-tests.ts`](src/app/lib/generate-tests.ts) |
 | **Separate Redis for the queue** | BullMQ needs a TCP connection, which Upstash REST doesn't offer, and its constant polling doesn't suit per-command pricing. | [`generation-queue.ts`](src/lib/queue/generation-queue.ts) |
 | **Redis read cache** | Suite and project reads are cached with `s-maxage` / `stale-while-revalidate` and an `X-Cache` marker. | [`cache.ts`](src/lib/cache.ts) |
@@ -132,6 +133,7 @@ npm run worker   # in a second terminal, needs REDIS_URL
 |---|---|
 | `OPENAI_API_KEY` | generation and review |
 | `GEMINI_API_KEY` | fallback for generation and review (optional) |
+| `SEMANTIC_CACHE`, `SEMANTIC_CACHE_THRESHOLD` | turn on the vector cache, and its similarity cutoff (optional, off by default) |
 | `MONGODB_URI` | persistence |
 | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | rate limiting and cache |
 | `REDIS_URL` | generation queue (TCP Redis, not the Upstash REST URL) |
