@@ -300,6 +300,43 @@ describe("the prompt", () => {
   });
 });
 
+describe("the prompt with context", () => {
+  const prompt = (retrievedCases: { text: string }[]) =>
+    m.prompt.buildGenerateTestsPrompt({ featureName: "Checkout", description: "Pay", retrievedCases });
+
+  test("asks for project rules and plain steps only when there is context", () => {
+    assert.ok(prompt([{ text: "a saved case" }]).includes("exact values from the saved case"));
+    assert.ok(prompt([{ text: "a saved case" }]).includes("without \"Step 1:\""));
+    assert.ok(!prompt([]).includes("exact values from the saved case"));
+  });
+});
+
+describe("repeated cases", () => {
+  const cases = ["A", "B", "C", "D", "E", "F"].map((title, i) => ({ ...testCase(title), id: `TC_${i + 1}` }));
+  const retrieved = [{ text: "a saved case" }];
+  const repeats = () => import("../../src/lib/ai/rag/repeats");
+
+  test("repeats go, down to the minimum suite size", async () => {
+    const { dropRepeatedCases } = await repeats();
+    // The stub gives every text one vector, so every case repeats.
+    assert.equal((await dropRepeatedCases(cases, retrieved)).length, 4);
+  });
+
+  test("a small suite and an empty context stay as they are", async () => {
+    const { dropRepeatedCases } = await repeats();
+    embedded = [];
+    assert.equal((await dropRepeatedCases(cases.slice(0, 4), retrieved)).length, 4);
+    assert.equal((await dropRepeatedCases(cases, [])).length, 6);
+    assert.equal(embedded.length, 0);
+  });
+
+  test("a failed embedding keeps every case", async () => {
+    const { dropRepeatedCases } = await repeats();
+    embedStatus = 500;
+    assert.equal((await dropRepeatedCases(cases, retrieved)).length, 6);
+  });
+});
+
 describe("the generation graph", () => {
   const run = (extra = {}) =>
     m.graph.runSuiteGenerationGraph({
