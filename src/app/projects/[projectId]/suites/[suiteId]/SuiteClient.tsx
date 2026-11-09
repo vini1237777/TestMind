@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import type { FeedbackResult } from "@/src/app/types/testmind";
-import { Feature, TestCase, TestSuite } from "@/src/app/types/testmind";
+import { TestCase, TestSuite } from "@/src/app/types/testmind";
 import { updateFeature } from "@/src/app/actions/features";
 import { CaseRowsSkeleton, ReviewSkeleton } from "@/src/app/components/Skeletons";
 import PipelineTrace, { type RunStatus } from "@/src/app/components/PipelineTrace";
