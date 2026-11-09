@@ -6,7 +6,6 @@ import { DUPLICATE_FEATURE_ERROR, isFeatureNameTaken } from "@/src/lib/suites/na
 import { Types } from "mongoose";
 import TestSuiteModel from "@/src/app/models/TestSuite";
 import type { TestSuite, TestCase } from "@/src/app/types/testmind";
-import { revalidatePath } from "next/cache";
 import { syncSuiteChunks } from "@/src/lib/ai/rag/chunks";
 import { clearListCache, getCache, setCache } from "@/src/lib/cache";
 import { getCurrentUser, ownedProject, ownedSuite, SIGN_IN_ERROR } from "@/src/lib/auth/access";
@@ -124,7 +123,7 @@ export async function createSuite(data: {
 
   await syncSuiteChunks({ suiteId: doc._id.toString(), projectId, testCases });
   await clearListCache();
-  revalidatePath(`/projects/${data.projectId}`);
+  refreshPaths(`/projects/${data.projectId}`);
   return { suite: mapSuite(doc) };
 }
 
