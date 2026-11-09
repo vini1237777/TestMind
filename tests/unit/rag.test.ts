@@ -314,7 +314,7 @@ describe("the prompt with context", () => {
 describe("repeated cases", () => {
   const cases = ["A", "B", "C", "D", "E", "F"].map((title, i) => ({ ...testCase(title), id: `TC_${i + 1}` }));
   const retrieved = [{ text: "a saved case" }];
-  const repeats = () => import("../../src/lib/ai/rag/repeats");
+  const repeats = () => import("../../evals/rag-quality/repeats");
 
   test("repeats go, down to the minimum suite size", async () => {
     const { dropRepeatedCases } = await repeats();

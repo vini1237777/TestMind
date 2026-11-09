@@ -18,7 +18,8 @@ function cosine(a: number[], b: number[]) {
   return dot / Math.sqrt(aSize * bSize);
 }
 
-// Removes the closest repeats first and never goes below the minimum suite size.
+// Tested as a repeat filter and left out of generation, because it removed cases that
+// checked project rules. Removes the closest repeats first, down to the minimum size.
 // The check only improves a suite, so a failed embedding keeps every case.
 export async function dropRepeatedCases(testCases: TestCase[], retrieved: { text: string }[]) {
   if (!retrieved.length || testCases.length <= MIN_CASES) return testCases;

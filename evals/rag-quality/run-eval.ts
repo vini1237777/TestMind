@@ -10,6 +10,7 @@ import { chunkText } from "@/src/lib/ai/rag/chunks";
 import { selectContext } from "@/src/lib/ai/rag/retrieve";
 import { generateSuiteService } from "@/src/lib/ai/services/generate-suite";
 import { atlasScore } from "../rag/metrics";
+import { dropRepeatedCases } from "./repeats";
 import { compare, DUPLICATE_SCORE, METRICS, type Mode, type Run } from "./metrics";
 
 type Feature = {
@@ -110,45 +111,59 @@ async function main() {
   );
 
   const runs: (Run & { testCases: TestCase[]; verdicts: unknown })[] = [];
+  const filteredRuns: (Run & { testCases: TestCase[]; verdicts: unknown; dropped: string[] })[] = [];
   const failures: { feature: string; mode: Mode; repeat: number; error: string }[] = [];
   let finished = 0;
 
   await inPool(jobs, async ({ feature, mode, repeat }) => {
     try {
       const started = performance.now();
+      const context = mode === "on" ? (contexts.get(feature.featureName) ?? []) : [];
       const { testCases, usage } = await generateSuiteService({
         featureName: feature.featureName,
         description: feature.description,
-        retrievedCases: mode === "on" ? contexts.get(feature.featureName) : [],
+        retrievedCases: context,
       });
       const seconds = (performance.now() - started) / 1000;
+      const tokens = (usage.promptTokens ?? 0) + (usage.completionTokens ?? 0);
 
-      const [spec, project] = await Promise.all([
-        judge(feature.specRules, testCases),
-        judge(feature.projectRules, testCases),
-      ]);
-      const vectors = await embedAll(testCases.map(chunkText));
-      const steps = testCases.flatMap((item) => item.steps);
-
-      runs.push({
-        feature: feature.featureName,
-        mode,
-        repeat,
-        testCases,
-        verdicts: { spec, project },
-        score: {
-          specCoverage: share(spec.map((item) => item.covered)),
-          projectCoverage: share(project.map((item) => item.covered)),
-          duplicateRate: share(
-            vectors.map((vector) =>
-              savedVectors.some((saved) => atlasScore(vector, saved) >= DUPLICATE_SCORE),
+      const score = async (suite: TestCase[]) => {
+        const [spec, project] = await Promise.all([
+          judge(feature.specRules, suite),
+          judge(feature.projectRules, suite),
+        ]);
+        const vectors = await embedAll(suite.map(chunkText));
+        const steps = suite.flatMap((item) => item.steps);
+        return {
+          feature: feature.featureName,
+          mode,
+          repeat,
+          testCases: suite,
+          verdicts: { spec, project },
+          score: {
+            specCoverage: share(spec.map((item) => item.covered)),
+            projectCoverage: share(project.map((item) => item.covered)),
+            duplicateRate: share(
+              vectors.map((vector) =>
+                savedVectors.some((saved) => atlasScore(vector, saved) >= DUPLICATE_SCORE),
+              ),
             ),
-          ),
-          plainSteps: share(steps.map((step) => !/^step\s*\d+/i.test(step.trim()))),
-          tokens: (usage.promptTokens ?? 0) + (usage.completionTokens ?? 0),
-          seconds,
-          cases: testCases.length,
-        },
+            plainSteps: share(steps.map((step) => !/^step\s*\d+/i.test(step.trim()))),
+            tokens,
+            seconds,
+            cases: suite.length,
+          },
+        };
+      };
+
+      // Both versions of a suite come from one model output, so only the check differs.
+      const before = await score(testCases);
+      const kept = await dropRepeatedCases(testCases, context);
+      const dropped = testCases.filter((item) => !kept.includes(item));
+      runs.push(before);
+      filteredRuns.push({
+        ...(dropped.length ? await score(kept) : before),
+        dropped: dropped.map(chunkText),
       });
     } catch (err) {
       failures.push({ feature: feature.featureName, mode, repeat, error: (err as Error).message });
@@ -158,20 +173,22 @@ async function main() {
   });
 
   const usedContext = features.filter((item) => contexts.get(item.featureName)?.length).length;
-  const summary = {
+  const summarize = (list: Run[]) => ({
     savedCases: dataset.saved.length,
     features: features.length,
     repeats,
-    runs: runs.length,
+    runs: list.length,
     failures,
     featuresWithContext: usedContext,
-    comparison: Object.fromEntries(METRICS.map((metric) => [metric, compare(runs, metric)])),
+    comparison: Object.fromEntries(METRICS.map((metric) => [metric, compare(list, metric)])),
     runAt: new Date().toISOString(),
-  };
-
-  fs.writeFileSync(path.join(DIR, `${outName}.json`), `${JSON.stringify(summary, null, 2)}\n`);
-  fs.writeFileSync(path.join(DIR, `${outName}-runs.json`), `${JSON.stringify(runs, null, 1)}\n`);
-  console.log(JSON.stringify(summary, null, 2));
+  });
+  const write = (name: string, data: unknown) =>
+    fs.writeFileSync(path.join(DIR, `${name}.json`), `${JSON.stringify(data, null, 1)}\n`);
+  write(outName, summarize(runs));
+  write(`${outName}-runs`, runs);
+  write(`${outName}-filtered`, summarize(filteredRuns));
+  write(`${outName}-filtered-runs`, filteredRuns);
 }
 
 main().catch((err) => {

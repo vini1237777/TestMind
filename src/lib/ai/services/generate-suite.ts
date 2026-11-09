@@ -2,7 +2,6 @@ import type { TestCase } from "@/src/app/types/testmind";
 import { completeJson } from "@/src/lib/ai/llm/complete-json";
 import { buildGenerateTestsPrompt } from "@/src/lib/ai/prompts/generate-tests";
 import { GenerateSuiteResponseSchema } from "@/src/lib/ai/schemas/test-case";
-import { dropRepeatedCases } from "@/src/lib/ai/rag/repeats";
 import { createRunLogger } from "@/src/lib/ai/utils/logger";
 import type { LlmUsage } from "@/src/lib/ai/llm/openai";
 
@@ -44,5 +43,5 @@ export async function generateSuiteService({
     samplePayload: testCase.samplePayload ?? {},
   }));
 
-  return { testCases: await dropRepeatedCases(testCases, retrievedCases ?? []), usage };
+  return { testCases, usage };
 }
