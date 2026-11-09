@@ -4,43 +4,20 @@ import type { TestCase } from "@/src/app/types/testmind";
 import { runReviewWorkflow } from "@/src/lib/ai/services/suite-orchestrator/run-review";
 import { connectDB } from "@/src/lib/mongodb";
 import { clearListCache } from "@/src/lib/cache";
+import { FeedbackReviewBodySchema, parseBody } from "@/src/lib/api/request-schemas";
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const {
-      featureName,
-      description,
-      testCases,
-      suiteId,
-      projectId,
-    }: {
-      featureName: string;
-      description: string;
-      testCases: TestCase[];
-      suiteId: string;
-      projectId?: string;
-    } = body;
-
-    const feature = String(featureName || "").trim();
-    const desc = String(description || "").trim();
-
-    if (!feature || !desc) {
-      return NextResponse.json({ error: "Feature name and description are required." }, { status: 400 });
-    }
-    if (!Array.isArray(testCases) || testCases.length === 0) {
-      return NextResponse.json(
-        { error: "At least one test case is required for feedback review." },
-        { status: 400 }
-      );
-    }
+    const body = await parseBody(req, FeedbackReviewBodySchema);
+    if (!body.ok) return body.response;
+    const { featureName, description, testCases, suiteId, projectId } = body.data;
 
     const { feedback, improvedTestCases, trace } = await runReviewWorkflow({
-      featureName: feature,
-      description: desc,
+      featureName,
+      description,
       projectId,
       suiteId,
-      currentTestCases: testCases,
+      currentTestCases: testCases as unknown as TestCase[],
     });
 
     if (suiteId) {
