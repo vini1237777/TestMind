@@ -7,7 +7,7 @@ import { useEffect } from "react";
  * Pulsing call to action. On click the intro zooms out and the workspace
  * (the projects page) opens, zooming in.
  */
-export default function TryNow() {
+export default function TryNow({ signedIn }: { signedIn: boolean }) {
   const router = useRouter();
 
   useEffect(() => {
@@ -15,6 +15,11 @@ export default function TryNow() {
   }, [router]);
 
   const go = () => {
+    // Signed out, the way in is the sign in card next to this button.
+    if (!signedIn) {
+      window.dispatchEvent(new CustomEvent("tm:signin"));
+      return;
+    }
     const landing = document.getElementById("landing");
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduce || !landing) {

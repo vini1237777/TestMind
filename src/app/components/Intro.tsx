@@ -2,6 +2,7 @@ import DemoRun from "./DemoRun";
 import OpenFeatures from "./OpenFeatures";
 import TryNow from "./TryNow";
 import RunExample from "./RunExample";
+import AuthCard from "./AuthCard";
 
 
 function Words({ text, start = 0 }: { text: string; start?: number }) {
@@ -16,7 +17,7 @@ function Words({ text, start = 0 }: { text: string; start?: number }) {
   );
 }
 
-export default function Intro() {
+export default function Intro({ email, next }: { email: string | null; next: string | null }) {
   return (
     <div id="landing" className="mx-auto max-w-6xl overflow-x-clip px-6">
       {/* What it is, next to a replay of one run */}
@@ -37,7 +38,7 @@ export default function Intro() {
             missing.
           </p>
           <div className="tm-rise mt-7 flex flex-wrap items-center gap-3" style={{ animationDelay: "800ms" }}>
-            <TryNow />
+            <TryNow signedIn={Boolean(email)} />
             <OpenFeatures tab="tour" className="tm-press rounded-full border px-4 py-2.5 text-sm hover:bg-amber-50 dark:border-gray-700 dark:hover:bg-gray-800">
               See how it works
             </OpenFeatures>
@@ -50,17 +51,18 @@ export default function Intro() {
           </p>
         </div>
 
-        <div className="tm-pop relative" style={{ animationDelay: "300ms" }}>
-          <div className="relative">
-            {/* Offset card behind the panel, echoing the tilted logo tile */}
-            <div aria-hidden className="absolute inset-0 translate-x-2.5 translate-y-2.5 rotate-1 rounded-lg bg-amber-300 dark:bg-amber-400/80" />
-            <div className="relative">
+        <div className="tm-pop relative mx-auto w-full max-w-[420px] lg:mx-0" style={{ animationDelay: "300ms" }}>
+          <AuthCard email={email} next={next} />
+
+          {/* The replay sits under the card, smaller, as a preview of what signing in leads to */}
+          <div className="mt-8">
+            <p className="mb-2 text-[11px] text-gray-500">A recording of one run</p>
+            <div className="[zoom:0.86]">
               <DemoRun />
             </div>
-          </div>
-          <div className="relative mt-7 flex flex-wrap items-center justify-between gap-3">
-            <p className="text-[11px] text-gray-500">This is a recording of one run.</p>
-            <RunExample />
+            <div className="mt-3 flex justify-end">
+              <RunExample />
+            </div>
           </div>
         </div>
       </section>
