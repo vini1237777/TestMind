@@ -1,5 +1,6 @@
 "use client";
 
+import { versionsOf } from "@/src/lib/suites/versions";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
@@ -24,7 +25,7 @@ const tabs = [
 ];
 
 type SuiteCaseProps = {
-  feature: Feature;
+  feature: TestSuite;
   projectName?: string;
 };
 
@@ -37,8 +38,8 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
 
   const [isSavingFeature, setIsSavingFeature] = useState(false);
 
-  const [testSuites, setTestSuites] = useState<TestSuite[]>([]);
-  const [selectedSuiteId, setSelectedSuiteId] = useState<string | null>(null);
+  const [testSuites, setTestSuites] = useState<TestSuite[]>([feature]);
+  const [selectedSuiteId, setSelectedSuiteId] = useState<string | null>(feature.id);
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [filterType, setFilterType] = useState<
@@ -152,20 +153,8 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
         const response = await res.json();
         const allSuites: TestSuite[] = response.suites || [];
 
-        const suitesForFeature = allSuites.filter(
-          (suite) => suite.featureName === feature.name
-        );
-
-        suitesForFeature.sort(
-          (a, b) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
-
-        setTestSuites(suitesForFeature);
-        if (suitesForFeature.length > 0) {
-          setSelectedSuiteId(suitesForFeature[0].id);
-          setHasLoaded(true);
-        }
+        setTestSuites(versionsOf(feature, allSuites));
+        setHasLoaded(true);
       } catch (err) {
         console.error(err);
         setHasLoaded(false);
@@ -173,7 +162,8 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
     };
 
     loadSuites();
-  }, [feature.name, feature.projectId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [feature.id]);
 
   const handleSaveFeature = async () => {
     if (!name.trim()) {
