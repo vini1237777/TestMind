@@ -80,11 +80,12 @@ flowchart LR
 
 ### Results
 
-| | Before | After |
+List cache on `GET /api/suites`, measured locally with `npm run bench:cache` ([method, limits and raw output](benchmarks/results/results.md)):
+
+| | Cache off | Cache on |
 |---|---|---|
-| Cached API throughput (autocannon) | ~40 req/s | **420+ req/s** |
-| API latency | ~2.5 s | **~250 ms** |
-| Docker image | 1.18 GB | **281 MB** (multi-stage, standalone output, measured before the worker was added) |
+| Median throughput | 159 req/s | 234 req/s |
+| Median p50 latency | 294 ms | 198 ms |
 
 Generation queue, measured locally with a stubbed 5-second model:
 
