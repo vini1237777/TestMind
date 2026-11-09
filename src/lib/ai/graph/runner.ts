@@ -12,6 +12,8 @@ export function createInitialSuiteGraphState(
     generatedTestCases: input.generatedTestCases ?? [],
     feedback: input.feedback ?? null,
     improvedTestCases: input.improvedTestCases ?? [],
+    retrievedCases: input.retrievedCases ?? [],
+    queryEmbedding: input.queryEmbedding ?? null,
     lastFeedbackSummary: input.lastFeedbackSummary,
     lastFeedbackScore: input.lastFeedbackScore ?? null,
     lastReviewedAt: input.lastReviewedAt ?? null,

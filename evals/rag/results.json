@@ -1,0 +1,65 @@
+{
+  "model": "text-embedding-3-small",
+  "dimensions": 256,
+  "cases": 22,
+  "answerableQueries": 12,
+  "unrelatedQueries": 4,
+  "hitAt3": 1,
+  "recallAt5": 1,
+  "minScore": 0.72,
+  "unrelatedWithContext": 0,
+  "answerableWithoutContext": 0,
+  "lowestTopScoreAnswerable": 0.7251005037344845,
+  "highestTopScoreUnrelated": 0.6877463404003248,
+  "thresholds": [
+    {
+      "score": 0.65,
+      "answerableWithContext": 12,
+      "unrelatedWithContext": 2,
+      "casesSent": 57,
+      "relevantShare": 0.38596491228070173,
+      "recall": 1
+    },
+    {
+      "score": 0.68,
+      "answerableWithContext": 12,
+      "unrelatedWithContext": 1,
+      "casesSent": 47,
+      "relevantShare": 0.46808510638297873,
+      "recall": 1
+    },
+    {
+      "score": 0.7,
+      "answerableWithContext": 12,
+      "unrelatedWithContext": 0,
+      "casesSent": 34,
+      "relevantShare": 0.5588235294117647,
+      "recall": 0.875
+    },
+    {
+      "score": 0.72,
+      "answerableWithContext": 12,
+      "unrelatedWithContext": 0,
+      "casesSent": 29,
+      "relevantShare": 0.6206896551724138,
+      "recall": 0.8333333333333334
+    },
+    {
+      "score": 0.75,
+      "answerableWithContext": 9,
+      "unrelatedWithContext": 0,
+      "casesSent": 18,
+      "relevantShare": 0.6666666666666666,
+      "recall": 0.5555555555555556
+    },
+    {
+      "score": 0.78,
+      "answerableWithContext": 7,
+      "unrelatedWithContext": 0,
+      "casesSent": 10,
+      "relevantShare": 0.9,
+      "recall": 0.40277777777777785
+    }
+  ],
+  "runAt": "2026-11-09T13:01:02.040Z"
+}

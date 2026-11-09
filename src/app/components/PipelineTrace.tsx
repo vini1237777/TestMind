@@ -43,11 +43,12 @@ export default function PipelineTrace({ workflow, status, trace }: { workflow: W
     );
   } else if (status === "done") {
     const valid = num(steps.find((n) => n.node === "validate_generated_cases")?.output);
+    const retrieved = num(steps.find((n) => n.node === "retrieve_context")?.output);
     const what =
       workflow === "generation"
         ? Number.isNaN(valid)
           ? "Test cases written"
-          : `Wrote ${valid} test cases and checked each one`
+          : `Wrote ${valid} test cases${retrieved ? ` using ${retrieved} from this project` : ""} and checked each one`
         : "Coverage reviewed";
     text = (
       <>

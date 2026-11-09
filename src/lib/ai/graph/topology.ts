@@ -1,6 +1,6 @@
 // Single source of truth for the graph shapes. The workflows compile from these
 // names and the UI renders the same list, so the diagram can never drift from the code.
-export const GENERATION_NODES = ["generate_test_cases", "validate_generated_cases"] as const;
+export const GENERATION_NODES = ["retrieve_context", "generate_test_cases", "validate_generated_cases"] as const;
 export const REVIEW_NODES = ["review_suite", "improve_suite"] as const;
 
 export type WorkflowKind = "generation" | "review";
@@ -11,6 +11,11 @@ export const WORKFLOWS: Record<WorkflowKind, { id: string; label: string; nodes:
 };
 
 export const NODE_INFO: Record<string, { label: string; kind: "llm" | "deterministic"; does: string }> = {
+  retrieve_context: {
+    label: "Retrieve",
+    kind: "deterministic",
+    does: "Embeds the feature and searches this project's saved test cases, so generation can match its style and cover new ground.",
+  },
   generate_test_cases: {
     label: "Generate",
     kind: "llm",

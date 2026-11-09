@@ -23,6 +23,7 @@ export async function generateTestCasesNode(
       ? await lookupSemanticCache(
           projectId,
           semanticCacheText(state.featureName, state.description),
+          state.queryEmbedding,
         )
       : null;
 
@@ -43,6 +44,7 @@ export async function generateTestCasesNode(
       description: state.description,
       lastFeedbackSummary: state.lastFeedbackSummary,
       lastFeedbackScore: state.lastFeedbackScore,
+      retrievedCases: state.retrievedCases,
     });
 
     if (projectId && lookup?.embedding) {
