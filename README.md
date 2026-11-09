@@ -82,12 +82,19 @@ flowchart LR
 
 ### Results
 
-List cache on `GET /api/suites`, measured locally with `npm run bench:cache` ([method, limits and raw output](benchmarks/results/results.md)):
+List cache on `GET /api/suites`, measured locally on 2026-11-09 with `npm run bench:cache`. Raw summaries are in [`benchmarks/results`](benchmarks/results).
 
 | | Cache off | Cache on |
 |---|---|---|
 | Median throughput | 159 req/s | 234 req/s |
+| Range throughput, 3 runs | 152 to 163 req/s | 186 to 235 req/s |
 | Median p50 latency | 294 ms | 198 ms |
+| Median p99 latency | 491 ms | 449 ms |
+| Failed requests | 0 | 0 |
+
+autocannon sent 50 connections for 30 seconds per run, against one Next.js process with local MongoDB and Redis and 30 suites of 8 cases each. `upstash-local.mjs` serves the Upstash REST API on top of local Redis, and each request sends a different `x-real-ip` so the rate limiter runs without rejecting the load.
+
+These are local numbers, not production numbers. An Apple M2 laptop ran the app and the load generator, MongoDB was on the same machine, and production runs 2 web processes.
 
 Generation queue, measured locally with a stubbed 5-second model:
 
@@ -123,7 +130,7 @@ Each row links to the code and to what checks it.
 |---|---|---|
 | LangGraph generate and review flow | [suite-generation.graph.ts](src/lib/ai/graph/workflows/suite-generation.graph.ts), [suite-review.graph.ts](src/lib/ai/graph/workflows/suite-review.graph.ts) | [Playwright full flow](tests/e2e/testmind-complete-flow.spec.ts) |
 | OpenAI with Gemini fallback | [complete-json.ts](src/lib/ai/llm/complete-json.ts), [gemini.ts](src/lib/ai/llm/gemini.ts) | `npm run test:unit` |
-| Redis exact cache throughput | [run-cache-benchmark.mjs](benchmarks/run-cache-benchmark.mjs) | [results and raw runs](benchmarks/results/results.md) |
+| Redis exact cache throughput | [run-cache-benchmark.mjs](benchmarks/run-cache-benchmark.mjs) | [results above and raw runs](benchmarks/results) |
 | Redis vector cache | [semantic-cache.ts](src/lib/ai/cache/semantic-cache.ts) | `npm run test:unit`. Enable with `SEMANTIC_CACHE=on` |
 | BullMQ generation queue | [generation-queue.ts](src/lib/queue/generation-queue.ts), [generation-worker.ts](src/worker/generation-worker.ts) | Measurements under Results above |
 | Zod request validation | [request-schemas.ts](src/lib/api/request-schemas.ts) | [API validation spec](tests/e2e/api-validation.spec.ts) |
