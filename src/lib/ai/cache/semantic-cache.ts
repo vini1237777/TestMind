@@ -2,16 +2,13 @@ import { randomUUID } from "node:crypto";
 import Redis from "ioredis";
 import { z } from "zod";
 import type { TestCase } from "@/src/app/types/testmind";
-import { getOpenAIClient } from "@/src/lib/ai/llm/openai";
+import { embedText } from "@/src/lib/ai/embeddings";
 import { TestCaseSchema } from "@/src/lib/ai/schemas/test-case";
 
-const EMBEDDING_MODEL = "text-embedding-3-small";
-const DIMENSIONS = 256;
 const DEFAULT_THRESHOLD = 0.95;
 const TTL_SECONDS = 7 * 24 * 60 * 60;
 const MAX_PER_PROJECT = 200;
 const REDIS_TIMEOUT_MS = 1_500;
-const EMBEDDING_TIMEOUT_MS = 5_000;
 
 const CachedCasesSchema = z.array(TestCaseSchema).min(1);
 
@@ -91,14 +88,6 @@ export function decodeVector(encoded: string): number[] {
   return Array.from(view);
 }
 
-async function embed(text: string): Promise<number[]> {
-  const response = await getOpenAIClient().embeddings.create(
-    { model: EMBEDDING_MODEL, input: text, dimensions: DIMENSIONS },
-    { timeout: EMBEDDING_TIMEOUT_MS, maxRetries: 0 },
-  );
-  return response.data[0].embedding;
-}
-
 export function semanticCacheText(featureName: string, description: string) {
   return `${featureName}\n${description}`.trim().toLowerCase();
 }
@@ -110,7 +99,7 @@ export async function lookupSemanticCache(
 ): Promise<SemanticLookup> {
   let embedding: number[] | null = null;
   try {
-    embedding = await embed(text);
+    embedding = await embedText(text);
     const redis = getRedis();
     const vectors = await withTimeout(
       redis.hgetall(vectorsKey(projectId)),
