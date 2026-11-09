@@ -1,18 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { addTestCasesToSuite } from "@/src//app/actions/suites";
+import type { TestCase } from "@/src/app/types/testmind";
+import { AddCasesBodySchema, parseBody } from "@/src/lib/api/request-schemas";
 
 export async function POST(req: NextRequest) {
   try {
-    const { suiteId, testCases } = await req.json();
+    const body = await parseBody(req, AddCasesBodySchema);
+    if (!body.ok) return body.response;
+    const { suiteId, testCases } = body.data;
 
-    if (!suiteId || !Array.isArray(testCases)) {
-      return NextResponse.json(
-        { error: "suiteId and testCases are required" },
-        { status: 400 }
-      );
-    }
-
-    const result = await addTestCasesToSuite(suiteId, testCases);
+    const result = await addTestCasesToSuite(suiteId, testCases as unknown as TestCase[]);
 
     return NextResponse.json(result, { status: 200 });
   } catch (err) {

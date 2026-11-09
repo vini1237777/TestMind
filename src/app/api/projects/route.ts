@@ -2,6 +2,7 @@ import Project from "@/src/app/models/Project";
 import TestSuite from "@/src/app/models/TestSuite";
 import { clearListCache, getCache, setCache } from "@/src/lib/cache";
 import { connectDB } from "@/src/lib/mongodb";
+import { CreateProjectBodySchema, parseBody } from "@/src/lib/api/request-schemas";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
@@ -110,21 +111,14 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: Request) {
+  const body = await parseBody(req, CreateProjectBodySchema);
+  if (!body.ok) return body.response;
+
   await connectDB();
 
-  const body = await req.json();
-  const { name, description } = body;
-
-  if (!name?.trim()) {
-    return NextResponse.json(
-      { error: "Project name is required" },
-      { status: 400 },
-    );
-  }
-
   const project = await Project.create({
-    name: name.trim(),
-    description: description?.trim() || "",
+    name: body.data.name,
+    description: body.data.description || "",
   });
   await clearListCache();
 
