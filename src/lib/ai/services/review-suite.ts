@@ -1,9 +1,8 @@
 import type { FeedbackResult, TestCase } from "@/src/app/types/testmind";
-import { getOpenAIClient } from "@/src/lib/ai/llm/openai";
+import { completeJson } from "@/src/lib/ai/llm/complete-json";
 import { buildReviewSuitePrompt } from "@/src/lib/ai/prompts/review-suite";
 import { FeedbackResultSchema } from "@/src/lib/ai/schemas/feedback";
 import { createRunLogger } from "@/src/lib/ai/utils/logger";
-import { parseJson } from "@/src/lib/ai/utils/parse-json";
 import type { LlmUsage } from "@/src/lib/ai/llm/openai";
 
 type ReviewSuiteInput = {
@@ -23,31 +22,15 @@ export async function reviewSuiteService({
     testCaseCount: testCases.length,
   });
 
-  const client = getOpenAIClient();
   const prompt = buildReviewSuitePrompt({ featureName, description, testCases });
 
-  const completion = await client.chat.completions.create({
-    model: "gpt-4o-mini",
-    response_format: { type: "json_object" },
-    messages: [{ role: "user", content: prompt }],
-  });
-
-  const raw = completion.choices[0]?.message?.content;
-  if (!raw) throw new Error("No response from AI.");
-
-  const parsed = parseJson<unknown>(raw);
-  const validated = FeedbackResultSchema.parse(parsed);
+  const { data: validated, usage, provider } = await completeJson(prompt, FeedbackResultSchema);
 
   logger.end("Reviewed test suite successfully", {
     score: validated.score,
     suggestedCount: validated.suggestedTestCases.length,
+    provider,
   });
-
-  const usage = {
-    model: completion.model,
-    promptTokens: completion.usage?.prompt_tokens,
-    completionTokens: completion.usage?.completion_tokens,
-  };
 
   const feedback: FeedbackResult = {
     score: validated.score,
