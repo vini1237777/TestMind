@@ -18,7 +18,11 @@ test("a visitor counts once, and a bot does not count", async ({ request }) => {
   expect(await visit(BROWSER, `${ip}2`)).toBe(first + 1);
 });
 
-test("the home page shows the count", async ({ page }) => {
-  await page.goto("/");
-  await expect(page.getByTestId("visitor-count")).toHaveText(/\d+ visitors?/);
-});
+for (const path of ["/", "/projects"]) {
+  test(`${path} shows the count in the navbar`, async ({ page }) => {
+    await page.goto(path);
+    await expect(page.getByRole("navigation").getByTestId("visitor-count")).toHaveText(
+      /\d+ visitors?/,
+    );
+  });
+}
