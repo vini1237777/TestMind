@@ -38,11 +38,10 @@ export async function generateSuiteService({
     provider,
   });
 
-  return {
-    testCases: validated.testCases.map((testCase) => ({
-      ...testCase,
-      samplePayload: testCase.samplePayload ?? {},
-    })),
-    usage,
-  };
+  const testCases = validated.testCases.map((testCase) => ({
+    ...testCase,
+    samplePayload: testCase.samplePayload ?? {},
+  }));
+
+  return { testCases, usage };
 }
