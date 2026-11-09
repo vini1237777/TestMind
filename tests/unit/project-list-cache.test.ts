@@ -7,6 +7,7 @@ import os from "node:os";
 import path from "node:path";
 import { after, before, test } from "node:test";
 import mongoose from "mongoose";
+import { signInAs } from "./helpers/session";
 
 // A local MongoDB and a small in memory stand in for the Upstash REST API.
 const PORT = 27095;
@@ -88,6 +89,13 @@ after(async () => {
 });
 
 test("a new feature appears in its project after the list was cached", async () => {
+  const owner = await signInAs("owner@example.com");
+  const Project = (await import("../../src/app/models/Project")).default;
+  await Project.create([
+    { _id: PROJECT, name: "Shop", ownerId: owner.id },
+    { _id: OTHER_PROJECT, name: "Clinic", ownerId: owner.id },
+  ]);
+  await owner.as(async () => {
   const Suite = (await import("../../src/app/models/TestSuite")).default;
   const { getSuitesByProject } = await import("../../src/app/actions/suites");
   const { clearListCache } = await import("../../src/lib/cache");
@@ -101,4 +109,5 @@ test("a new feature appears in its project after the list was cached", async () 
 
   assert.deepEqual((await getSuitesByProject(PROJECT)).map((s) => s.featureName), ["Login"]);
   assert.deepEqual((await getSuitesByProject(OTHER_PROJECT)).map((s) => s.featureName), ["Login"]);
+  });
 });

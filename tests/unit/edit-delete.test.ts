@@ -7,6 +7,7 @@ import os from "node:os";
 import path from "node:path";
 import { after, before, beforeEach, describe, test } from "node:test";
 import mongoose from "mongoose";
+import { signInAs } from "./helpers/session";
 
 const PORT = 27093;
 let mongod: ChildProcess;
@@ -19,6 +20,8 @@ let Suite: typeof import("../../src/app/models/TestSuite").default;
 let Chunk: typeof import("../../src/app/models/TestCaseChunk").default;
 let Feature: typeof import("../../src/app/models/Feature").default;
 let EXAMPLE_NAME: string;
+let owner: Awaited<ReturnType<typeof signInAs>>;
+const asOwner = <T>(work: () => Promise<T>) => owner.as(work);
 
 const testCase = (id: string, title: string) => ({
   id,
@@ -62,6 +65,7 @@ before(async () => {
       await new Promise((r) => setTimeout(r, 200));
     }
   }
+  owner = await signInAs("owner@example.com");
 });
 
 beforeEach(async () => {
@@ -81,33 +85,33 @@ const chunk = (projectId: string, suiteId: string, n: number) =>
   Chunk.create({ _id: `${suiteId}-${n}`, projectId, suiteId, text: "case", embedding: [0.1] });
 
 describe("projects", () => {
-  test("a project can be renamed", async () => {
-    const p = await Project.create({ name: "Shop" });
+  test("a project can be renamed", () => asOwner(async () => {
+    const p = await Project.create({ ownerId: owner.id, name: "Shop" });
     const result = await projects.updateProject(p._id.toString(), { name: " Store ", description: "Online" });
     assert.ok("project" in result);
     assert.equal(result.project.name, "Store");
     assert.equal((await Project.findById(p._id))?.description, "Online");
-  });
+  }));
 
-  test("an empty name and a missing project are refused", async () => {
-    const p = await Project.create({ name: "Shop" });
+  test("an empty name and a missing project are refused", () => asOwner(async () => {
+    const p = await Project.create({ ownerId: owner.id, name: "Shop" });
     assert.ok("error" in (await projects.updateProject(p._id.toString(), { name: "  " })));
     assert.ok("error" in (await projects.updateProject("not-an-id", { name: "X" })));
     assert.ok("error" in (await projects.deleteProject(new mongoose.Types.ObjectId().toString())));
-  });
+  }));
 
-  test("the example project cannot be renamed or deleted", async () => {
-    const example = await Project.create({ name: EXAMPLE_NAME });
-    const other = await Project.create({ name: "Shop" });
+  test("the example project cannot be renamed or deleted", () => asOwner(async () => {
+    const example = await Project.create({ ownerId: owner.id, name: EXAMPLE_NAME });
+    const other = await Project.create({ ownerId: owner.id, name: "Shop" });
     assert.ok("error" in (await projects.updateProject(example._id.toString(), { name: "Mine" })));
     assert.ok("error" in (await projects.deleteProject(example._id.toString())));
     assert.ok("error" in (await projects.updateProject(other._id.toString(), { name: EXAMPLE_NAME })));
     assert.equal(await Project.countDocuments(), 2);
-  });
+  }));
 
-  test("deleting a project removes only its own data", async () => {
-    const shop = (await Project.create({ name: "Shop" }))._id.toString();
-    const clinic = (await Project.create({ name: "Clinic" }))._id.toString();
+  test("deleting a project removes only its own data", () => asOwner(async () => {
+    const shop = (await Project.create({ ownerId: owner.id, name: "Shop" }))._id.toString();
+    const clinic = (await Project.create({ ownerId: owner.id, name: "Clinic" }))._id.toString();
     const a = await Suite.create({ projectId: shop, name: "Pay", featureName: "Pay", testCases: [testCase("TC_1", "A"), testCase("TC_2", "B")] });
     const b = await Suite.create({ projectId: clinic, name: "Book", featureName: "Book", testCases: [testCase("TC_1", "C")] });
     await chunk(shop, a._id.toString(), 1);
@@ -121,29 +125,32 @@ describe("projects", () => {
     assert.equal(await Feature.countDocuments({ projectId: shop }), 0);
     assert.equal(await Suite.countDocuments({ projectId: clinic }), 1);
     assert.equal(await Chunk.countDocuments({ projectId: clinic }), 1);
-  });
+  }));
 });
 
 describe("features", () => {
   const project = "a".repeat(24);
+  beforeEach(async () => {
+    await Project.create({ _id: project, name: "Shop", ownerId: owner.id });
+  });
 
-  test("a new name applies to every version and the description to one", async () => {
+  test("a new name applies to every version and the description to one", () => asOwner(async () => {
     const v1 = await Suite.create({ projectId: project, name: "Pay", featureName: "Pay", description: "old" });
     const v2 = await Suite.create({ projectId: project, name: "Pay", featureName: "Pay", description: "old" });
     assert.deepEqual(await suites.editFeature(v2._id.toString(), { name: "Card payment", description: "new" }), { ok: true });
     assert.equal(await Suite.countDocuments({ featureName: "Card payment" }), 2);
     assert.equal((await Suite.findById(v1._id))?.description, "old");
     assert.equal((await Suite.findById(v2._id))?.description, "new");
-  });
+  }));
 
-  test("a name used by another feature is refused, a change of case is not", async () => {
+  test("a name used by another feature is refused, a change of case is not", () => asOwner(async () => {
     await Suite.create({ projectId: project, name: "Login", featureName: "Login" });
     const pay = await Suite.create({ projectId: project, name: "Pay", featureName: "Pay" });
     assert.ok("error" in (await suites.editFeature(pay._id.toString(), { name: "login", description: "" })));
     assert.deepEqual(await suites.editFeature(pay._id.toString(), { name: "PAY", description: "" }), { ok: true });
-  });
+  }));
 
-  test("deleting a feature removes all its versions and chunks only", async () => {
+  test("deleting a feature removes all its versions and chunks only", () => asOwner(async () => {
     const v1 = await Suite.create({ projectId: project, name: "Pay", featureName: "Pay" });
     const v2 = await Suite.create({ projectId: project, name: "Pay", featureName: "Pay" });
     const other = await Suite.create({ projectId: project, name: "Login", featureName: "Login" });
@@ -154,15 +161,18 @@ describe("features", () => {
     assert.deepEqual(await suites.deleteFeature(v1._id.toString()), { projectId: project, versions: 2 });
     assert.equal(await Suite.countDocuments(), 1);
     assert.deepEqual((await Chunk.find().lean()).map((c) => c.suiteId), [other._id.toString()]);
-  });
+  }));
 });
 
 describe("test cases", () => {
   const project = "a".repeat(24);
+  beforeEach(async () => {
+    await Project.create({ _id: project, name: "Shop", ownerId: owner.id });
+  });
   const make = () =>
     Suite.create({ projectId: project, name: "Pay", featureName: "Pay", testCases: [testCase("TC_1", "A"), testCase("TC_2", "B")] });
 
-  test("a case can be edited and blank steps are dropped", async () => {
+  test("a case can be edited and blank steps are dropped", () => asOwner(async () => {
     const s = await make();
     const result = await suites.updateTestCase(s._id.toString(), "TC_2", {
       type: "edge",
@@ -173,21 +183,21 @@ describe("test cases", () => {
     assert.ok("testCases" in result);
     assert.deepEqual(result.testCases[1], { ...testCase("TC_2", "Pay twice"), type: "edge", steps: ["Open", "Press pay twice"], expected: "Charged once" });
     assert.equal(result.testCases[0].title, "A");
-  });
+  }));
 
-  test("an incomplete edit and an unknown case are refused", async () => {
+  test("an incomplete edit and an unknown case are refused", () => asOwner(async () => {
     const s = await make();
     const id = s._id.toString();
     assert.ok("error" in (await suites.updateTestCase(id, "TC_1", { type: "happy", title: "", steps: ["x"], expected: "y" })));
     assert.ok("error" in (await suites.updateTestCase(id, "TC_1", { type: "wrong" as "happy", title: "t", steps: ["x"], expected: "y" })));
     assert.ok("error" in (await suites.deleteTestCase(id, "TC_9")));
     assert.equal((await Suite.findById(id))?.testCases[0].title, "A");
-  });
+  }));
 
-  test("a case can be deleted", async () => {
+  test("a case can be deleted", () => asOwner(async () => {
     const s = await make();
     const result = await suites.deleteTestCase(s._id.toString(), "TC_1");
     assert.ok("testCases" in result);
     assert.deepEqual(result.testCases.map((c) => c.id), ["TC_2"]);
-  });
+  }));
 });
