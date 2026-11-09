@@ -102,6 +102,8 @@ Generation queue, measured locally with a stubbed 5-second model:
 
 The Playwright test drives the real UI end to end: create project → add feature → generate → review → accept a suggestion. It intercepts the AI routes with fixtures, so it's **deterministic, fast and costs nothing**. The fixtures deliberately include malformed shapes (uppercase types, a non-array `suggestions`) to prove the UI tolerates them.
 
+The other specs cover API validation, the rate limiter and project creation. They need no model or live service.
+
 ```bash
 npm run test:e2e
 ```
