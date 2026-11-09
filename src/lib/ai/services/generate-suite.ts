@@ -10,6 +10,7 @@ type GenerateSuiteInput = {
   description: string;
   lastFeedbackSummary?: string;
   lastFeedbackScore?: number | null;
+  retrievedCases?: { text: string }[];
 };
 
 export async function generateSuiteService({
@@ -17,6 +18,7 @@ export async function generateSuiteService({
   description,
   lastFeedbackSummary,
   lastFeedbackScore,
+  retrievedCases,
 }: GenerateSuiteInput): Promise<{ testCases: TestCase[]; usage: LlmUsage }> {
   const logger = createRunLogger("generate-suite");
   logger.start("Generating test suite", { featureName });
@@ -26,6 +28,7 @@ export async function generateSuiteService({
     description,
     lastFeedbackSummary,
     lastFeedbackScore,
+    retrievedCases,
   });
 
   const { data: validated, usage, provider } = await completeJson(prompt, GenerateSuiteResponseSchema);

@@ -44,6 +44,7 @@ export async function generateTestCasesNode(
       description: state.description,
       lastFeedbackSummary: state.lastFeedbackSummary,
       lastFeedbackScore: state.lastFeedbackScore,
+      retrievedCases: state.retrievedCases,
     });
 
     if (projectId && lookup?.embedding) {
