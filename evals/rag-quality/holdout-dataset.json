@@ -1,0 +1,568 @@
+{
+ "saved": [
+  {
+   "type": "happy",
+   "title": "Book a free slot",
+   "steps": [
+    "Choose a doctor",
+    "Pick a free slot",
+    "Confirm"
+   ],
+   "expected": "The slot is booked and a confirmation is sent"
+  },
+  {
+   "type": "negative",
+   "title": "Book a slot less than 2 hours away",
+   "steps": [
+    "Choose a slot starting in 90 minutes"
+   ],
+   "expected": "Booking is refused because slots close 2 hours before they start"
+  },
+  {
+   "type": "edge",
+   "title": "Book 30 days ahead",
+   "steps": [
+    "Open the calendar",
+    "Pick a date 31 days away"
+   ],
+   "expected": "The date is disabled because booking opens 30 days ahead"
+  },
+  {
+   "type": "edge",
+   "title": "Two patients pick one slot",
+   "steps": [
+    "Open the same slot in two sessions",
+    "Confirm both"
+   ],
+   "expected": "One booking succeeds and the other is asked to pick a new slot"
+  },
+  {
+   "type": "negative",
+   "title": "Third booking on the same day",
+   "steps": [
+    "Hold two bookings for one day",
+    "Book another that day"
+   ],
+   "expected": "The booking is refused because a patient can hold 2 bookings a day"
+  },
+  {
+   "type": "happy",
+   "title": "Cancel early for a full refund",
+   "steps": [
+    "Open a booking 25 hours away",
+    "Cancel"
+   ],
+   "expected": "The fee is refunded in full"
+  },
+  {
+   "type": "edge",
+   "title": "Cancel late",
+   "steps": [
+    "Open a booking 23 hours away",
+    "Cancel"
+   ],
+   "expected": "Half the fee is refunded because cancelling within 24 hours refunds 50%"
+  },
+  {
+   "type": "negative",
+   "title": "Third no show",
+   "steps": [
+    "Miss two appointments",
+    "Miss a third"
+   ],
+   "expected": "Online booking is blocked for 30 days"
+  },
+  {
+   "type": "happy",
+   "title": "Join a video visit",
+   "steps": [
+    "Open a video booking",
+    "Press join 5 minutes before the start"
+   ],
+   "expected": "The call opens"
+  },
+  {
+   "type": "negative",
+   "title": "Join a video visit too early",
+   "steps": [
+    "Press join 15 minutes before the start"
+   ],
+   "expected": "The button is disabled until 10 minutes before the start"
+  },
+  {
+   "type": "edge",
+   "title": "Doctor does not join",
+   "steps": [
+    "Wait in the call for 15 minutes"
+   ],
+   "expected": "The visit is cancelled and refunded in full"
+  },
+  {
+   "type": "happy",
+   "title": "Upload a prescription",
+   "steps": [
+    "Open pharmacy",
+    "Upload a PDF prescription"
+   ],
+   "expected": "The prescription is sent for review"
+  },
+  {
+   "type": "negative",
+   "title": "Prescription file too large",
+   "steps": [
+    "Upload a 12 MB file"
+   ],
+   "expected": "The upload is refused because the limit is 10 MB"
+  },
+  {
+   "type": "negative",
+   "title": "Prescription older than 6 months",
+   "steps": [
+    "Upload a prescription dated 7 months ago"
+   ],
+   "expected": "It is refused because prescriptions are valid for 6 months"
+  },
+  {
+   "type": "negative",
+   "title": "Antibiotics without a prescription",
+   "steps": [
+    "Add an antibiotic to the cart",
+    "Check out"
+   ],
+   "expected": "Checkout asks for a valid prescription"
+  },
+  {
+   "type": "edge",
+   "title": "Six strips of one medicine",
+   "steps": [
+    "Add 6 strips of one medicine"
+   ],
+   "expected": "The cart allows at most 5 strips of a medicine"
+  },
+  {
+   "type": "happy",
+   "title": "Pharmacy order above Rs 300",
+   "steps": [
+    "Add medicines worth Rs 300",
+    "Check out"
+   ],
+   "expected": "Delivery is free"
+  },
+  {
+   "type": "edge",
+   "title": "Pharmacy order of Rs 299",
+   "steps": [
+    "Add medicines worth Rs 299",
+    "Check out"
+   ],
+   "expected": "A delivery fee of Rs 40 is added"
+  },
+  {
+   "type": "negative",
+   "title": "Return an opened medicine",
+   "steps": [
+    "Open a delivered order",
+    "Choose return for an opened strip"
+   ],
+   "expected": "Opened medicines cannot be returned"
+  },
+  {
+   "type": "happy",
+   "title": "Book a home sample collection",
+   "steps": [
+    "Choose a blood test",
+    "Pick a home collection slot"
+   ],
+   "expected": "The collection is booked"
+  },
+  {
+   "type": "negative",
+   "title": "Home collection outside 15 km",
+   "steps": [
+    "Enter an address 18 km from the lab"
+   ],
+   "expected": "Home collection is not offered beyond 15 km"
+  },
+  {
+   "type": "happy",
+   "title": "Lab report ready",
+   "steps": [
+    "Wait for the report"
+   ],
+   "expected": "The report appears within 48 hours and an SMS is sent"
+  },
+  {
+   "type": "edge",
+   "title": "Fasting test booked after 10 am",
+   "steps": [
+    "Choose a fasting test",
+    "Pick an 11 am slot"
+   ],
+   "expected": "The slot is hidden because fasting tests are collected before 10 am"
+  },
+  {
+   "type": "happy",
+   "title": "Download a lab report",
+   "steps": [
+    "Open reports",
+    "Download the PDF"
+   ],
+   "expected": "The PDF is password protected with the patient's date of birth"
+  },
+  {
+   "type": "happy",
+   "title": "Add a family member",
+   "steps": [
+    "Open family",
+    "Add a member with a name and age"
+   ],
+   "expected": "The member appears in the family list"
+  },
+  {
+   "type": "edge",
+   "title": "Seventh family member",
+   "steps": [
+    "Add 6 members",
+    "Add another"
+   ],
+   "expected": "A family list holds at most 6 members"
+  },
+  {
+   "type": "negative",
+   "title": "Child books alone",
+   "steps": [
+    "Sign in as a 16 year old",
+    "Book a visit"
+   ],
+   "expected": "Patients under 18 must be booked by a family adult"
+  },
+  {
+   "type": "happy",
+   "title": "Pay with insurance",
+   "steps": [
+    "Choose insurance",
+    "Enter the policy number"
+   ],
+   "expected": "The claim is sent and the patient pays the copay"
+  },
+  {
+   "type": "negative",
+   "title": "Expired policy",
+   "steps": [
+    "Enter an expired policy"
+   ],
+   "expected": "Insurance is refused and card payment is offered"
+  },
+  {
+   "type": "edge",
+   "title": "Visit above the cashless limit",
+   "steps": [
+    "Book a visit costing Rs 6000 on insurance"
+   ],
+   "expected": "Cashless covers up to Rs 5000 and the rest is paid by card"
+  },
+  {
+   "type": "happy",
+   "title": "Sign in with email and password",
+   "steps": [
+    "Enter email and password"
+   ],
+   "expected": "The patient is signed in"
+  },
+  {
+   "type": "negative",
+   "title": "Five wrong passwords",
+   "steps": [
+    "Enter a wrong password 5 times"
+   ],
+   "expected": "The account is locked for 30 minutes"
+  },
+  {
+   "type": "edge",
+   "title": "Password shorter than 8 characters",
+   "steps": [
+    "Set a 7 character password"
+   ],
+   "expected": "The form asks for at least 8 characters"
+  },
+  {
+   "type": "happy",
+   "title": "Rate a doctor",
+   "steps": [
+    "Open a completed visit",
+    "Give 5 stars"
+   ],
+   "expected": "The rating appears on the doctor's profile"
+  },
+  {
+   "type": "negative",
+   "title": "Rate after 14 days",
+   "steps": [
+    "Open a visit completed 15 days ago"
+   ],
+   "expected": "Rating is closed 14 days after a visit"
+  },
+  {
+   "type": "happy",
+   "title": "Message the doctor",
+   "steps": [
+    "Open a completed visit",
+    "Send a message"
+   ],
+   "expected": "The doctor receives it"
+  },
+  {
+   "type": "edge",
+   "title": "Message after 7 days",
+   "steps": [
+    "Open a visit completed 8 days ago",
+    "Send a message"
+   ],
+   "expected": "Messaging closes 7 days after a visit"
+  },
+  {
+   "type": "happy",
+   "title": "Appointment reminder",
+   "steps": [
+    "Book a visit"
+   ],
+   "expected": "A reminder SMS is sent 24 hours before"
+  },
+  {
+   "type": "happy",
+   "title": "Medicine refill reminder",
+   "steps": [
+    "Buy a 30 day pack"
+   ],
+   "expected": "A refill reminder is sent on day 25"
+  },
+  {
+   "type": "negative",
+   "title": "Export records without OTP",
+   "steps": [
+    "Open records",
+    "Press export"
+   ],
+   "expected": "Export asks for an OTP sent to the registered phone"
+  }
+ ],
+ "features": [
+  {
+   "featureName": "Doctor appointment booking",
+   "description": "Patients choose a doctor and a time and book an appointment.",
+   "specRules": [
+    "A patient can choose a doctor",
+    "A patient can choose a time"
+   ],
+   "projectRules": [
+    "Slots close 2 hours before they start",
+    "Booking opens 30 days ahead",
+    "A patient can hold at most 2 bookings a day"
+   ]
+  },
+  {
+   "featureName": "Reschedule an appointment",
+   "description": "Patients move a booked appointment to another time.",
+   "specRules": [
+    "A booking can be moved to another time"
+   ],
+   "projectRules": [
+    "Slots close 2 hours before they start",
+    "Booking opens 30 days ahead"
+   ]
+  },
+  {
+   "featureName": "Cancel an appointment",
+   "description": "Patients cancel a booking from the app and may get money back.",
+   "specRules": [
+    "A booking can be cancelled from the app"
+   ],
+   "projectRules": [
+    "Cancelling more than 24 hours ahead refunds in full",
+    "Cancelling within 24 hours refunds 50%"
+   ]
+  },
+  {
+   "featureName": "Missed appointments",
+   "description": "The clinic tracks patients who do not show up.",
+   "specRules": [
+    "A missed appointment is recorded"
+   ],
+   "projectRules": [
+    "Three no shows block online booking for 30 days"
+   ]
+  },
+  {
+   "featureName": "Video consultation",
+   "description": "Patients talk to a doctor over a video call.",
+   "specRules": [
+    "The patient can join the call"
+   ],
+   "projectRules": [
+    "Join opens 10 minutes before the start",
+    "A doctor absent for 15 minutes cancels and refunds the visit"
+   ]
+  },
+  {
+   "featureName": "Prescription upload",
+   "description": "Patients send a prescription to the pharmacy.",
+   "specRules": [
+    "A prescription can be uploaded"
+   ],
+   "projectRules": [
+    "Files are limited to 10 MB",
+    "Prescriptions are valid for 6 months"
+   ]
+  },
+  {
+   "featureName": "Pharmacy cart",
+   "description": "Patients add medicines to a cart and order them.",
+   "specRules": [
+    "Medicines can be added to the cart"
+   ],
+   "projectRules": [
+    "At most 5 strips of a medicine",
+    "Antibiotics need a valid prescription"
+   ]
+  },
+  {
+   "featureName": "Pharmacy delivery charges",
+   "description": "The pharmacy charges for delivery on some orders.",
+   "specRules": [
+    "The delivery charge is shown before payment"
+   ],
+   "projectRules": [
+    "Delivery is free from Rs 300",
+    "Orders below Rs 300 pay Rs 40"
+   ]
+  },
+  {
+   "featureName": "Pharmacy returns",
+   "description": "Patients can send back medicines they ordered.",
+   "specRules": [
+    "A return can be requested"
+   ],
+   "projectRules": [
+    "Opened medicines cannot be returned"
+   ]
+  },
+  {
+   "featureName": "Home sample collection",
+   "description": "A lab technician collects a sample at the patient's home.",
+   "specRules": [
+    "A home collection can be booked"
+   ],
+   "projectRules": [
+    "Home collection is limited to 15 km",
+    "Fasting tests are collected before 10 am"
+   ]
+  },
+  {
+   "featureName": "Lab reports",
+   "description": "Patients see and download their test results.",
+   "specRules": [
+    "Reports can be downloaded"
+   ],
+   "projectRules": [
+    "Reports are ready within 48 hours",
+    "Report PDFs are protected with the date of birth"
+   ]
+  },
+  {
+   "featureName": "Family profiles",
+   "description": "One account manages appointments for family members.",
+   "specRules": [
+    "A family member can be added"
+   ],
+   "projectRules": [
+    "A family list holds at most 6 members",
+    "Patients under 18 are booked by a family adult"
+   ]
+  },
+  {
+   "featureName": "Insurance payment",
+   "description": "Patients pay for a visit through their health insurance.",
+   "specRules": [
+    "A visit can be paid with insurance"
+   ],
+   "projectRules": [
+    "Cashless covers up to Rs 5000",
+    "An expired policy falls back to card payment"
+   ]
+  },
+  {
+   "featureName": "Patient sign in",
+   "description": "Patients sign in to see their visits and records.",
+   "specRules": [
+    "A patient can sign in"
+   ],
+   "projectRules": [
+    "Five wrong passwords lock the account for 30 minutes",
+    "Passwords need at least 8 characters"
+   ]
+  },
+  {
+   "featureName": "Doctor ratings",
+   "description": "Patients rate doctors after a visit.",
+   "specRules": [
+    "A patient can rate a doctor"
+   ],
+   "projectRules": [
+    "Rating closes 14 days after a visit"
+   ]
+  },
+  {
+   "featureName": "Chat with doctor",
+   "description": "Patients send follow up messages to their doctor.",
+   "specRules": [
+    "A patient can message the doctor"
+   ],
+   "projectRules": [
+    "Messaging closes 7 days after a visit"
+   ]
+  },
+  {
+   "featureName": "Reminders",
+   "description": "The app reminds patients about visits and medicines.",
+   "specRules": [
+    "The patient gets reminders"
+   ],
+   "projectRules": [
+    "Visit reminders are sent 24 hours before",
+    "Refill reminders are sent on day 25 of a 30 day pack"
+   ]
+  },
+  {
+   "featureName": "Health records export",
+   "description": "Patients download all their records in one file.",
+   "specRules": [
+    "Records can be exported to a file"
+   ],
+   "projectRules": [
+    "Export needs an OTP sent to the registered phone"
+   ]
+  },
+  {
+   "featureName": "Lab test booking",
+   "description": "Patients choose a lab test and a time for it.",
+   "specRules": [
+    "A test and a time can be chosen"
+   ],
+   "projectRules": [
+    "Fasting tests are collected before 10 am",
+    "Booking opens 30 days ahead"
+   ]
+  },
+  {
+   "featureName": "Clinic visit payment",
+   "description": "Patients pay the fee for a clinic visit online.",
+   "specRules": [
+    "The fee can be paid online"
+   ],
+   "projectRules": [
+    "Cashless insurance covers up to Rs 5000",
+    "Cancelling within 24 hours refunds 50%"
+   ]
+  }
+ ]
+}

@@ -1,0 +1,108 @@
+{
+ "savedCases": 40,
+ "features": 20,
+ "repeats": 3,
+ "runs": 118,
+ "failures": [
+  {
+   "feature": "Reschedule an appointment",
+   "mode": "off",
+   "repeat": 0,
+   "error": "All AI providers failed: openai: [\n  {\n    \"expected\": \"record\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"testCases\",\n      6,\n      \"samplePayload\"\n    ],\n    \"message\": \"Invalid input: expected record, received array\"\n  }\n]"
+  },
+  {
+   "feature": "Reminders",
+   "mode": "off",
+   "repeat": 0,
+   "error": "All AI providers failed: openai: [\n  {\n    \"expected\": \"record\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"testCases\",\n      4,\n      \"samplePayload\"\n    ],\n    \"message\": \"Invalid input: expected record, received array\"\n  }\n]"
+  }
+ ],
+ "featuresWithContext": 20,
+ "comparison": {
+  "specCoverage": {
+   "off": 1,
+   "on": 1,
+   "difference": 0,
+   "interval95": [
+    0,
+    0
+   ],
+   "onHigher": 0,
+   "offHigher": 0,
+   "pairs": 20
+  },
+  "projectCoverage": {
+   "off": 0.1888888888888889,
+   "on": 0.6666666666666666,
+   "difference": 0.47777777777777775,
+   "interval95": [
+    0.3388888888888889,
+    0.6222222222222222
+   ],
+   "onHigher": 17,
+   "offHigher": 0,
+   "pairs": 20
+  },
+  "duplicateRate": {
+   "off": 0.011408730158730158,
+   "on": 0.22251984126984126,
+   "difference": 0.2111111111111111,
+   "interval95": [
+    0.14910714285714285,
+    0.27281746031746035
+   ],
+   "onHigher": 19,
+   "offHigher": 0,
+   "pairs": 20
+  },
+  "plainSteps": {
+   "off": 0.041666666666666664,
+   "on": 1,
+   "difference": 0.9583333333333333,
+   "interval95": [
+    0.8916666666666668,
+    1
+   ],
+   "onHigher": 20,
+   "offHigher": 0,
+   "pairs": 20
+  },
+  "tokens": {
+   "off": 1495.4,
+   "on": 1528.0500000000002,
+   "difference": 32.64999999999998,
+   "interval95": [
+    -12.05833333333336,
+    79.27499999999998
+   ],
+   "onHigher": 13,
+   "offHigher": 7,
+   "pairs": 20
+  },
+  "seconds": {
+   "off": 19.107584470858335,
+   "on": 13.395907530633334,
+   "difference": -5.7116769402250025,
+   "interval95": [
+    -7.737825432266665,
+    -3.7764432740000027
+   ],
+   "onHigher": 2,
+   "offHigher": 18,
+   "pairs": 20
+  },
+  "cases": {
+   "off": 7.308333333333333,
+   "on": 7.5,
+   "difference": 0.19166666666666687,
+   "interval95": [
+    -0.04166666666666648,
+    0.40833333333333355
+   ],
+   "onHigher": 12,
+   "offHigher": 3,
+   "pairs": 20
+  }
+ },
+ "runAt": "2026-11-09T17:09:49.115Z"
+}
