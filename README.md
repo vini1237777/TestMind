@@ -43,7 +43,7 @@ Writing test cases is slow, and the cases people skip are the negative and edge 
 ## What it does
 
 1. **Describe:** write the feature spec.
-2. **Generate:** a LangGraph workflow drafts 1–8 cases (happy / negative / edge) and validates them against a schema.
+2. **Generate:** a LangGraph workflow finds similar saved cases in the project, drafts 1–8 cases (happy / negative / edge) with that context and validates them against a schema.
 3. **Review:** a second workflow scores coverage from 0 to 100, names the missing areas and proposes new cases.
 4. **Improve:** accept suggestions. They're merged and deduped in code. The next generation sees the last review, so regeneration targets the gaps.
 5. **Export:** download JSON or a **Playwright spec skeleton** with one `test()` per case and steps as `test.step`.
@@ -55,7 +55,7 @@ Each run shows a **live pipeline trace**: the graph's nodes, how long each took,
 ```mermaid
 flowchart LR
   subgraph generation
-    S1((START)) --> GEN[generate_test_cases<br/>LLM + Zod] --> VAL[validate_generated_cases<br/>code] --> E1((END))
+    S1((START)) --> RET[retrieve_context<br/>vector search] --> GEN[generate_test_cases<br/>LLM + Zod] --> VAL[validate_generated_cases<br/>code] --> E1((END))
   end
   subgraph review
     S2((START)) --> REV[review_suite<br/>LLM + Zod] --> IMP[improve_suite<br/>dedupe in code] --> E2((END))
@@ -75,6 +75,7 @@ flowchart LR
 | **Edge rate limiting** | Upstash fixed window in the Next.js proxy protects the LLM budget. | [`proxy.ts`](src/proxy.ts) |
 | **Background worker for generation** | A model call takes seconds. The API returns a job id immediately, and concurrency stays capped at 3 however many requests arrive. | [`generation-worker.ts`](src/worker/generation-worker.ts) |
 | **Gemini fallback** | If OpenAI fails, times out or returns output that fails the Zod schema, Gemini serves the same prompt. There are no retries before the switch, so an outage costs one attempt. | [`complete-json.ts`](src/lib/ai/llm/complete-json.ts) |
+| **RAG over saved test cases** | Each saved case is one chunk with a 256 dimension embedding. Before writing, Atlas Vector Search finds similar cases inside the same project, filtered in the search itself, and the top 5 above a minimum score go to the model as data, so it can match the project's style and cover new ground. A regenerated suite skips its own cases. If the embedding or search fails, generation runs without context. Turned on with `RAG=on`. | [`rag/`](src/lib/ai/rag) |
 | **Vector cache in Redis** | When turned on, a new suite whose feature is near identical to an earlier one in the project reuses its cases instead of paying for a model call. Vectors are compared in Node, so it works on any Redis, and each project is capped at 200 entries. | [`semantic-cache.ts`](src/lib/ai/cache/semantic-cache.ts) |
 | **Polling instead of SSE** | It survives proxies and restarts and needs no open connection, at the cost of up to 1.5s extra delay. The status route only reads job state, so it skips the rate limit. | [`generate-tests.ts`](src/app/lib/generate-tests.ts) |
 | **Separate Redis for the queue** | BullMQ needs a TCP connection, which Upstash REST doesn't offer, and its constant polling doesn't suit per-command pricing. | [`generation-queue.ts`](src/lib/queue/generation-queue.ts) |
@@ -124,6 +125,7 @@ Each row links to the code and to what checks it.
 | LangGraph generate and review flow | [suite-generation.graph.ts](src/lib/ai/graph/workflows/suite-generation.graph.ts), [suite-review.graph.ts](src/lib/ai/graph/workflows/suite-review.graph.ts) | [Playwright full flow](tests/e2e/testmind-complete-flow.spec.ts) |
 | OpenAI with Gemini fallback | [complete-json.ts](src/lib/ai/llm/complete-json.ts), [gemini.ts](src/lib/ai/llm/gemini.ts) | `npm run test:unit` |
 | Redis exact cache throughput | [run-cache-benchmark.mjs](benchmarks/run-cache-benchmark.mjs) | [results and raw runs](benchmarks/results/results.md) |
+| RAG retrieval | [retrieve.ts](src/lib/ai/rag/retrieve.ts), [chunks.ts](src/lib/ai/rag/chunks.ts), [index definition](atlas/test-case-chunks-vector-index.json) | `npm run test:unit`, and `npm run eval:rag` for hit@3 and recall@5 on a [labelled set](evals/rag/dataset.json) |
 | Redis vector cache | [semantic-cache.ts](src/lib/ai/cache/semantic-cache.ts) | `npm run test:unit`. Enable with `SEMANTIC_CACHE=on` |
 | BullMQ generation queue | [generation-queue.ts](src/lib/queue/generation-queue.ts), [generation-worker.ts](src/worker/generation-worker.ts) | Measurements under Results above |
 | Zod request validation | [request-schemas.ts](src/lib/api/request-schemas.ts) | [API validation spec](tests/e2e/api-validation.spec.ts) |
