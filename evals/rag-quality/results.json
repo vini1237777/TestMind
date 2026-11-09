@@ -1,0 +1,120 @@
+{
+  "savedCases": 40,
+  "features": 20,
+  "repeats": 3,
+  "runs": 116,
+  "failures": [
+    {
+      "feature": "Cash on delivery",
+      "mode": "off",
+      "repeat": 1,
+      "error": "All AI providers failed: openai: [\n  {\n    \"expected\": \"record\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"testCases\",\n      6,\n      \"samplePayload\"\n    ],\n    \"message\": \"Invalid input: expected record, received array\"\n  }\n]"
+    },
+    {
+      "feature": "Return request form",
+      "mode": "off",
+      "repeat": 0,
+      "error": "All AI providers failed: openai: [\n  {\n    \"expected\": \"record\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"testCases\",\n      6,\n      \"samplePayload\"\n    ],\n    \"message\": \"Invalid input: expected record, received array\"\n  }\n]"
+    },
+    {
+      "feature": "Return request form",
+      "mode": "off",
+      "repeat": 1,
+      "error": "All AI providers failed: openai: [\n  {\n    \"expected\": \"record\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"testCases\",\n      7,\n      \"samplePayload\"\n    ],\n    \"message\": \"Invalid input: expected record, received array\"\n  }\n]"
+    },
+    {
+      "feature": "Pincode check on product page",
+      "mode": "off",
+      "repeat": 0,
+      "error": "All AI providers failed: openai: [\n  {\n    \"expected\": \"string\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"testCases\",\n      6,\n      \"steps\",\n      2\n    ],\n    \"message\": \"Invalid input: expected string, received number\"\n  }"
+    }
+  ],
+  "featuresWithContext": 20,
+  "comparison": {
+    "specCoverage": {
+      "off": 0.9833333333333334,
+      "on": 0.9833333333333334,
+      "difference": 0,
+      "interval95": [
+        -0.05,
+        0.05
+      ],
+      "onHigher": 1,
+      "offHigher": 1,
+      "pairs": 20
+    },
+    "projectCoverage": {
+      "off": 0.35277777777777775,
+      "on": 0.6694444444444444,
+      "difference": 0.31666666666666676,
+      "interval95": [
+        0.21666666666666665,
+        0.4333333333333333
+      ],
+      "onHigher": 17,
+      "offHigher": 0,
+      "pairs": 20
+    },
+    "duplicateRate": {
+      "off": 0.0023809523809523807,
+      "on": 0.05982142857142857,
+      "difference": 0.05744047619047619,
+      "interval95": [
+        0.03273809523809523,
+        0.08511904761904762
+      ],
+      "onHigher": 13,
+      "offHigher": 0,
+      "pairs": 20
+    },
+    "plainSteps": {
+      "off": 0.03333333333333333,
+      "on": 0.4833333333333334,
+      "difference": 0.45000000000000007,
+      "interval95": [
+        0.3,
+        0.6
+      ],
+      "onHigher": 14,
+      "offHigher": 0,
+      "pairs": 20
+    },
+    "tokens": {
+      "off": 1418.9416666666664,
+      "on": 1459.716666666667,
+      "difference": 40.77500000000002,
+      "interval95": [
+        -17.774999999999988,
+        99.65
+      ],
+      "onHigher": 10,
+      "offHigher": 10,
+      "pairs": 20
+    },
+    "seconds": {
+      "off": 12.430031807991666,
+      "on": 10.918549525050002,
+      "difference": -1.511482282941668,
+      "interval95": [
+        -3.003926061358336,
+        -0.04851353543333401
+      ],
+      "onHigher": 8,
+      "offHigher": 12,
+      "pairs": 20
+    },
+    "cases": {
+      "off": 7.308333333333332,
+      "on": 7.300000000000002,
+      "difference": -0.008333333333333259,
+      "interval95": [
+        -0.16666666666666674,
+        0.1583333333333333
+      ],
+      "onHigher": 9,
+      "offHigher": 8,
+      "pairs": 20
+    }
+  },
+  "runAt": "2026-11-09T15:55:42.284Z"
+}
