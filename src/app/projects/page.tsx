@@ -7,6 +7,9 @@ import ProjectModal from "../components/ProjectModal";
 import { ProjectCardsSkeleton } from "../components/Skeletons";
 import FailedTest from "../components/FailedTest";
 import ProjectCard from "../components/ProjectCard";
+import ConfirmDelete from "../components/ConfirmDelete";
+import { deleteProject } from "../actions/projects";
+import { EXAMPLE } from "../lib/example";
 
 export default function ProjectsPage() {
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
@@ -17,6 +20,24 @@ export default function ProjectsPage() {
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<"recent" | "newest" | "name" | "cases" | "score">("recent");
   const searchRef = useRef<HTMLInputElement>(null);
+  const [editing, setEditing] = useState<Project | null>(null);
+  const [deleting, setDeleting] = useState<Project | null>(null);
+
+  const removeProject = async () => {
+    if (!deleting) return;
+    try {
+      const result = await deleteProject(deleting.id);
+      if ("error" in result) {
+        toast.error(result.error);
+        return;
+      }
+      setProjects((prev) => prev.filter((p) => p.id !== deleting.id));
+      setDeleting(null);
+      toast.success("Project deleted");
+    } catch {
+      toast.error("Could not delete the project. Please try again.");
+    }
+  };
 
   // "/" jumps to search, Escape clears it
   useEffect(() => {
@@ -196,7 +217,14 @@ export default function ProjectsPage() {
         ) : (
         <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {visible.map((project, i) => (
-            <ProjectCard key={project.id} project={project} index={i} />
+            <ProjectCard
+              key={project.id}
+              project={project}
+              index={i}
+              {...(project.name === EXAMPLE.project
+                ? {}
+                : { onEdit: () => setEditing(project), onDelete: () => setDeleting(project) })}
+            />
           ))}
         </section>
         )}
@@ -208,6 +236,30 @@ export default function ProjectsPage() {
         onClose={() => setIsProjectModalOpen(false)}
         onCreated={(newProject) => setProjects((prev) => [newProject, ...prev])}
       />
+
+      <ProjectModal
+        open={Boolean(editing)}
+        onClose={() => setEditing(null)}
+        project={editing ?? undefined}
+        onSaved={(saved) => setProjects((prev) => prev.map((p) => (p.id === saved.id ? { ...p, ...saved, stats: p.stats } : p)))}
+      />
+
+      <ConfirmDelete
+        open={Boolean(deleting)}
+        onClose={() => setDeleting(null)}
+        title="Delete project"
+        actionLabel="Delete project"
+        confirmText={deleting?.name}
+        onConfirm={removeProject}
+      >
+        <p>
+          This deletes <span className="font-semibold">{deleting?.name}</span>
+          {deleting?.stats?.suites
+            ? `, its ${deleting.stats.features ?? deleting.stats.suites} ${(deleting.stats.features ?? deleting.stats.suites) === 1 ? "feature" : "features"} and ${deleting.stats.cases} test cases`
+            : ""}
+          . It cannot be undone.
+        </p>
+      </ConfirmDelete>
     </main>
   );
 }

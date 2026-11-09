@@ -3,19 +3,26 @@ import type { Project } from "../types/testmind";
 import ProjectTile from "./ProjectTile";
 import TypeBar from "./TypeBar";
 import { timeAgo } from "../lib/format";
+import CardActions from "./CardActions";
 
 /** A project at a glance: name, what it is, and one line of numbers. Details live inside. */
-export default function ProjectCard({ project, index }: { project: Project; index: number }) {
+export default function ProjectCard({ project, index, onEdit, onDelete }: {
+  project: Project;
+  index: number;
+  // Left out for the example project, which stays as it is.
+  onEdit?: () => void;
+  onDelete?: () => void;
+}) {
   const s = project.stats;
   const empty = !s || s.suites === 0;
 
   return (
+    <div className="tm-rise group relative flex" style={{ animationDelay: `${Math.min(index, 12) * 45}ms` }}>
     <Link
       href={`/projects/${project.id}`}
-      className="tm-rise group flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white p-4 text-sm transition-all duration-200 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:border-black hover:shadow-[4px_4px_0_0_#fcd34d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-amber-400 dark:hover:shadow-[4px_4px_0_0_rgba(251,191,36,0.35)]"
-      style={{ animationDelay: `${Math.min(index, 12) * 45}ms` }}
+      className="flex w-full flex-col overflow-hidden rounded-lg border border-gray-200 bg-white p-4 text-sm transition-all duration-200 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:border-black hover:shadow-[4px_4px_0_0_#fcd34d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-amber-400 dark:hover:shadow-[4px_4px_0_0_rgba(251,191,36,0.35)]"
     >
-      <div className="flex items-center gap-3">
+      <div className={`flex items-center gap-3 ${onEdit ? "pr-16" : ""}`}>
         <ProjectTile name={project.name} id={project.id} />
         <div className="min-w-0">
           <h2 className="truncate font-semibold">{project.name}</h2>
@@ -50,5 +57,9 @@ export default function ProjectCard({ project, index }: { project: Project; inde
         </div>
       )}
     </Link>
+    {onEdit && onDelete && (
+      <CardActions label={project.name} onEdit={onEdit} onDelete={onDelete} className="absolute right-2 top-2" />
+    )}
+    </div>
   );
 }
