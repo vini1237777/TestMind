@@ -80,11 +80,12 @@ flowchart LR
 
 ### Results
 
-| | Before | After |
+List cache on `GET /api/suites`, measured locally with `npm run bench:cache` ([method, limits and raw output](benchmarks/results/results.md)):
+
+| | Cache off | Cache on |
 |---|---|---|
-| Cached API throughput (autocannon) | ~40 req/s | **420+ req/s** |
-| API latency | ~2.5 s | **~250 ms** |
-| Docker image | 1.18 GB | **281 MB** (multi-stage, standalone output, measured before the worker was added) |
+| Median throughput | 159 req/s | 234 req/s |
+| Median p50 latency | 294 ms | 198 ms |
 
 Generation queue, measured locally with a stubbed 5-second model:
 
@@ -105,7 +106,7 @@ npm run test:e2e
 
 ## Production
 
-- **Docker:** multi-stage build of Next's `standalone` output ([`Dockerfile.prod`](Dockerfile.prod))
+- **Docker:** multi-stage build of Next's `standalone` output ([`Dockerfile`](Dockerfile))
 - **PM2:** the web app in cluster mode with 2 instances, plus 1 generation worker, each restarting at 350 MB ([`ecosystem.config.js`](ecosystem.config.js))
 - **Sentry:** client, server and edge, tunneled via `/monitoring`
 - **Hosting:** Railway
@@ -136,7 +137,7 @@ npm run worker   # in a second terminal, needs REDIS_URL
 | `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_DSN` | error monitoring (optional) |
 
 ```bash
-docker build -f Dockerfile.prod -t testmind . && docker run -p 8080:8080 --env-file .env.local testmind
+docker build -t testmind . && docker run -p 8080:8080 --env-file .env.local testmind
 ```
 
 ---

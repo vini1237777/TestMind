@@ -1,0 +1,16 @@
+# Local development only: runs next dev. The production image is Dockerfile.
+FROM node:24-alpine
+
+WORKDIR /app
+
+COPY package*.json .
+
+COPY tsconfig.json .
+
+RUN npm install
+
+COPY . .
+
+EXPOSE 3000
+
+CMD ["npm", "run", "dev"]

@@ -1,0 +1,14 @@
+{
+  "label": "cache-off",
+  "run": 1,
+  "connections": 50,
+  "durationSeconds": 30,
+  "requestsPerSecond": 159,
+  "latencyP50": 294,
+  "latencyP97_5": 451,
+  "latencyP99": 491,
+  "ok": 4770,
+  "notOk": 0,
+  "errors": 0,
+  "timeouts": 0
+}

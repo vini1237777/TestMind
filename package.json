@@ -11,6 +11,7 @@
     "start:pm2": "pm2-runtime ecosystem.config.js",
     "lint": "eslint",
     "test:unit": "node --import tsx --test tests/unit/*.test.ts",
+    "bench:cache": "node benchmarks/run-cache-benchmark.mjs",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed"
