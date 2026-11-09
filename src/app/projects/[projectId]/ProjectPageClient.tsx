@@ -3,19 +3,46 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { Project, TestSuite } from "@/src/app/types/testmind";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import FeatureModal from "@/src/app/components/FeatureModal";
+import ProjectModal from "@/src/app/components/ProjectModal";
+import ConfirmDelete from "@/src/app/components/ConfirmDelete";
+import { deleteProject } from "@/src/app/actions/projects";
+import { EXAMPLE } from "@/src/app/lib/example";
 import Breadcrumbs from "@/src/app/components/Breadcrumbs";
 import TypeBar from "@/src/app/components/TypeBar";
 import { timeAgo } from "@/src/app/lib/format";
 
 export default function ProjectPageClient({
-  project,
+  project: initialProject,
   suites,
 }: {
   project: Project;
   suites: TestSuite[];
 }) {
+  const router = useRouter();
+  const [project, setProject] = useState<Project>(initialProject);
   const [openFeatureModal, setOpenFeatureModal] = useState(false);
+  const [openEdit, setOpenEdit] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
+  // The shared example opens from the home page, so it stays as it is.
+  const canManage = project.name !== EXAMPLE.project;
+
+  const handleDelete = async () => {
+    try {
+      const result = await deleteProject(project.id);
+      if ("error" in result) {
+        toast.error(result.error);
+        return;
+      }
+      toast.success("Project deleted");
+      router.push("/projects");
+      router.refresh();
+    } catch {
+      toast.error("Could not delete the project. Please try again.");
+    }
+  };
   const [localSuites, setLocalSuites] = useState<TestSuite[]>(suites);
 
   const totalCases = localSuites.reduce((n, s) => n + (s.testCases?.length ?? 0), 0);
@@ -39,13 +66,58 @@ export default function ProjectPageClient({
             )}
           </p>
         </div>
-        <button
-          className="tm-press shrink-0 rounded bg-amber-500 px-3 py-2 text-xs font-medium text-white shadow-sm hover:bg-amber-600 dark:bg-amber-400 dark:text-black dark:hover:bg-amber-300"
-          onClick={() => setOpenFeatureModal(true)}
-        >
-          + New Feature
-        </button>
+        <div className="flex shrink-0 items-center gap-2">
+          {canManage && (
+            <>
+              <button
+                className="rounded border px-3 py-2 text-xs font-medium hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
+                onClick={() => setOpenEdit(true)}
+              >
+                Edit project
+              </button>
+              <button
+                className="rounded border border-red-200 px-3 py-2 text-xs font-medium text-red-700 hover:bg-red-50 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950"
+                onClick={() => setOpenDelete(true)}
+              >
+                Delete project
+              </button>
+            </>
+          )}
+          <button
+            className="tm-press shrink-0 rounded bg-amber-500 px-3 py-2 text-xs font-medium text-white shadow-sm hover:bg-amber-600 dark:bg-amber-400 dark:text-black dark:hover:bg-amber-300"
+            onClick={() => setOpenFeatureModal(true)}
+          >
+            + New Feature
+          </button>
+        </div>
       </header>
+
+      <ProjectModal
+        open={openEdit}
+        onClose={() => setOpenEdit(false)}
+        project={project}
+        onSaved={(saved) => {
+          setProject(saved);
+          router.refresh();
+        }}
+      />
+
+      <ConfirmDelete
+        open={openDelete}
+        onClose={() => setOpenDelete(false)}
+        title="Delete project"
+        actionLabel="Delete project"
+        confirmText={project.name}
+        onConfirm={handleDelete}
+      >
+        <p>
+          This deletes <span className="font-semibold">{project.name}</span>
+          {localSuites.length > 0
+            ? `, its ${localSuites.length} ${localSuites.length === 1 ? "feature" : "features"} and ${totalCases} test cases`
+            : ""}
+          . It cannot be undone.
+        </p>
+      </ConfirmDelete>
 
 
       {localSuites?.length === 0 ? (

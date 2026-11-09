@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { Project } from "../types/testmind";
-import { createProject } from "../actions/projects";
+import { createProject, updateProject } from "../actions/projects";
 import ProjectTile from "./ProjectTile";
 import Modal, { btnGhost, btnPrimary, fieldClass, labelClass } from "./Modal";
 
@@ -11,18 +11,28 @@ type ProjectModalProps = {
   open: boolean;
   onClose: () => void;
   onCreated?: (project: Project) => void;
+  // With a project, the modal edits it instead of creating one.
+  project?: Project;
+  onSaved?: (project: Project) => void;
 };
 
 export default function ProjectModal({
   open,
   onClose,
   onCreated,
+  project: editing,
+  onSaved,
 }: ProjectModalProps) {
   const [project, setProject] = useState({
     name: "",
     description: "",
   });
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (!open || !editing) return;
+    setProject({ name: editing.name, description: editing.description ?? "" });
+  }, [open, editing]);
 
   const handleSave = async () => {
     if (!project.name.trim()) {
@@ -31,6 +41,23 @@ export default function ProjectModal({
     }
 
     setIsSaving(true);
+    if (editing) {
+      try {
+        const result = await updateProject(editing.id, project);
+        if ("error" in result) {
+          toast.error(result.error);
+          return;
+        }
+        onSaved?.(result.project);
+        toast.success("Project saved");
+        onClose();
+      } catch {
+        toast.error("Could not save the project. Please try again.");
+      } finally {
+        setIsSaving(false);
+      }
+      return;
+    }
     try {
       const created: Project = await createProject({
         name: project.name,
@@ -58,8 +85,8 @@ export default function ProjectModal({
       onClose={onClose}
       busy={isSaving}
       onSubmit={name ? handleSave : undefined}
-      title="Create project"
-      subtitle="A project groups related features, like an app or a service."
+      title={editing ? "Edit project" : "Create project"}
+      subtitle={editing ? undefined : "A project groups related features, like an app or a service."}
       footer={
         <>
           <button type="button" className={btnGhost} onClick={onClose} disabled={isSaving}>
@@ -67,7 +94,7 @@ export default function ProjectModal({
           </button>
           <button type="button" className={btnPrimary} onClick={handleSave} disabled={isSaving || !name}>
             {isSaving && <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/40 border-t-white" />}
-            {isSaving ? "Creating..." : "Create project"}
+            {editing ? (isSaving ? "Saving..." : "Save project") : isSaving ? "Creating..." : "Create project"}
           </button>
         </>
       }
