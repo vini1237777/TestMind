@@ -49,8 +49,12 @@ function mapSuite(doc: TestSuiteDb): TestSuite {
   };
 }
 
+// Under the /api/suites prefix, so clearListCache removes it after any suite write.
+const projectSuitesKey = (projectId: string) => `/api/suites/project/${projectId}`;
+
 export async function getSuitesByProject(projectId: string): Promise<TestSuite[]> {
-  const cached = await getCache(projectId);
+  const cacheKey = projectSuitesKey(projectId);
+  const cached = await getCache(cacheKey);
   if (cached) {
     const res = await cached.json();
     return res;
@@ -58,7 +62,7 @@ export async function getSuitesByProject(projectId: string): Promise<TestSuite[]
 
   await connectDB();
   const docs = await TestSuiteModel.find({ projectId }).sort({ createdAt: -1 }).lean<TestSuiteDb[]>();
-  await setCache(projectId, docs.map(mapSuite), 300);
+  await setCache(cacheKey, docs.map(mapSuite), 300);
   return docs.map(mapSuite);
 }
 
