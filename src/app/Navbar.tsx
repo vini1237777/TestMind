@@ -51,23 +51,25 @@ export default function Navbar() {
     <div>
       <FeaturesModal key={openCount} open={featuresOpen} initialTab={featuresTab} onClose={() => setFeaturesOpen(false)} />
       <nav className="tm-slide w-full bg-amber-300 h-12 flex items-center justify-between px-4">
-        <Link
-          href="/"
-          aria-label="TestMind home"
-          className="tm-logo flex items-center gap-2 rounded-md px-1.5 py-1 hover:bg-amber-200 dark:text-black"
-        >
-          <span className="tm-logo-tile grid h-8 w-8 place-items-center rounded-lg bg-black text-[13px] font-black tracking-tight text-amber-300">
-            TM
-          </span>
-          <span className="hidden text-base font-semibold sm:inline">TestMind</span>
-        </Link>
+        <div className="flex items-center gap-1.5 sm:gap-3">
+          <Link
+            href="/"
+            aria-label="TestMind home"
+            className="tm-logo flex items-center gap-2 rounded-md px-1.5 py-1 hover:bg-amber-200 dark:text-black"
+          >
+            <span className="tm-logo-tile grid h-8 w-8 place-items-center rounded-lg bg-black text-[13px] font-black tracking-tight text-amber-300">
+              TM
+            </span>
+            <span className="hidden text-base font-semibold sm:inline">TestMind</span>
+          </Link>
+          <VisitorCount />
+        </div>
 
         <div className="flex items-center gap-1">
-          <VisitorCount />
           <Link
             href="/"
             aria-current={active("/") ? "page" : undefined}
-            className={`text-sm font-medium rounded-md px-2 py-1 text-black transition-colors ${active("/") ? "bg-amber-200" : "hover:bg-amber-200"}`}
+            className={`hidden sm:inline text-sm font-medium rounded-md px-2 py-1 text-black transition-colors ${active("/") ? "bg-amber-200" : "hover:bg-amber-200"}`}
           >
             Home
           </Link>

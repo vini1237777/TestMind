@@ -22,7 +22,7 @@ for (const path of ["/", "/projects"]) {
   test(`${path} shows the count in the navbar`, async ({ page }) => {
     await page.goto(path);
     await expect(page.getByRole("navigation").getByTestId("visitor-count")).toHaveText(
-      /\d+ visitors?/,
+      /Profile visits\s*\d+/,
     );
   });
 }
