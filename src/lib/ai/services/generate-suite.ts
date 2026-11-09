@@ -1,9 +1,8 @@
 import type { TestCase } from "@/src/app/types/testmind";
-import { getOpenAIClient } from "@/src/lib/ai/llm/openai";
+import { completeJson } from "@/src/lib/ai/llm/complete-json";
 import { buildGenerateTestsPrompt } from "@/src/lib/ai/prompts/generate-tests";
 import { GenerateSuiteResponseSchema } from "@/src/lib/ai/schemas/test-case";
 import { createRunLogger } from "@/src/lib/ai/utils/logger";
-import { parseJson } from "@/src/lib/ai/utils/parse-json";
 import type { LlmUsage } from "@/src/lib/ai/llm/openai";
 
 type GenerateSuiteInput = {
@@ -22,7 +21,6 @@ export async function generateSuiteService({
   const logger = createRunLogger("generate-suite");
   logger.start("Generating test suite", { featureName });
 
-  const client = getOpenAIClient();
   const prompt = buildGenerateTestsPrompt({
     featureName,
     description,
@@ -30,27 +28,12 @@ export async function generateSuiteService({
     lastFeedbackScore,
   });
 
-  const completion = await client.chat.completions.create({
-    model: "gpt-4o-mini",
-    response_format: { type: "json_object" },
-    messages: [{ role: "user", content: prompt }],
-  });
-
-  const raw = completion.choices[0]?.message?.content;
-  if (!raw) throw new Error("No response from AI.");
-
-  const parsed = parseJson<unknown>(raw);
-  const validated = GenerateSuiteResponseSchema.parse(parsed);
+  const { data: validated, usage, provider } = await completeJson(prompt, GenerateSuiteResponseSchema);
 
   logger.end("Generated test suite successfully", {
     count: validated.testCases.length,
+    provider,
   });
-
-  const usage = {
-    model: completion.model,
-    promptTokens: completion.usage?.prompt_tokens,
-    completionTokens: completion.usage?.completion_tokens,
-  };
 
   return {
     testCases: validated.testCases.map((testCase) => ({
