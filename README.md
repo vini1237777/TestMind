@@ -6,13 +6,35 @@
 
 [**Live demo →**](https://testmind-production.up.railway.app/) · [Architecture](https://testmind-production.up.railway.app/architecture) · [E2E test](tests/e2e/testmind-complete-flow.spec.ts)
 
-`Next.js 16` · `React 19` · `TypeScript` · `LangGraph` · `OpenAI` · `MongoDB` · `Upstash Redis` · `Playwright` · `Sentry` · `Docker`
+`Next.js 16` · `React 19` · `TypeScript` · `LangGraph` · `OpenAI` · `MongoDB` · `BullMQ` · `Redis` · `Playwright` · `Sentry` · `Docker`
 
 <!-- Add screenshots: docs/suite.png (suite page with a finished pipeline trace) and docs/architecture.png -->
 
 </div>
 
 ---
+
+## Architecture
+
+```mermaid
+flowchart LR
+  B[Browser] -->|"/api/*"| P["Next.js proxy<br/>Upstash rate limit 10/60s/IP"]
+  B -->|"polls job status, skips the limit"| S[Job status route]
+  P --> R[Route handlers]
+  R -->|"202 + job id"| Q[("BullMQ on Redis")]
+  S --> Q
+  Q --> W["Worker process<br/>3 jobs at once"]
+  W --> G1[[Generation graph]]
+  R --> G2[[Review graph]]
+  G1 --> O[("OpenAI gpt-4o-mini<br/>JSON mode")]
+  G2 --> O
+  W --> M[(MongoDB)]
+  R --> M
+  R --> C[("Upstash read cache")]
+  R -.-> E[Sentry]
+```
+
+Generation runs in the background because a model call takes seconds. The API answers straight away and a separate worker does the slow part. Reviews still run inside the request.
 
 ## The problem
 
@@ -28,20 +50,7 @@ Writing test cases is slow, and the cases people skip are the negative and edge 
 
 Each run shows a **live pipeline trace**: the graph's nodes, how long each took, the model, and the token count, reported by the server.
 
-## Architecture
-
-```mermaid
-flowchart LR
-  B[Browser] -->|/api/*| P[Next.js proxy<br/>Upstash rate limit 10/60s/IP]
-  P --> R[Route handlers]
-  R --> G1[[Generation graph]]
-  R --> G2[[Review graph]]
-  G1 --> O[(OpenAI gpt-4o-mini<br/>JSON mode)]
-  G2 --> O
-  R --> M[(MongoDB)]
-  R --> C[(Redis cache)]
-  R -.-> S[Sentry]
-```
+## How each run works
 
 ```mermaid
 flowchart LR
@@ -64,6 +73,9 @@ flowchart LR
 | **Deterministic post-processing** | Normalization and dedupe (type + normalized title) are plain code, not prompts: testable and free. | [`utils/test-case.ts`](src/lib/ai/utils/test-case.ts) |
 | **Persist only after a clean run** | Orchestrators throw if any node reported an error, so there are no half-written suites. | [`suite-orchestrator/`](src/lib/ai/services/suite-orchestrator) |
 | **Edge rate limiting** | Upstash fixed window in the Next.js proxy protects the LLM budget. | [`proxy.ts`](src/proxy.ts) |
+| **Background worker for generation** | A model call takes seconds. The API returns a job id immediately, and concurrency stays capped at 3 however many requests arrive. | [`generation-worker.ts`](src/worker/generation-worker.ts) |
+| **Polling instead of SSE** | It survives proxies and restarts and needs no open connection, at the cost of up to 1.5s extra delay. The status route only reads job state, so it skips the rate limit. | [`generate-tests.ts`](src/app/lib/generate-tests.ts) |
+| **Separate Redis for the queue** | BullMQ needs a TCP connection, which Upstash REST doesn't offer, and its constant polling doesn't suit per-command pricing. | [`generation-queue.ts`](src/lib/queue/generation-queue.ts) |
 | **Redis read cache** | Suite and project reads are cached with `s-maxage` / `stale-while-revalidate` and an `X-Cache` marker. | [`cache.ts`](src/lib/cache.ts) |
 
 ### Results
@@ -72,11 +84,20 @@ flowchart LR
 |---|---|---|
 | Cached API throughput (autocannon) | ~40 req/s | **420+ req/s** |
 | API latency | ~2.5 s | **~250 ms** |
-| Docker image | 1.18 GB | **281 MB** (multi-stage, standalone output) |
+| Docker image | 1.18 GB | **281 MB** (multi-stage, standalone output, measured before the worker was added) |
+
+Generation queue, measured locally with a stubbed 5-second model:
+
+| | Result |
+|---|---|
+| `POST /api/generate-tests` | 5.05 s held open before, **10 ms** now |
+| 20 simultaneous requests | All accepted in 187 ms total, never more than 3 model calls at once |
+| Worker killed with `kill -9` mid-job | Job finished after a restart, 64 s later, with one suite saved |
+| Redis unreachable | Clean 503 in about 3 s |
 
 ## Testing
 
-The Playwright test drives the real UI end to end: create project → add feature → generate → review → accept a suggestion. It intercepts the three AI routes with fixtures, so it's **deterministic, fast and costs nothing**. The fixtures deliberately include malformed shapes (uppercase types, a non-array `suggestions`) to prove the UI tolerates them.
+The Playwright test drives the real UI end to end: create project → add feature → generate → review → accept a suggestion. It intercepts the AI routes with fixtures, so it's **deterministic, fast and costs nothing**. The fixtures deliberately include malformed shapes (uppercase types, a non-array `suggestions`) to prove the UI tolerates them.
 
 ```bash
 npm run test:e2e
@@ -85,7 +106,7 @@ npm run test:e2e
 ## Production
 
 - **Docker:** multi-stage build of Next's `standalone` output ([`Dockerfile.prod`](Dockerfile.prod))
-- **PM2:** cluster mode, 2 instances, restart at 350 MB ([`ecosystem.config.js`](ecosystem.config.js))
+- **PM2:** the web app in cluster mode with 2 instances, plus 1 generation worker, each restarting at 350 MB ([`ecosystem.config.js`](ecosystem.config.js))
 - **Sentry:** client, server and edge, tunneled via `/monitoring`
 - **Hosting:** Railway
 
@@ -103,6 +124,7 @@ git clone https://github.com/vini1237777/TestMind.git && cd TestMind
 npm install
 cp .env.example .env.local   # fill in the values
 npm run dev
+npm run worker   # in a second terminal, needs REDIS_URL
 ```
 
 | Variable | Used for |
@@ -110,6 +132,7 @@ npm run dev
 | `OPENAI_API_KEY` | generation and review |
 | `MONGODB_URI` | persistence |
 | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | rate limiting and cache |
+| `REDIS_URL` | generation queue (TCP Redis, not the Upstash REST URL) |
 | `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_DSN` | error monitoring (optional) |
 
 ```bash
