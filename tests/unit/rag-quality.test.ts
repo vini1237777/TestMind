@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { compare, type Mode, type Run } from "../../evals/rag-quality/metrics";
+import { compare, strictlyCovered, type Mode, type Run } from "../../evals/rag-quality/metrics";
 
 const run = (feature: string, mode: Mode, value: number): Run => ({
   feature,
@@ -32,4 +32,13 @@ test("the interval is repeatable and holds the difference", () => {
   const first = compare(runs, "specCoverage");
   assert.deepEqual(first.interval95, compare(runs, "specCoverage").interval95);
   assert.ok(first.interval95[0] <= first.difference && first.difference <= first.interval95[1]);
+});
+
+test("a rule with a number needs that number in the cases", () => {
+  const rule = "A cart holds at most 10 units";
+  assert.equal(strictlyCovered(rule, true, "Only 10 units can be added"), true);
+  assert.equal(strictlyCovered(rule, true, "The limit is reached"), false);
+  assert.equal(strictlyCovered(rule, true, "Add 100 units"), false);
+  assert.equal(strictlyCovered(rule, false, "Only 10 units can be added"), false);
+  assert.equal(strictlyCovered("Refunds use the original method", true, "Anything"), true);
 });

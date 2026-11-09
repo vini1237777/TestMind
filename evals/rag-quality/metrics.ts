@@ -19,6 +19,14 @@ export const METRICS: (keyof RunScore)[] = [
   "cases",
 ];
 
+// A stricter reading of the judge: a rule with a number counts only when that number
+// appears in the test cases. Added after reading a sample of judge verdicts.
+export function strictlyCovered(rule: string, covered: boolean, casesText: string) {
+  if (!covered) return false;
+  const numbers = rule.match(/\d+/g) ?? [];
+  return numbers.every((value) => new RegExp(`(^|[^0-9])${value}([^0-9]|$)`).test(casesText));
+}
+
 const mean = (values: number[]) => values.reduce((sum, value) => sum + value, 0) / values.length;
 
 // A generated case repeats a saved one above this Atlas score, a cosine of 0.85.
