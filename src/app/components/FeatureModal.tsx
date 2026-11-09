@@ -58,7 +58,7 @@ export default function FeatureModal({
 
     setIsSaving(true);
     try {
-      const suite = await createSuite({
+      const result = await createSuite({
         projectId,
         featureName: trimmedName,
         description: trimmedDesc,
@@ -68,9 +68,14 @@ export default function FeatureModal({
         lastReviewedAt,
       });
 
+      if ("error" in result) {
+        toast.error(result.error);
+        return;
+      }
+
       toast.success("Feature / suite created");
 
-      onCreated?.(suite);
+      onCreated?.(result.suite);
 
       setFeatureName("");
       setDescription("");

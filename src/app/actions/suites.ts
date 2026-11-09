@@ -1,5 +1,6 @@
 "use server";
 
+import { DUPLICATE_FEATURE_ERROR, isFeatureNameTaken } from "@/src/lib/suites/names";
 import { Types } from "mongoose";
 import { connectDB } from "@/src/lib/mongodb";
 import TestSuiteModel from "@/src/app/models/TestSuite";
@@ -84,7 +85,7 @@ export async function createSuite(data: {
   lastFeedbackSummary?: string;
   lastFeedbackScore?: number | null;
   lastReviewedAt?: string | null;
-}): Promise<TestSuite> {
+}): Promise<{ suite: TestSuite } | { error: string }> {
   const {
     projectId,
     featureName,
@@ -100,10 +101,15 @@ export async function createSuite(data: {
 
   await connectDB();
 
+  // Returned, not thrown, because production hides the message of a thrown error.
+  if (await isFeatureNameTaken(projectId, featureName)) {
+    return { error: DUPLICATE_FEATURE_ERROR };
+  }
+
   const doc = (await TestSuiteModel.create({
     projectId: new Types.ObjectId(projectId),
-    name: featureName,
-    featureName,
+    name: featureName.trim(),
+    featureName: featureName.trim(),
     description,
     testCases,
     lastFeedbackSummary: lastFeedbackSummary || "",
@@ -114,7 +120,7 @@ export async function createSuite(data: {
   await syncSuiteChunks({ suiteId: doc._id.toString(), projectId, testCases });
   await clearListCache();
   revalidatePath(`/projects/${data.projectId}`);
-  return mapSuite(doc);
+  return { suite: mapSuite(doc) };
 }
 
 export async function addTestCasesToSuite(suiteId: string, newCases: TestCase[]): Promise<TestSuite> {
