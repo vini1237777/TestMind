@@ -1,0 +1,26 @@
+{
+  "strictProjectCoverage": {
+    "off": 0.22916666666666669,
+    "on": 0.5666666666666667,
+    "difference": 0.3375,
+    "interval95": [
+      0.2125,
+      0.4791666666666667
+    ],
+    "onHigher": 16,
+    "offHigher": 0,
+    "pairs": 20
+  },
+  "numberedRulesOnly": {
+    "off": 0.11666666666666665,
+    "on": 0.4583333333333333,
+    "difference": 0.3416666666666667,
+    "interval95": [
+      0.18333333333333332,
+      0.5083333333333334
+    ],
+    "onHigher": 10,
+    "offHigher": 0,
+    "pairs": 20
+  }
+}

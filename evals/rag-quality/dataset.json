@@ -1,0 +1,596 @@
+{
+ "saved": [
+  {
+   "type": "happy",
+   "title": "Pay by saved card",
+   "steps": [
+    "Add an item to the cart",
+    "Choose the saved card",
+    "Confirm payment"
+   ],
+   "expected": "The order is placed and a receipt is shown"
+  },
+  {
+   "type": "negative",
+   "title": "Card declined by the bank",
+   "steps": [
+    "Open checkout",
+    "Enter a card the bank declines",
+    "Press pay"
+   ],
+   "expected": "An error is shown and no order is created"
+  },
+  {
+   "type": "edge",
+   "title": "Pay pressed twice",
+   "steps": [
+    "Open checkout",
+    "Press pay twice quickly"
+   ],
+   "expected": "The customer is charged once"
+  },
+  {
+   "type": "edge",
+   "title": "UPI request left unanswered",
+   "steps": [
+    "Choose UPI",
+    "Send the collect request",
+    "Wait without approving"
+   ],
+   "expected": "The request expires after 5 minutes and the cart is kept"
+  },
+  {
+   "type": "negative",
+   "title": "Cash on delivery above the limit",
+   "steps": [
+    "Add items worth Rs 5001",
+    "Open payment options"
+   ],
+   "expected": "Cash on delivery is hidden because the limit is Rs 5000"
+  },
+  {
+   "type": "happy",
+   "title": "Apply a valid coupon",
+   "steps": [
+    "Open the cart",
+    "Enter a current coupon",
+    "Press apply"
+   ],
+   "expected": "The total goes down by the coupon amount"
+  },
+  {
+   "type": "negative",
+   "title": "Coupon below the minimum order",
+   "steps": [
+    "Add items worth Rs 499",
+    "Enter a coupon"
+   ],
+   "expected": "A message says the minimum order is Rs 500"
+  },
+  {
+   "type": "negative",
+   "title": "Second coupon on one order",
+   "steps": [
+    "Apply one coupon",
+    "Enter another coupon"
+   ],
+   "expected": "The second coupon is refused because an order takes one coupon"
+  },
+  {
+   "type": "negative",
+   "title": "Expired coupon",
+   "steps": [
+    "Open the cart",
+    "Enter an expired coupon"
+   ],
+   "expected": "A message says the coupon has expired and the total stays the same"
+  },
+  {
+   "type": "happy",
+   "title": "Return a delivered order",
+   "steps": [
+    "Open a delivered order",
+    "Choose return",
+    "Pick a reason"
+   ],
+   "expected": "A return request is created and a pickup date is shown"
+  },
+  {
+   "type": "edge",
+   "title": "Return on the last allowed day",
+   "steps": [
+    "Open an order delivered 7 days ago",
+    "Choose return"
+   ],
+   "expected": "The return is accepted because the window is 7 days"
+  },
+  {
+   "type": "negative",
+   "title": "Return after the window",
+   "steps": [
+    "Open an order delivered 8 days ago"
+   ],
+   "expected": "The return option is not shown"
+  },
+  {
+   "type": "negative",
+   "title": "Return a grocery item",
+   "steps": [
+    "Open a delivered grocery order"
+   ],
+   "expected": "Return is not offered because groceries cannot be returned"
+  },
+  {
+   "type": "happy",
+   "title": "Refund goes to the original payment",
+   "steps": [
+    "Complete a return pickup",
+    "Open the refund status"
+   ],
+   "expected": "The refund goes to the original payment method within 5 working days"
+  },
+  {
+   "type": "happy",
+   "title": "Add a delivery address",
+   "steps": [
+    "Open account",
+    "Add an address with a valid pincode",
+    "Save"
+   ],
+   "expected": "The address appears in the saved list"
+  },
+  {
+   "type": "negative",
+   "title": "Pincode with five digits",
+   "steps": [
+    "Open the address form",
+    "Enter a five digit pincode",
+    "Save"
+   ],
+   "expected": "The form says a pincode has exactly 6 digits"
+  },
+  {
+   "type": "edge",
+   "title": "Sixth saved address",
+   "steps": [
+    "Save five addresses",
+    "Try to add another"
+   ],
+   "expected": "A message says an account can save 5 addresses"
+  },
+  {
+   "type": "negative",
+   "title": "Delivery to an unserved pincode",
+   "steps": [
+    "Enter a pincode outside the service area at checkout"
+   ],
+   "expected": "Checkout says delivery is not available at this pincode"
+  },
+  {
+   "type": "happy",
+   "title": "Search by product name",
+   "steps": [
+    "Type a product name",
+    "Press enter"
+   ],
+   "expected": "Matching products are listed with 20 results on a page"
+  },
+  {
+   "type": "edge",
+   "title": "Search with one character",
+   "steps": [
+    "Type one letter",
+    "Press enter"
+   ],
+   "expected": "Search asks for at least 2 characters"
+  },
+  {
+   "type": "edge",
+   "title": "Search with no results",
+   "steps": [
+    "Type random letters",
+    "Press enter"
+   ],
+   "expected": "An empty state suggests popular categories"
+  },
+  {
+   "type": "edge",
+   "title": "Eleventh unit of one item",
+   "steps": [
+    "Add 10 units of an item",
+    "Add one more"
+   ],
+   "expected": "The cart holds at most 10 units of an item"
+  },
+  {
+   "type": "edge",
+   "title": "Item sells out while in the cart",
+   "steps": [
+    "Add the last unit",
+    "Another customer buys it",
+    "Open checkout"
+   ],
+   "expected": "The cart warns that the item is out of stock and blocks checkout"
+  },
+  {
+   "type": "edge",
+   "title": "Cart left for a week",
+   "steps": [
+    "Add an item",
+    "Return after 8 days"
+   ],
+   "expected": "The cart is empty because carts are kept for 7 days"
+  },
+  {
+   "type": "happy",
+   "title": "Sign in with a phone OTP",
+   "steps": [
+    "Enter a phone number",
+    "Enter the 6 digit OTP"
+   ],
+   "expected": "The customer is signed in"
+  },
+  {
+   "type": "negative",
+   "title": "OTP used after it expired",
+   "steps": [
+    "Request an OTP",
+    "Wait 6 minutes",
+    "Enter the OTP"
+   ],
+   "expected": "The OTP is refused because it lasts 5 minutes"
+  },
+  {
+   "type": "negative",
+   "title": "Three wrong OTPs",
+   "steps": [
+    "Enter a wrong OTP three times"
+   ],
+   "expected": "Sign in is locked for 15 minutes"
+  },
+  {
+   "type": "edge",
+   "title": "Session after inactivity",
+   "steps": [
+    "Sign in",
+    "Stay idle for 31 minutes",
+    "Open account"
+   ],
+   "expected": "The customer signs in again because a session ends after 30 idle minutes"
+  },
+  {
+   "type": "happy",
+   "title": "Review a delivered product",
+   "steps": [
+    "Open a delivered order",
+    "Give 4 stars",
+    "Submit"
+   ],
+   "expected": "The review appears on the product page"
+  },
+  {
+   "type": "negative",
+   "title": "Review without buying",
+   "steps": [
+    "Open a product never bought",
+    "Try to review"
+   ],
+   "expected": "Only customers who received the product can review it"
+  },
+  {
+   "type": "edge",
+   "title": "Review over the length limit",
+   "steps": [
+    "Write 501 characters",
+    "Submit"
+   ],
+   "expected": "The form says a review can have 500 characters"
+  },
+  {
+   "type": "edge",
+   "title": "Wishlist at its limit",
+   "steps": [
+    "Save 50 products",
+    "Save one more"
+   ],
+   "expected": "A message says a wishlist holds 50 products"
+  },
+  {
+   "type": "happy",
+   "title": "Move a wishlist item to the cart",
+   "steps": [
+    "Open the wishlist",
+    "Press move to cart"
+   ],
+   "expected": "The item is in the cart and leaves the wishlist"
+  },
+  {
+   "type": "happy",
+   "title": "Order confirmation message",
+   "steps": [
+    "Place an order"
+   ],
+   "expected": "An SMS with the order number is sent within 1 minute"
+  },
+  {
+   "type": "happy",
+   "title": "Download a GST invoice",
+   "steps": [
+    "Open a delivered order",
+    "Press download invoice"
+   ],
+   "expected": "A PDF invoice shows the GST number and tax amount"
+  },
+  {
+   "type": "negative",
+   "title": "Invoice before delivery",
+   "steps": [
+    "Open an order not yet delivered"
+   ],
+   "expected": "The invoice button is not shown until delivery"
+  },
+  {
+   "type": "negative",
+   "title": "Cancel after shipping",
+   "steps": [
+    "Open a shipped order"
+   ],
+   "expected": "Cancel is hidden after an order ships"
+  },
+  {
+   "type": "happy",
+   "title": "Cancel before shipping",
+   "steps": [
+    "Open a confirmed order",
+    "Press cancel"
+   ],
+   "expected": "The order is cancelled and the refund starts"
+  },
+  {
+   "type": "happy",
+   "title": "Track an order",
+   "steps": [
+    "Open a shipped order",
+    "Press track"
+   ],
+   "expected": "The courier status and expected date are shown"
+  },
+  {
+   "type": "edge",
+   "title": "Free delivery threshold",
+   "steps": [
+    "Add items worth Rs 999",
+    "Open checkout"
+   ],
+   "expected": "A delivery fee is charged because delivery is free from Rs 1000"
+  }
+ ],
+ "features": [
+  {
+   "featureName": "Cash on delivery",
+   "description": "Customers can pay in cash when the parcel arrives. The option appears at checkout and the order is confirmed without an online payment.",
+   "specRules": [
+    "Cash on delivery can be chosen at checkout",
+    "The order is confirmed without an online payment"
+   ],
+   "projectRules": [
+    "Cash on delivery is not available above Rs 5000"
+   ]
+  },
+  {
+   "featureName": "UPI payment",
+   "description": "Customers pay by entering a UPI id and approving the request in their UPI app. The order is placed after approval.",
+   "specRules": [
+    "An approved request places the order",
+    "Payment uses a UPI id entered by the customer"
+   ],
+   "projectRules": [
+    "An unapproved UPI request expires after 5 minutes",
+    "The cart is kept when the request expires"
+   ]
+  },
+  {
+   "featureName": "Coupon box at checkout",
+   "description": "A coupon box at checkout lets customers reduce the price of the order with a code.",
+   "specRules": [
+    "A valid code reduces the order price"
+   ],
+   "projectRules": [
+    "A coupon needs a minimum order of Rs 500",
+    "Only one coupon can be used on an order"
+   ]
+  },
+  {
+   "featureName": "Return request form",
+   "description": "Customers fill in a form to return something they bought, choosing a reason and a pickup slot.",
+   "specRules": [
+    "The customer chooses a return reason",
+    "The customer chooses a pickup slot"
+   ],
+   "projectRules": [
+    "Returns are allowed for 7 days after delivery",
+    "Groceries cannot be returned"
+   ]
+  },
+  {
+   "featureName": "Refund status page",
+   "description": "A page shows customers where their refund is after a return.",
+   "specRules": [
+    "The page shows the status of the refund"
+   ],
+   "projectRules": [
+    "Refunds go to the original payment method",
+    "Refunds complete within 5 working days"
+   ]
+  },
+  {
+   "featureName": "Address book",
+   "description": "Customers manage their delivery addresses in their account: add, edit and delete.",
+   "specRules": [
+    "An address can be added",
+    "An address can be edited",
+    "An address can be deleted"
+   ],
+   "projectRules": [
+    "A pincode must have exactly 6 digits",
+    "An account can save at most 5 addresses"
+   ]
+  },
+  {
+   "featureName": "Pincode check on product page",
+   "description": "A box on the product page tells customers whether the product can be delivered to them.",
+   "specRules": [
+    "The customer enters a location on the product page and sees whether delivery is possible"
+   ],
+   "projectRules": [
+    "A pincode must have exactly 6 digits",
+    "An unserved pincode shows that delivery is not available"
+   ]
+  },
+  {
+   "featureName": "Search suggestions",
+   "description": "Suggestions appear under the search box while the customer types, and choosing one opens its results.",
+   "specRules": [
+    "Suggestions appear while typing",
+    "Choosing a suggestion opens its results"
+   ],
+   "projectRules": [
+    "Search needs at least 2 characters"
+   ]
+  },
+  {
+   "featureName": "Search results paging",
+   "description": "Long search results are split across pages with next and previous buttons.",
+   "specRules": [
+    "Next and previous buttons move between pages"
+   ],
+   "projectRules": [
+    "A page shows 20 results",
+    "No results shows suggested popular categories"
+   ]
+  },
+  {
+   "featureName": "Cart quantity control",
+   "description": "Plus and minus buttons in the cart change how many units of an item the customer buys.",
+   "specRules": [
+    "The plus button adds a unit",
+    "The minus button removes a unit"
+   ],
+   "projectRules": [
+    "A cart holds at most 10 units of an item"
+   ]
+  },
+  {
+   "featureName": "Saved cart across visits",
+   "description": "The cart stays when a customer leaves the site and comes back later.",
+   "specRules": [
+    "Cart items are still there on a later visit"
+   ],
+   "projectRules": [
+    "Carts are kept for 7 days",
+    "An item out of stock on return is flagged and blocks checkout"
+   ]
+  },
+  {
+   "featureName": "OTP sign in screen",
+   "description": "Customers sign in with a code sent to their phone.",
+   "specRules": [
+    "A correct code signs the customer in"
+   ],
+   "projectRules": [
+    "The code has 6 digits",
+    "The code expires after 5 minutes",
+    "Three wrong codes lock sign in for 15 minutes"
+   ]
+  },
+  {
+   "featureName": "Stay signed in",
+   "description": "Customers stay signed in while using the site so they do not have to enter a code each time.",
+   "specRules": [
+    "A customer in active use stays signed in"
+   ],
+   "projectRules": [
+    "A session ends after 30 idle minutes"
+   ]
+  },
+  {
+   "featureName": "Product review form",
+   "description": "Customers rate a product with stars and write about it.",
+   "specRules": [
+    "A customer can give a star rating",
+    "A customer can write review text"
+   ],
+   "projectRules": [
+    "Only customers who received the product can review it",
+    "A review can have at most 500 characters"
+   ]
+  },
+  {
+   "featureName": "Wishlist page",
+   "description": "Customers save products for later and view them on a page.",
+   "specRules": [
+    "A product can be saved for later",
+    "Saved products are listed on a page"
+   ],
+   "projectRules": [
+    "A wishlist holds at most 50 products",
+    "Moving an item to the cart removes it from the wishlist"
+   ]
+  },
+  {
+   "featureName": "Order SMS updates",
+   "description": "Customers get text messages about their order.",
+   "specRules": [
+    "Customers get a text message about the order"
+   ],
+   "projectRules": [
+    "The order SMS includes the order number",
+    "The order SMS is sent within 1 minute"
+   ]
+  },
+  {
+   "featureName": "Invoice download",
+   "description": "Customers can download a bill for an order from the order page.",
+   "specRules": [
+    "A bill can be downloaded from the order page"
+   ],
+   "projectRules": [
+    "The invoice shows the GST number and tax amount",
+    "The invoice is not available before delivery"
+   ]
+  },
+  {
+   "featureName": "Cancel order button",
+   "description": "Customers can cancel an order from the order page.",
+   "specRules": [
+    "An order can be cancelled from the order page"
+   ],
+   "projectRules": [
+    "Cancel is not available after the order ships",
+    "Cancelling starts the refund"
+   ]
+  },
+  {
+   "featureName": "Delivery fee at checkout",
+   "description": "Checkout shows the delivery fee for the order and adds it to the total.",
+   "specRules": [
+    "The delivery fee is added to the total"
+   ],
+   "projectRules": [
+    "Delivery is free from Rs 1000",
+    "An order of Rs 999 is charged the fee"
+   ]
+  },
+  {
+   "featureName": "Buy again",
+   "description": "A button on past orders adds the same items to the cart again.",
+   "specRules": [
+    "The button adds the same items to the cart"
+   ],
+   "projectRules": [
+    "The cart limit of 10 units of an item still applies",
+    "An item out of stock is flagged"
+   ]
+  }
+ ]
+}
