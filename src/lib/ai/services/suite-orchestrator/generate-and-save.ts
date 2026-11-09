@@ -3,6 +3,7 @@ import TestSuite from "@/src/app/models/TestSuite";
 import type { TestCase } from "@/src/app/types/testmind";
 import type { RunTrace } from "@/src/lib/ai/graph/topology";
 import { runGenerationWorkflow } from "@/src/lib/ai/services/suite-orchestrator/run-generation";
+import { syncSuiteChunks } from "@/src/lib/ai/rag/chunks";
 import { clearListCache } from "@/src/lib/cache";
 import { connectDB } from "@/src/lib/mongodb";
 
@@ -88,6 +89,7 @@ export async function generateAndSaveSuite(input: GenerationInput): Promise<Gene
     ).lean<SuiteDoc>();
 
     if (updated) {
+      await syncSuiteChunks({ suiteId: updated._id.toString(), projectId, testCases });
       await clearListCache();
       return toResult(updated, (updated.testCases as TestCase[]) || [], trace);
     }
@@ -104,6 +106,7 @@ export async function generateAndSaveSuite(input: GenerationInput): Promise<Gene
     lastReviewedAt: lastReviewedAt || null,
   })) as unknown as SuiteDoc;
 
+  await syncSuiteChunks({ suiteId: created._id.toString(), projectId, testCases });
   await clearListCache();
   return toResult(created, testCases, trace);
 }
