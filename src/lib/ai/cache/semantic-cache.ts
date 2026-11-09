@@ -96,10 +96,11 @@ export function semanticCacheText(featureName: string, description: string) {
 export async function lookupSemanticCache(
   projectId: string,
   text: string,
+  knownEmbedding: number[] | null = null,
 ): Promise<SemanticLookup> {
-  let embedding: number[] | null = null;
+  let embedding = knownEmbedding;
   try {
-    embedding = await embedText(text);
+    embedding ??= await embedText(text);
     const redis = getRedis();
     const vectors = await withTimeout(
       redis.hgetall(vectorsKey(projectId)),

@@ -10,6 +10,8 @@ export const SuiteGraphAnnotation = Annotation.Root({
   generatedTestCases: Annotation<any[]>({ reducer: (_, right) => right, default: () => [] }),
   feedback: Annotation<any | null>({ reducer: (_, right) => right, default: () => null }),
   improvedTestCases: Annotation<any[]>({ reducer: (_, right) => right, default: () => [] }),
+  retrievedCases: Annotation<{ text: string; score: number }[]>({ reducer: (_, right) => right, default: () => [] }),
+  queryEmbedding: Annotation<number[] | null>({ reducer: (_, right) => right, default: () => null }),
   lastFeedbackSummary: Annotation<string | undefined>({ reducer: (_, right) => right, default: () => undefined }),
   lastFeedbackScore: Annotation<number | null | undefined>({ reducer: (_, right) => right, default: () => null }),
   lastReviewedAt: Annotation<string | null | undefined>({ reducer: (_, right) => right, default: () => null }),

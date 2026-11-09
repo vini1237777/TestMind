@@ -23,6 +23,7 @@ export async function generateTestCasesNode(
       ? await lookupSemanticCache(
           projectId,
           semanticCacheText(state.featureName, state.description),
+          state.queryEmbedding,
         )
       : null;
 

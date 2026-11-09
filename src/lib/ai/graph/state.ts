@@ -1,5 +1,6 @@
 import type { FeedbackResult, TestCase } from "@/src/app/types/testmind";
 import type { NodeTrace } from "@/src/lib/ai/graph/topology";
+import type { RetrievedCase } from "@/src/lib/ai/rag/retrieve";
 
 export type GraphActionType =
   | "initial_generation"
@@ -17,6 +18,8 @@ export type SuiteGraphState = {
   generatedTestCases: TestCase[];
   feedback: FeedbackResult | null;
   improvedTestCases: TestCase[];
+  retrievedCases: RetrievedCase[];
+  queryEmbedding: number[] | null;
   lastFeedbackSummary?: string;
   lastFeedbackScore?: number | null;
   lastReviewedAt?: string | null;
