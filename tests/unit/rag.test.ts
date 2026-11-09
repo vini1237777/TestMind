@@ -20,6 +20,7 @@ let dbPath: string;
 let server: http.Server;
 let embedded: string[] = [];
 let embedStatus = 200;
+let embedHangs = false;
 let prompts: string[] = [];
 
 type Modules = {
@@ -58,6 +59,7 @@ before(async () => {
       const body = JSON.parse(raw || "{}");
       res.setHeader("content-type", "application/json");
       if (req.url?.includes("embeddings")) {
+        if (embedHangs) return;
         const inputs: string[] = [body.input].flat();
         embedded.push(...inputs);
         res.statusCode = embedStatus;
@@ -127,6 +129,7 @@ beforeEach(async () => {
   embedded = [];
   prompts = [];
   embedStatus = 200;
+  embedHangs = false;
   process.env.RAG = "on";
   delete process.env.RAG_MIN_SCORE;
   await m.Chunk.deleteMany({});
@@ -346,6 +349,20 @@ describe("the generation graph", () => {
   });
 });
 
+describe("a slow embedding service", () => {
+  test("generation goes on after the timeout", async () => {
+    embedHangs = true;
+    const started = Date.now();
+    const state = await m.graph.runSuiteGenerationGraph({
+      featureName: "Checkout",
+      description: "Pay by card",
+      projectId: PROJECT,
+    });
+    assert.equal(state.generatedTestCases.length, 4);
+    assert.ok(Date.now() - started < 8_000);
+  });
+});
+
 describe("saving a generated suite", () => {
   const input = { featureName: "Checkout", description: "Pay by card", projectId: PROJECT };
 
@@ -359,5 +376,46 @@ describe("saving a generated suite", () => {
     const result = await m.save.generateAndSaveSuite(input);
     assert.ok(await m.Suite.findById(result.suiteId));
     assert.equal(await m.Chunk.countDocuments(), 0);
+  });
+
+  test("keeps the suite when the chunk write fails", async () => {
+    const write = mock.method(m.Chunk, "bulkWrite", async () => {
+      throw new Error("write failed");
+    });
+    try {
+      const result = await m.save.generateAndSaveSuite(input);
+      assert.ok(await m.Suite.findById(result.suiteId));
+      assert.equal(write.mock.callCount(), 1);
+    } finally {
+      write.mock.restore();
+    }
+  });
+});
+
+describe("evaluation metrics", () => {
+  const ranked = [
+    { id: "a", score: 0.9 },
+    { id: "b", score: 0.8 },
+    { id: "c", score: 0.7 },
+    { id: "d", score: 0.6 },
+  ];
+
+  test("hit counts a relevant case inside the cut off only", async () => {
+    const { hitAt } = await import("../../evals/rag/metrics");
+    assert.equal(hitAt(ranked, ["c"], 3), 1);
+    assert.equal(hitAt(ranked, ["d"], 3), 0);
+  });
+
+  test("recall is the share of relevant cases found", async () => {
+    const { recallAt } = await import("../../evals/rag/metrics");
+    assert.equal(recallAt(ranked, ["a", "d", "z"], 3), 1 / 3);
+    assert.equal(recallAt(ranked, ["a", "d"], 5), 1);
+  });
+
+  test("the score matches what Atlas reports for cosine", async () => {
+    const { atlasScore } = await import("../../evals/rag/metrics");
+    assert.equal(atlasScore([1, 0], [1, 0]), 1);
+    assert.equal(atlasScore([1, 0], [0, 1]), 0.5);
+    assert.equal(atlasScore([1, 0], [-1, 0]), 0);
   });
 });
