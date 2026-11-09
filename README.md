@@ -105,7 +105,7 @@ npm run test:e2e
 
 ## Production
 
-- **Docker:** multi-stage build of Next's `standalone` output ([`Dockerfile.prod`](Dockerfile.prod))
+- **Docker:** multi-stage build of Next's `standalone` output ([`Dockerfile`](Dockerfile))
 - **PM2:** the web app in cluster mode with 2 instances, plus 1 generation worker, each restarting at 350 MB ([`ecosystem.config.js`](ecosystem.config.js))
 - **Sentry:** client, server and edge, tunneled via `/monitoring`
 - **Hosting:** Railway
@@ -136,7 +136,7 @@ npm run worker   # in a second terminal, needs REDIS_URL
 | `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_DSN` | error monitoring (optional) |
 
 ```bash
-docker build -f Dockerfile.prod -t testmind . && docker run -p 8080:8080 --env-file .env.local testmind
+docker build -t testmind . && docker run -p 8080:8080 --env-file .env.local testmind
 ```
 
 ---
