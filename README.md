@@ -110,6 +110,24 @@ npm run test:e2e
 - **Sentry:** client, server and edge, tunneled via `/monitoring`
 - **Hosting:** Railway
 
+## Benchmarks & Architecture Verification
+
+Each row links to the code and to what checks it.
+
+| Claim | Code | Evidence |
+|---|---|---|
+| LangGraph generate and review flow | [suite-generation.graph.ts](src/lib/ai/graph/workflows/suite-generation.graph.ts), [suite-review.graph.ts](src/lib/ai/graph/workflows/suite-review.graph.ts) | [Playwright full flow](tests/e2e/testmind-complete-flow.spec.ts) |
+| OpenAI with Gemini fallback | [complete-json.ts](src/lib/ai/llm/complete-json.ts), [gemini.ts](src/lib/ai/llm/gemini.ts) | `npm run test:unit` |
+| Redis exact cache throughput | [run-cache-benchmark.mjs](benchmarks/run-cache-benchmark.mjs) | [results and raw runs](benchmarks/results/results.md) |
+| Redis vector cache | [semantic-cache.ts](src/lib/ai/cache/semantic-cache.ts) | `npm run test:unit`. Off by default, and its 0.95 threshold is not yet calibrated on real traffic |
+| BullMQ generation queue | [generation-queue.ts](src/lib/queue/generation-queue.ts), [generation-worker.ts](src/worker/generation-worker.ts) | Measurements under Results above |
+| Zod request validation | [request-schemas.ts](src/lib/api/request-schemas.ts) | [API validation spec](tests/e2e/api-validation.spec.ts) |
+| Rate limiting | [proxy.ts](src/proxy.ts) | [Rate limit spec](tests/e2e/rate-limit.spec.ts) |
+| Projects flow | | [Projects spec](tests/e2e/projects.spec.ts) |
+| Multi stage Docker build | [Dockerfile](Dockerfile), [Dockerfile.dev](Dockerfile.dev) | Image size is not listed until it is measured again |
+
+The benchmark runs locally against a stand in for Upstash, so it compares cache on and off and does not predict production numbers.
+
 ## What I'd do next
 
 - **Stream node progress** over SSE so each node lights up as it finishes. Today the trace arrives when the run ends.
