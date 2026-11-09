@@ -1,14 +1,18 @@
+import { notFound } from "next/navigation";
 import ProjectPageClient from "./ProjectPageClient";
 import { ProjectPageProps, TestCase } from "@/src/app/types/testmind";
 import { getProjectById } from "@/src/app/actions/projects";
 import { getSuitesByProject } from "@/src/app/actions/suites";
 
-export const revalidate = 60;
+// Each visitor sees only their own projects.
+export const dynamic = "force-dynamic";
 
 export default async function ProjectPage({ params }: ProjectPageProps) {
   const projectId = (await params).projectId;
 
   const projectDoc = await getProjectById(projectId);
+  // Also covers a project that belongs to someone else.
+  if (!projectDoc) notFound();
 
   const suiteDocs = await getSuitesByProject(projectId);
 

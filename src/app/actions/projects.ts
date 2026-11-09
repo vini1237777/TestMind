@@ -10,6 +10,7 @@ import TestCaseChunk from "@/src/app/models/TestCaseChunk";
 import TestSuiteModel from "@/src/app/models/TestSuite";
 import { EXAMPLE } from "@/src/app/lib/example";
 import { refreshPaths } from "@/src/lib/revalidate";
+import { getCurrentUser, ownedProject, SIGN_IN_ERROR } from "@/src/lib/auth/access";
 
 const NOT_FOUND = "This project no longer exists.";
 const EXAMPLE_LOCKED = "The example project cannot be changed.";
@@ -31,9 +32,11 @@ function mapProjectFromDb(doc: ProjectDb): Project {
 }
 
 export async function getProjects(): Promise<Project[]> {
+  const user = await getCurrentUser();
+  if (!user) return [];
   await connectDB();
 
-  const docs = await ProjectModel.find()
+  const docs = await ProjectModel.find({ ownerId: user.id })
     .sort({ createdAt: -1 })
     .lean<ProjectDb[]>();
 
@@ -42,10 +45,10 @@ export async function getProjects(): Promise<Project[]> {
 
 export async function getProjectById(id: string): Promise<Project | null> {
   if (!id || id === "undefined") return null;
+  const user = await getCurrentUser();
+  if (!user) return null;
 
-  await connectDB();
-
-  const doc = await ProjectModel.findById(id).lean<ProjectDb | null>();
+  const doc = await ownedProject(user, id);
   if (!doc) return null;
 
   return mapProjectFromDb(doc);
@@ -55,6 +58,8 @@ export async function createProject(data: {
   name: string;
   description?: string;
 }): Promise<Project> {
+  const user = await getCurrentUser();
+  if (!user) throw new Error(SIGN_IN_ERROR);
   await connectDB();
 
   const { name, description } = data;
@@ -66,6 +71,7 @@ export async function createProject(data: {
   const doc = (await ProjectModel.create({
     name,
     description,
+    ownerId: user.id,
   })) as ProjectDb;
 
   await clearListCache();
@@ -81,10 +87,9 @@ export async function updateProject(
   const description = data.description?.trim() ?? "";
   if (!name) return { error: "Project name is required." };
   if (name.length > 120 || description.length > 2000) return { error: "Project name or description is too long." };
-  if (!Types.ObjectId.isValid(id)) return { error: NOT_FOUND };
-
-  await connectDB();
-  const current = await ProjectModel.findById(id).lean<ProjectDb | null>();
+  const user = await getCurrentUser();
+  if (!user) return { error: SIGN_IN_ERROR };
+  const current = await ownedProject(user, id);
   if (!current) return { error: NOT_FOUND };
   if (current.name === EXAMPLE.project) return { error: EXAMPLE_LOCKED };
   if (name === EXAMPLE.project) return { error: "This name is kept for the example project." };
@@ -100,10 +105,9 @@ export async function updateProject(
 export async function deleteProject(
   id: string,
 ): Promise<{ deleted: { suites: number; cases: number } } | { error: string }> {
-  if (!Types.ObjectId.isValid(id)) return { error: NOT_FOUND };
-
-  await connectDB();
-  const current = await ProjectModel.findById(id).lean<ProjectDb | null>();
+  const user = await getCurrentUser();
+  if (!user) return { error: SIGN_IN_ERROR };
+  const current = await ownedProject(user, id);
   if (!current) return { error: NOT_FOUND };
   if (current.name === EXAMPLE.project) return { error: EXAMPLE_LOCKED };
 

@@ -14,7 +14,15 @@ const ratelimit = new Ratelimit({
 const JOB_STATUS = /^\/api\/generate-tests\/[^/]+$/;
 
 export default async function proxy(req: NextRequest) {
-  const { pathname } = req.nextUrl;
+  const { pathname, search } = req.nextUrl;
+
+  // A quick check for the cookie only. The workspace layout checks the session itself.
+  if (pathname === "/projects" || pathname.startsWith("/projects/")) {
+    if (req.cookies.has("tm_session")) return NextResponse.next();
+    const home = new URL("/", req.url);
+    home.searchParams.set("next", pathname + search);
+    return NextResponse.redirect(home);
+  }
 
   if (req.method === "GET" && JOB_STATUS.test(pathname)) {
     return NextResponse.next();
@@ -38,4 +46,4 @@ export default async function proxy(req: NextRequest) {
 }
 
 // /api/health is excluded so platform health checks never depend on Redis.
-export const config = { matcher: "/api/((?!health).*)" };
+export const config = { matcher: ["/api/((?!health).*)", "/projects", "/projects/:path*"] };

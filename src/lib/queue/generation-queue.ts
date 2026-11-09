@@ -14,10 +14,12 @@ const REDIS_TIMEOUT_MS = 3_000;
 export class QueueBusyError extends Error {}
 export class QueueUnavailableError extends Error {}
 
-export type GenerationStatus =
+// projectId lets the status route check that the job belongs to the person asking.
+export type GenerationStatus = { projectId: string } & (
   | { status: "queued" | "running" }
   | { status: "done"; result: GenerationResult }
-  | { status: "failed" };
+  | { status: "failed" }
+);
 
 type QueueGlobal = { generationQueue?: Queue<GenerationInput, GenerationResult> };
 const shared = globalThis as unknown as QueueGlobal;
@@ -82,10 +84,11 @@ export async function getGenerationStatus(jobId: string): Promise<GenerationStat
   const job = await queue.getJob(jobId);
   if (!job) return null;
 
+  const projectId = String(job.data.projectId);
   const state = await job.getState();
-  if (state === "completed") return { status: "done", result: job.returnvalue };
-  if (state === "failed") return { status: "failed" };
+  if (state === "completed") return { projectId, status: "done", result: job.returnvalue };
+  if (state === "failed") return { projectId, status: "failed" };
   // "delayed" is a job waiting to retry, so it is still in progress for the visitor.
-  if (state === "active" || state === "delayed") return { status: "running" };
-  return { status: "queued" };
+  if (state === "active" || state === "delayed") return { projectId, status: "running" };
+  return { projectId, status: "queued" };
 }

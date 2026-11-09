@@ -4,14 +4,19 @@ import { clearListCache, getCache, setCache } from "@/src/lib/cache";
 import { connectDB } from "@/src/lib/mongodb";
 import { CreateProjectBodySchema, parseBody } from "@/src/lib/api/request-schemas";
 import { NextRequest, NextResponse } from "next/server";
+import { apiUser, ownedProjectIds, projectIdIn } from "@/src/lib/auth/access";
 
 export async function GET(req: NextRequest) {
   try {
-    const cached = await getCache(req.url);
+    const auth = await apiUser();
+    if ("response" in auth) return auth.response;
+    // One cache entry per user. The key still contains /api/projects, so clearListCache finds it.
+    const cacheKey = `${req.url}#${auth.user.id}`;
+    const cached = await getCache(cacheKey);
 
     if (cached) return cached;
 
-    await connectDB();
+    const ids = await ownedProjectIds(auth.user);
 
     const typeCount = (t: string) => ({
       $size: {
@@ -21,7 +26,7 @@ export async function GET(req: NextRequest) {
 
     // One pass over suites gives every project card its numbers.
     const [projects, stats] = await Promise.all([
-      Project.find().sort({ createdAt: -1 }).lean(),
+      Project.find({ ownerId: auth.user.id }).sort({ createdAt: -1 }).lean(),
       TestSuite.aggregate<{
         _id: string;
         suites: number;
@@ -37,6 +42,7 @@ export async function GET(req: NextRequest) {
         lastSuiteScore: number | null;
         lastSuiteCases: number;
       }>([
+        { $match: { projectId: projectIdIn(ids) } },
         { $sort: { createdAt: 1 } },
         {
           $project: {
@@ -98,7 +104,7 @@ export async function GET(req: NextRequest) {
       }),
     };
 
-    await setCache(req.url, payload);
+    await setCache(cacheKey, payload);
 
     return NextResponse.json(payload);
   } catch (err) {
@@ -111,6 +117,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: Request) {
+  const auth = await apiUser();
+  if ("response" in auth) return auth.response;
   const body = await parseBody(req, CreateProjectBodySchema);
   if (!body.ok) return body.response;
 
@@ -119,6 +127,7 @@ export async function POST(req: Request) {
   const project = await Project.create({
     name: body.data.name,
     description: body.data.description || "",
+    ownerId: auth.user.id,
   });
   await clearListCache();
 

@@ -1,23 +1,25 @@
 import TestSuite from "@/src/app/models/TestSuite";
+import { apiUser, ownedProjectIds, projectIdIn } from "@/src/lib/auth/access";
 import { getCache, setCache } from "@/src/lib/cache";
-import { connectDB } from "@/src/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
 
+// The signed in user's suites, or one project's when ?projectId= is given.
 export async function GET(req: NextRequest) {
-  const cached = await getCache(req.url);
-  if (cached) return cached;
-  await connectDB();
-
   try {
-    // const projectId = req.nextUrl.searchParams.get("projectId");
-    // if (!projectId) {
-    //   return NextResponse.json(
-    //     { error: "Missing projectId parameter" },
-    //     { status: 400 }
-    //   );
-    // }
+    const auth = await apiUser();
+    if ("response" in auth) return auth.response;
 
-    const docs = await TestSuite.find().sort({ createdAt: -1 }).lean();
+    const cacheKey = `${req.url}#${auth.user.id}`;
+    const cached = await getCache(cacheKey);
+    if (cached) return cached;
+
+    const owned = await ownedProjectIds(auth.user);
+    const asked = req.nextUrl.searchParams.get("projectId");
+    const ids = asked ? owned.filter((id) => id === asked) : owned;
+
+    const docs = ids.length
+      ? await TestSuite.find({ projectId: projectIdIn(ids) }).sort({ createdAt: -1 }).lean()
+      : [];
 
     const suites = docs.map((doc) => ({
       id: typeof doc._id === "string" ? doc._id : doc._id?.toString(),
@@ -31,7 +33,7 @@ export async function GET(req: NextRequest) {
       lastFeedbackScore: doc?.lastFeedbackScore,
       lastReviewedAt: doc?.lastReviewedAt,
     }));
-    await setCache(req.url, { suites });
+    await setCache(cacheKey, { suites });
 
     return NextResponse.json({ suites }, { status: 200 });
   } catch (err) {

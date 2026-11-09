@@ -5,12 +5,20 @@ import { runReviewWorkflow } from "@/src/lib/ai/services/suite-orchestrator/run-
 import { connectDB } from "@/src/lib/mongodb";
 import { clearListCache } from "@/src/lib/cache";
 import { FeedbackReviewBodySchema, parseBody } from "@/src/lib/api/request-schemas";
+import { apiUser, notFound, ownedProject, ownedSuite } from "@/src/lib/auth/access";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await parseBody(req, FeedbackReviewBodySchema);
     if (!body.ok) return body.response;
     const { featureName, description, testCases, suiteId, projectId } = body.data;
+
+    const auth = await apiUser();
+    if ("response" in auth) return auth.response;
+    // Checked before the model call, so nobody spends tokens on a project that is not theirs.
+    const suite = suiteId ? await ownedSuite(auth.user, suiteId) : null;
+    if (suiteId && (!suite || (projectId && String(suite.projectId) !== projectId))) return notFound();
+    if (projectId && !(await ownedProject(auth.user, projectId))) return notFound();
 
     const { feedback, improvedTestCases, trace } = await runReviewWorkflow({
       featureName,
@@ -20,7 +28,7 @@ export async function POST(req: NextRequest) {
       currentTestCases: testCases as unknown as TestCase[],
     });
 
-    if (suiteId) {
+    if (suite) {
       await connectDB();
       await TestSuite.findByIdAndUpdate(suiteId, {
         lastFeedbackScore: feedback.score,
