@@ -1,0 +1,102 @@
+{
+ "savedCases": 40,
+ "features": 20,
+ "repeats": 3,
+ "runs": 119,
+ "failures": [
+  {
+   "feature": "Address book",
+   "mode": "off",
+   "repeat": 2,
+   "error": "All AI providers failed: openai: [\n  {\n    \"expected\": \"record\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"testCases\",\n      6,\n      \"samplePayload\"\n    ],\n    \"message\": \"Invalid input: expected record, received array\"\n  }\n]"
+  }
+ ],
+ "featuresWithContext": 20,
+ "comparison": {
+  "specCoverage": {
+   "off": 1,
+   "on": 0.9944444444444445,
+   "difference": -0.005555555555555558,
+   "interval95": [
+    -0.016666666666666673,
+    0
+   ],
+   "onHigher": 0,
+   "offHigher": 1,
+   "pairs": 20
+  },
+  "projectCoverage": {
+   "off": 0.3486111111111111,
+   "on": 0.836111111111111,
+   "difference": 0.4875000000000001,
+   "interval95": [
+    0.30833333333333335,
+    0.6583333333333333
+   ],
+   "onHigher": 15,
+   "offHigher": 1,
+   "pairs": 20
+  },
+  "duplicateRate": {
+   "off": 0.006547619047619048,
+   "on": 0.1390873015873016,
+   "difference": 0.1325396825396825,
+   "interval95": [
+    0.10148809523809524,
+    0.1643849206349206
+   ],
+   "onHigher": 19,
+   "offHigher": 0,
+   "pairs": 20
+  },
+  "plainSteps": {
+   "off": 0.016666666666666666,
+   "on": 1,
+   "difference": 0.9833333333333334,
+   "interval95": [
+    0.95,
+    1
+   ],
+   "onHigher": 20,
+   "offHigher": 0,
+   "pairs": 20
+  },
+  "tokens": {
+   "off": 1440.3000000000002,
+   "on": 1488.2166666666667,
+   "difference": 47.916666666666664,
+   "interval95": [
+    6.300000000000023,
+    91.36666666666662
+   ],
+   "onHigher": 15,
+   "offHigher": 5,
+   "pairs": 20
+  },
+  "seconds": {
+   "off": 14.757012497116662,
+   "on": 11.626746493783333,
+   "difference": -3.1302660033333334,
+   "interval95": [
+    -6.3000028456833315,
+    -0.6603299769833335
+   ],
+   "onHigher": 2,
+   "offHigher": 18,
+   "pairs": 20
+  },
+  "cases": {
+   "off": 7.441666666666668,
+   "on": 7.45,
+   "difference": 0.008333333333333392,
+   "interval95": [
+    -0.175,
+    0.2083333333333334
+   ],
+   "onHigher": 6,
+   "offHigher": 7,
+   "pairs": 20
+  }
+ },
+ "runAt": "2026-11-09T16:31:53.779Z"
+}
