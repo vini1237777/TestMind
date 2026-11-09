@@ -6,7 +6,7 @@ export const VECTOR_INDEX_NAME = "test_case_chunks_vector";
 
 const RESULT_LIMIT = 5;
 const CANDIDATES_PER_RESULT = 20;
-const DEFAULT_MIN_SCORE = 0.75;
+const DEFAULT_MIN_SCORE = 0.72;
 const MAX_CONTEXT_CHARS = 4_000;
 const SEARCH_TIMEOUT_MS = 3_000;
 
@@ -18,7 +18,8 @@ export type Retrieval = {
   embedding: number[] | null;
 };
 
-// Atlas reports cosine as (1 + cosine) / 2, so 0.75 here is a cosine of 0.5.
+// Atlas reports cosine as (1 + cosine) / 2, so 0.72 here is a cosine of 0.44.
+// The default comes from the threshold table `npm run eval:rag` prints.
 function minScore() {
   const value = Number(process.env.RAG_MIN_SCORE);
   return value > 0 && value <= 1 ? value : DEFAULT_MIN_SCORE;
