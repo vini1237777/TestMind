@@ -14,7 +14,9 @@ const ratelimit = new Ratelimit({
 const JOB_STATUS = /^\/api\/generate-tests\/[^/]+$/;
 
 export default async function proxy(req: NextRequest) {
-  if (req.method === "GET" && JOB_STATUS.test(req.nextUrl.pathname)) {
+  const { pathname } = req.nextUrl;
+
+  if (req.method === "GET" && JOB_STATUS.test(pathname)) {
     return NextResponse.next();
   }
 
@@ -23,7 +25,10 @@ export default async function proxy(req: NextRequest) {
     req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
     "unknown";
 
-  const { success } = await ratelimit.limit(ip);
+  // Sign in attempts get their own allowance, so guessing passwords cannot use up the
+  // generation budget, and a busy workspace cannot lock someone out of signing in.
+  const bucket = pathname.startsWith("/api/auth/") ? `auth:${ip}` : ip;
+  const { success } = await ratelimit.limit(bucket);
 
   if (!success) {
     return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
