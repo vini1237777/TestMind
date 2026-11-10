@@ -1,11 +1,14 @@
-// Stands in for the OpenAI API during load tests, so a run costs nothing and the
-// numbers measure TestMind rather than the model. MOCK_LLM_DELAY_MS sets how long
-// each chat answer takes.
+// Stands in for the OpenAI and Gemini APIs during load tests, so a run costs nothing
+// and the numbers measure TestMind rather than the model. MOCK_LLM_DELAY_MS sets how
+// long each answer takes. MOCK_OPENAI_FAIL_RATE (0 to 1) makes that share of OpenAI
+// answers fail with a 500, to measure the Gemini fallback. GET /stats counts answers.
 import http from "node:http";
 
 const PORT = Number(process.env.MOCK_OPENAI_PORT || 8091);
 const DELAY_MS = Number(process.env.MOCK_LLM_DELAY_MS || 0);
+const FAIL_RATE = Number(process.env.MOCK_OPENAI_FAIL_RATE || 0);
 const DIMENSIONS = 256;
+const stats = { openaiServed: 0, openaiFailed: 0, geminiServed: 0 };
 
 const TYPES = ["happy", "negative", "edge"];
 const testCases = Array.from({ length: 6 }, (_, i) => ({
@@ -45,7 +48,24 @@ http
           usage: { prompt_tokens: 8, total_tokens: 8 },
         });
       }
+      if (req.url === "/stats") return send(res, stats);
+      if (req.url?.includes(":generateContent")) {
+        return setTimeout(() => {
+          stats.geminiServed++;
+          send(res, {
+            modelVersion: "mock-gemini",
+            candidates: [{ content: { role: "model", parts: [{ text: completion }] }, finishReason: "STOP" }],
+            usageMetadata: { promptTokenCount: 600, candidatesTokenCount: 400 },
+          });
+        }, DELAY_MS);
+      }
+      if (req.url?.endsWith("/chat/completions") && Math.random() < FAIL_RATE) {
+        stats.openaiFailed++;
+        res.statusCode = 500;
+        return send(res, { error: { message: "mock outage", type: "server_error" } });
+      }
       if (req.url?.endsWith("/chat/completions")) {
+        stats.openaiServed++;
         return setTimeout(
           () =>
             send(res, {
