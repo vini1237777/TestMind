@@ -6,6 +6,10 @@ import IntroLoader from "./components/IntroLoader";
 // import NextTopLoader from "nextjs-toploader";
 import HolyLoader from "holy-loader";
 import { getCurrentUser } from "@/src/lib/auth/session";
+import { IBM_Plex_Sans } from "next/font/google";
+
+// A sans made for technical products: clear at small sizes, with real weights for headings.
+const plex = IBM_Plex_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-plex", display: "swap" });
 
 export default async function RootLayout({
   children,
@@ -14,7 +18,7 @@ export default async function RootLayout({
 }>) {
   const user = await getCurrentUser();
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={plex.variable}>
       <head>
         {/* Skip the intro before paint for returning visitors and reduced motion users */}
         <script
