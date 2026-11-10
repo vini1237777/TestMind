@@ -1,0 +1,44 @@
+{
+  "setup": {
+    "mode": "lighthouse",
+    "openaiFailRate": 0,
+    "duration": "60s",
+    "readers": 50,
+    "generationsPerSecond": 2,
+    "mockLlmDelayMs": 0,
+    "workerConcurrency": 3,
+    "date": "2026-11-10T03:59:21.139Z",
+    "machine": "Apple M2, 8 cores, 8 GB",
+    "node": "v20.20.2",
+    "webProcesses": 1,
+    "llm": "mock-openai.mjs",
+    "lighthouse": "13.6.0",
+    "page": "/"
+  },
+  "mobile": {
+    "scores": {
+      "performance": 100,
+      "accessibility": 90,
+      "best-practices": 96,
+      "seo": 80
+    },
+    "firstContentfulPaintMs": 765,
+    "largestContentfulPaintMs": 765,
+    "totalBlockingTimeMs": 0,
+    "cumulativeLayoutShift": 0,
+    "speedIndexMs": 1521
+  },
+  "desktop": {
+    "scores": {
+      "performance": 100,
+      "accessibility": 90,
+      "best-practices": 96,
+      "seo": 80
+    },
+    "firstContentfulPaintMs": 204,
+    "largestContentfulPaintMs": 204,
+    "totalBlockingTimeMs": 0,
+    "cumulativeLayoutShift": 0,
+    "speedIndexMs": 204
+  }
+}
