@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures";
 
 const BROWSER = "Mozilla/5.0 (Macintosh) Chrome/130.0 Safari/537.36";
 
