@@ -12,6 +12,7 @@
     "lint": "eslint",
     "test:unit": "node --import tsx --test tests/unit/*.test.ts",
     "bench:cache": "node benchmarks/run-cache-benchmark.mjs",
+    "bench:load": "node benchmarks/run-load-test.mjs",
     "rag:backfill": "tsx scripts/rag-backfill.ts",
     "eval:rag": "tsx evals/rag/run-eval.ts",
     "eval:rag-quality": "tsx evals/rag-quality/run-eval.ts",

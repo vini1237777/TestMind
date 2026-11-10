@@ -1,0 +1,75 @@
+{
+  "setup": {
+    "mode": "capacity",
+    "openaiFailRate": 0,
+    "duration": "60s",
+    "readers": 50,
+    "generationsPerSecond": 2,
+    "mockLlmDelayMs": 0,
+    "workerConcurrency": 3,
+    "date": "2026-11-10T03:45:14.598Z",
+    "machine": "Apple M2, 8 cores, 8 GB",
+    "node": "v20.20.2",
+    "webProcesses": 1,
+    "llm": "mock-openai.mjs"
+  },
+  "endpoint": "GET /api/projects",
+  "steps": [
+    {
+      "targetRate": 100,
+      "achievedRate": 100,
+      "p50Ms": 4,
+      "p95Ms": 7,
+      "failedShare": 0,
+      "dropped": 0
+    },
+    {
+      "targetRate": 125,
+      "achievedRate": 125,
+      "p50Ms": 4,
+      "p95Ms": 19,
+      "failedShare": 0,
+      "dropped": 0
+    },
+    {
+      "targetRate": 150,
+      "achievedRate": 150,
+      "p50Ms": 6,
+      "p95Ms": 102,
+      "failedShare": 0,
+      "dropped": 0
+    },
+    {
+      "targetRate": 175,
+      "achievedRate": 175,
+      "p50Ms": 16,
+      "p95Ms": 465,
+      "failedShare": 0,
+      "dropped": 2
+    },
+    {
+      "targetRate": 200,
+      "achievedRate": 200,
+      "p50Ms": 27,
+      "p95Ms": 350,
+      "failedShare": 0,
+      "dropped": 0
+    },
+    {
+      "targetRate": 250,
+      "achievedRate": 250,
+      "p50Ms": 76,
+      "p95Ms": 362,
+      "failedShare": 0,
+      "dropped": 0
+    },
+    {
+      "targetRate": 300,
+      "achievedRate": 296,
+      "p50Ms": 211,
+      "p95Ms": 641,
+      "failedShare": 0,
+      "dropped": 0
+    }
+  ]
+}
