@@ -142,7 +142,7 @@ export default function Navbar({ email }: { email: string | null }) {
               onClick={(e) => {
                 if (pathname !== "/") return;
                 e.preventDefault();
-                window.dispatchEvent(new CustomEvent("tm:signin"));
+                window.dispatchEvent(new CustomEvent("tm:signin", { detail: "signin" }));
               }}
               className="ml-1 whitespace-nowrap rounded-md bg-black px-3 py-1 text-sm font-medium text-amber-300 hover:bg-gray-800"
             >

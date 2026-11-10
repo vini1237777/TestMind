@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import { fieldClass, labelClass } from "./Modal";
 
@@ -19,64 +18,21 @@ export async function signOut() {
   window.location.assign("/");
 }
 
-/** Sign in and create account in one card. Signed in, it shows who you are and the way in. */
-export default function AuthCard({ email, next }: { email: string | null; next?: string | null }) {
+export type AuthMode = "signin" | "signup";
+
+/** Sign in and create account in one form, with errors shown under each field. */
+export default function AuthCard({ next, initialMode = "signin" }: { next?: string | null; initialMode?: AuthMode }) {
   const id = useId();
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
-  const [mode, setMode] = useState<Mode>("signin");
+  const [mode, setMode] = useState<Mode>(initialMode);
   const [show, setShow] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<{ text: string; field?: Field } | null>(null);
-  const cardRef = useRef<HTMLDivElement>(null);
 
-  // Other buttons on the page ask for sign in with: dispatchEvent(new CustomEvent("tm:signin"))
   useEffect(() => {
-    const onAsk = () => {
-      // Replays the shake each time, without remounting the form and losing what was typed.
-      const card = cardRef.current;
-      if (card && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        card.classList.remove("tm-shake");
-        void card.offsetWidth;
-        card.classList.add("tm-shake");
-      }
-      emailRef.current?.focus({ preventScroll: true });
-      emailRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-    };
-    window.addEventListener("tm:signin", onAsk);
-    return () => window.removeEventListener("tm:signin", onAsk);
+    emailRef.current?.focus();
   }, []);
-
-  if (email) {
-    return (
-      <div className="relative rounded-lg border border-black bg-white p-5 shadow-[5px_5px_0_0_#fcd34d] dark:border-amber-400 dark:bg-slate-900 dark:shadow-[5px_5px_0_0_rgba(251,191,36,0.35)]">
-        <div className="flex items-center gap-3">
-          <span aria-hidden className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-black text-base font-black uppercase text-amber-300">
-            {email[0]}
-          </span>
-          <div className="min-w-0">
-            <p className="text-xs text-gray-500">Signed in as</p>
-            <p className="truncate text-sm font-semibold">{email}</p>
-          </div>
-        </div>
-        <div className="mt-5 flex items-center gap-2">
-          <Link
-            href={safeNext(next)}
-            className="tm-press flex-1 rounded-md bg-amber-500 px-4 py-2.5 text-center text-sm font-semibold text-white hover:bg-amber-600 dark:bg-amber-400 dark:text-black dark:hover:bg-amber-300"
-          >
-            Open workspace
-          </Link>
-          <button
-            type="button"
-            onClick={signOut}
-            className="rounded-md px-3 py-2.5 text-sm text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
-          >
-            Sign out
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   const switchTo = (next: Mode) => {
     setMode(next);
@@ -141,11 +97,7 @@ export default function AuthCard({ email, next }: { email: string | null; next?:
   );
 
   return (
-    <div
-      ref={cardRef}
-      id="signin"
-      className="relative scroll-mt-20 rounded-lg border border-black bg-white p-5 shadow-[5px_5px_0_0_#fcd34d] dark:border-amber-400 dark:bg-slate-900 dark:shadow-[5px_5px_0_0_rgba(251,191,36,0.35)]"
-    >
+    <div>
       <div role="tablist" aria-label="Sign in or create an account" className="flex gap-1 rounded-lg bg-gray-100 p-1 dark:bg-slate-800">
         {tab("signin", "Sign in")}
         {tab("signup", "Create account")}
