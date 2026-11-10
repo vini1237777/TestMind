@@ -10,6 +10,7 @@ import ProjectCard from "../components/ProjectCard";
 import ConfirmDelete from "../components/ConfirmDelete";
 import { deleteProject } from "../actions/projects";
 import { EXAMPLE } from "../lib/example";
+import { useViewer } from "../components/Viewer";
 
 export default function ProjectsPage() {
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
@@ -20,6 +21,7 @@ export default function ProjectsPage() {
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<"recent" | "newest" | "name" | "cases" | "score">("recent");
   const searchRef = useRef<HTMLInputElement>(null);
+  const { demo } = useViewer();
   const [editing, setEditing] = useState<Project | null>(null);
   const [deleting, setDeleting] = useState<Project | null>(null);
 
@@ -221,7 +223,7 @@ export default function ProjectsPage() {
               key={project.id}
               project={project}
               index={i}
-              {...(project.name === EXAMPLE.project
+              {...(demo || project.name === EXAMPLE.project
                 ? {}
                 : { onEdit: () => setEditing(project), onDelete: () => setDeleting(project) })}
             />
