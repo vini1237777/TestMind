@@ -97,6 +97,33 @@ autocannon sent 50 connections for 30 seconds per run, against one Next.js proce
 
 These are local numbers, not production numbers. An Apple M2 laptop ran the app and the load generator, MongoDB was on the same machine, and production runs 2 web processes.
 
+#### Load test with k6
+
+`npm run bench:load` runs the production build with the same parts as Railway: the Next.js server, the BullMQ queue on Redis and the generation worker (3 jobs at a time). MongoDB, Redis and the Upstash REST API are local. [`mock-openai.mjs`](benchmarks/mock-openai.mjs) stands in for OpenAI, so a run costs nothing and measures TestMind rather than the model. Measured on 2026-11-10. Raw k6 summaries are in [`benchmarks/results`](benchmarks/results) (`load-*.json`).
+
+Each run lasts 60 seconds with two kinds of traffic at once. 50 signed in readers open the home page and their project list. Every second, 2 new generations start and poll until the worker finishes them.
+
+**Model answers at once** (3 runs, median with range):
+
+| | Result |
+|---|---|
+| Requests served | 89.5 req/s (89.0 to 90.9), 0 failed |
+| Generations finished | 121 of 121 per run (120 in one), 0 failed |
+| Generation, start to saved suite | median 557 ms, p95 729 ms. The page polls every 500 ms, so this includes up to one poll wait |
+| `POST /api/generate-tests` | median 21 ms, p95 188 ms |
+| `GET /api/projects` | median 46 ms, p95 144 ms |
+| Home page | median 76 ms, p95 196 ms |
+
+**Model takes 8 seconds per answer**, close to a real call (1 run):
+
+| | Result |
+|---|---|
+| Generations | 31 finished. 42 were refused with a 503 once 50 jobs were waiting, as designed, instead of piling up |
+| Worker throughput | 31 in about 90 seconds, which matches 3 jobs at a time at 8 seconds each |
+| Readers during the backlog | home p95 260 ms, project list p95 163 ms, 0 failed |
+
+These are local numbers on one machine: an Apple M2 with 8 GB ran the app, the worker, MongoDB, Redis and k6 together, with one web process. Production runs 2 web processes and talks to Atlas and Upstash over the network, so live latency will be higher. Each request sends its own `x-real-ip`, so the rate limiter runs on every request without rejecting the load.
+
 Generation queue, measured locally with a stubbed 5-second model:
 
 | | Result |
@@ -137,6 +164,7 @@ Each row links to the code and to what checks it.
 | RAG on a held out dataset | [dataset](evals/rag-quality/holdout-dataset.json), committed before the run | Clinic and pharmacy domain the prompt was never tuned on, 40 saved cases and 20 features, 3 runs per mode: project rules covered 6% to 56% under the stricter check, stated rules 100% in both, cases close to a saved case 1% to 22%. [Results](evals/rag-quality/holdout.json), [stricter check](evals/rag-quality/holdout-strict.json) |
 | Redis vector cache | [semantic-cache.ts](src/lib/ai/cache/semantic-cache.ts) | `npm run test:unit`. Enable with `SEMANTIC_CACHE=on` |
 | BullMQ generation queue | [generation-queue.ts](src/lib/queue/generation-queue.ts), [generation-worker.ts](src/worker/generation-worker.ts) | Measurements under Results above |
+| Load test of the full stack | [run-load-test.mjs](benchmarks/run-load-test.mjs), [k6 script](benchmarks/load/k6-load.js), [mock OpenAI](benchmarks/mock-openai.mjs) | `npm run bench:load`, [raw k6 summaries](benchmarks/results) |
 | Zod request validation | [request-schemas.ts](src/lib/api/request-schemas.ts) | [API validation spec](tests/e2e/api-validation.spec.ts) |
 | Rate limiting | [proxy.ts](src/proxy.ts) | [Rate limit spec](tests/e2e/rate-limit.spec.ts) |
 | Projects flow | | [Projects spec](tests/e2e/projects.spec.ts) |
