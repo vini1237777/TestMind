@@ -124,6 +124,44 @@ Each run lasts 60 seconds with two kinds of traffic at once. 50 signed in reader
 
 These are local numbers on one machine: an Apple M2 with 8 GB ran the app, the worker, MongoDB, Redis and k6 together, with one web process. Production runs 2 web processes and talks to Atlas and Upstash over the network, so live latency will be higher. Each request sends its own `x-real-ip`, so the rate limiter runs on every request without rejecting the load.
 
+**Capacity of one web process** (`MODE=capacity npm run bench:load`). k6 sends `GET /api/projects` at a fixed rate for 30 seconds, then the next rate up. Raw steps are in `capacity-*.json`.
+
+| Rate asked | Rate served | p50 | p95 | Failed |
+|---|---|---|---|---|
+| 100 req/s | 100 req/s | 4 ms | 7 ms | 0% |
+| 200 req/s | 200 req/s | 27 ms | 350 ms | 0% |
+| 250 req/s | 250 req/s | 76 ms | 362 ms | 0% |
+| 300 req/s | 296 to 300 req/s | 14 to 211 ms | 312 to 641 ms | 0% |
+| 350 req/s | 290 req/s | 1,070 ms | 2,426 ms | 3.4% |
+| 400 req/s | 291 req/s | 1,030 ms | 3,521 ms | 16.9% |
+
+Rows up to 250 come from one run, 350 and 400 from a second, and 300 shows both. One process holds 300 signed in list requests a second with p95 under 700 ms and nothing failed. Above that it tops out near 290 req/s and latency climbs past 2 seconds, so 300 req/s is the ceiling on this machine. Production runs 2 web processes.
+
+**Fallback when OpenAI fails** (`MODE=fallback`). The mock fails a share of OpenAI answers with a 500, and Gemini (also mocked) takes over. Same 60 second mixed load as above. Raw results are in `fallback-*.json`, with the mock's count of answers per provider.
+
+| OpenAI failing | Generations finished | Served by Gemini | Generation p95 |
+|---|---|---|---|
+| 50% | 120 of 120 | 60 | 676 ms |
+| 100% | 121 of 121 | 121 | 628 ms |
+
+Every generation finished, and a failed OpenAI call goes straight to Gemini with no retry first.
+
+**Home page in Lighthouse 13.6** (`MODE=lighthouse`), against the local production build. Raw scores are in `lighthouse-*.json`.
+
+| | Mobile | Desktop |
+|---|---|---|
+| Performance | 100 | 100 |
+| Accessibility | 90 | 90 |
+| Best practices | 96 | 96 |
+| SEO | 80 | 80 |
+| Largest contentful paint | 765 ms | 204 ms |
+| Total blocking time | 0 ms | 0 ms |
+| Layout shift | 0 | 0 |
+
+Mobile uses Lighthouse's simulated slow 4G and a slower CPU. The server was on the same machine, so there is no real network distance.
+
+**Cost per suite.** Two live generations used 1,482 and 1,374 tokens, as shown on the run itself, including the review step. At gpt-4o-mini's listed price of $0.15 per million input tokens and $0.60 per million output tokens, a suite costs at most $0.0009, even if every token were billed at the output rate. That is over 1,100 suites per dollar.
+
 Generation queue, measured locally with a stubbed 5-second model:
 
 | | Result |
@@ -165,6 +203,7 @@ Each row links to the code and to what checks it.
 | Redis vector cache | [semantic-cache.ts](src/lib/ai/cache/semantic-cache.ts) | `npm run test:unit`. Enable with `SEMANTIC_CACHE=on` |
 | BullMQ generation queue | [generation-queue.ts](src/lib/queue/generation-queue.ts), [generation-worker.ts](src/worker/generation-worker.ts) | Measurements under Results above |
 | Load test of the full stack | [run-load-test.mjs](benchmarks/run-load-test.mjs), [k6 script](benchmarks/load/k6-load.js), [mock OpenAI](benchmarks/mock-openai.mjs) | `npm run bench:load`, [raw k6 summaries](benchmarks/results) |
+| Capacity, fallback and Lighthouse | [capacity script](benchmarks/load/k6-capacity.js), same runner with `MODE=capacity`, `fallback` or `lighthouse` | [raw results](benchmarks/results) |
 | Zod request validation | [request-schemas.ts](src/lib/api/request-schemas.ts) | [API validation spec](tests/e2e/api-validation.spec.ts) |
 | Rate limiting | [proxy.ts](src/proxy.ts) | [Rate limit spec](tests/e2e/rate-limit.spec.ts) |
 | Projects flow | | [Projects spec](tests/e2e/projects.spec.ts) |
