@@ -18,6 +18,7 @@ import TypeBar from "@/src/app/components/TypeBar";
 import { caseLabel } from "@/src/app/lib/case-label";
 import { timeAgo } from "@/src/app/lib/format";
 import { runGeneration } from "@/src/app/lib/generate-tests";
+import { useViewer } from "@/src/app/components/Viewer";
 
 const tabs = [
   { label: "All", value: "all" },
@@ -39,6 +40,8 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
   const [description, setDescription] = useState(feature.description ?? "");
 
   const [isSavingFeature, setIsSavingFeature] = useState(false);
+  // The shared demo account cannot edit or delete, so those controls are left out.
+  const { demo } = useViewer();
   const [deleteFeatureOpen, setDeleteFeatureOpen] = useState(false);
   const [editingCase, setEditingCase] = useState<TestCase | null>(null);
   const [deletingCase, setDeletingCase] = useState<TestCase | null>(null);
@@ -538,7 +541,7 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
               {isGenerating ? "Writing test cases" : isFirstGeneration ? "Generate test cases" : "Generate a new version"}
             </button>
           )}
-          {hasChanges && (
+          {hasChanges && !demo && (
             <button
               onClick={handleSaveFeature}
               disabled={isSavingFeature || !name.trim()}
@@ -551,13 +554,15 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
             <p className="text-xs text-gray-500">Change the description to generate a new version.</p>
           )}
           {error && <p className="text-xs text-red-600">{error}</p>}
-          <button
-            onClick={() => setDeleteFeatureOpen(true)}
-            disabled={isGenerating}
-            className="ml-auto text-xs text-red-700 underline-offset-2 hover:underline disabled:opacity-50 dark:text-red-400"
-          >
-            Delete feature
-          </button>
+          {!demo && (
+            <button
+              onClick={() => setDeleteFeatureOpen(true)}
+              disabled={isGenerating}
+              className="ml-auto text-xs text-red-700 underline-offset-2 hover:underline disabled:opacity-50 dark:text-red-400"
+            >
+              Delete feature
+            </button>
+          )}
         </div>
         {genStatus !== "idle" && (
           <div className="tm-slide mt-1">
@@ -727,18 +732,22 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
                             >
                               Copy as Markdown
                             </button>
-                            <button
-                              className="underline-offset-2 hover:text-gray-800 hover:underline dark:hover:text-gray-200"
-                              onClick={() => setEditingCase(tc)}
-                            >
-                              Edit
-                            </button>
-                            <button
-                              className="text-red-700 underline-offset-2 hover:underline dark:text-red-400"
-                              onClick={() => setDeletingCase(tc)}
-                            >
-                              Delete
-                            </button>
+                            {!demo && (
+                              <>
+                                <button
+                                  className="underline-offset-2 hover:text-gray-800 hover:underline dark:hover:text-gray-200"
+                                  onClick={() => setEditingCase(tc)}
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  className="text-red-700 underline-offset-2 hover:underline dark:text-red-400"
+                                  onClick={() => setDeletingCase(tc)}
+                                >
+                                  Delete
+                                </button>
+                              </>
+                            )}
                           </div>
                         </div>
                       )}
