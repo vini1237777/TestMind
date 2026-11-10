@@ -214,7 +214,8 @@ test("user can create project, add feature, and generate test cases", async ({
     .first()
     .click();
 
-  await expect(page.getByText("User enters ambiguous input")).toBeVisible();
+  // The suggestion can still show in the review panel, so look for the row in the case list.
+  await expect(page.getByRole("button", { name: /User enters ambiguous input/ })).toBeVisible();
 });
 
 test("shows an error when the generation job fails", async ({ page }) => {
