@@ -6,6 +6,11 @@ import IntroLoader from "./components/IntroLoader";
 // import NextTopLoader from "nextjs-toploader";
 import HolyLoader from "holy-loader";
 import { getCurrentUser } from "@/src/lib/auth/session";
+// IBM Plex Sans, served with the app so the build never has to download it.
+import "@fontsource/ibm-plex-sans/latin-400.css";
+import "@fontsource/ibm-plex-sans/latin-500.css";
+import "@fontsource/ibm-plex-sans/latin-600.css";
+import "@fontsource/ibm-plex-sans/latin-700.css";
 
 export default async function RootLayout({
   children,

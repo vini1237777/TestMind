@@ -3,11 +3,13 @@ import { createHash, randomBytes } from "node:crypto";
 import SessionModel from "@/src/app/models/Session";
 import UserModel from "@/src/app/models/User";
 import { connectDB } from "@/src/lib/mongodb";
+import { demoEmail } from "./demo";
 
 export const SESSION_COOKIE = "tm_session";
 export const SESSION_DAYS = 30;
 
-export type CurrentUser = { id: string; email: string };
+// demo is true for the shared demo account, which cannot edit or delete.
+export type CurrentUser = { id: string; email: string; demo?: boolean };
 
 const hashToken = (token: string) => createHash("sha256").update(token).digest("hex");
 
@@ -31,7 +33,7 @@ export async function userFromToken(token: string | null | undefined): Promise<C
   // MongoDB removes expired sessions about once a minute, so the date is checked here too.
   if (!session || session.expiresAt.getTime() <= Date.now()) return null;
   const user = await UserModel.findById(session.userId).lean<{ _id: unknown; email: string } | null>();
-  return user ? { id: String(user._id), email: user.email } : null;
+  return user ? { id: String(user._id), email: user.email, demo: user.email === demoEmail() } : null;
 }
 
 // Scripts and tests run outside a request, so they pass the token in here instead of a cookie.

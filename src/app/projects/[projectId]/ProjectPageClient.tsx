@@ -12,6 +12,7 @@ import { deleteProject } from "@/src/app/actions/projects";
 import { deleteFeature } from "@/src/app/actions/suites";
 import CardActions from "@/src/app/components/CardActions";
 import FeatureEditModal from "@/src/app/components/FeatureEditModal";
+import { useViewer } from "@/src/app/components/Viewer";
 import { EXAMPLE } from "@/src/app/lib/example";
 import Breadcrumbs from "@/src/app/components/Breadcrumbs";
 import TypeBar from "@/src/app/components/TypeBar";
@@ -30,7 +31,8 @@ export default function ProjectPageClient({
   const [openEdit, setOpenEdit] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
   // The shared example opens from the home page, so it stays as it is.
-  const canManage = project.name !== EXAMPLE.project;
+  const { demo } = useViewer();
+  const canManage = !demo && project.name !== EXAMPLE.project;
 
   const handleDelete = async () => {
     try {

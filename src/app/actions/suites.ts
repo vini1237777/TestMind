@@ -9,6 +9,7 @@ import type { TestSuite, TestCase } from "@/src/app/types/testmind";
 import { syncSuiteChunks } from "@/src/lib/ai/rag/chunks";
 import { clearListCache, getCache, setCache } from "@/src/lib/cache";
 import { getCurrentUser, ownedProject, ownedSuite, SIGN_IN_ERROR } from "@/src/lib/auth/access";
+import { DEMO_LOCKED_ERROR } from "@/src/lib/auth/demo";
 
 export type TestSuiteDb = {
   _id: Types.ObjectId;
@@ -146,9 +147,11 @@ export async function addTestCasesToSuite(suiteId: string, newCases: TestCase[])
 const SUITE_NOT_FOUND = "This feature no longer exists.";
 const CASE_TYPES = ["happy", "negative", "edge"] as const;
 
-// Another user's feature reads as one that no longer exists.
+// For edits and deletes: another user's feature reads as one that no longer exists,
+// and the shared demo account is refused before anything is looked up.
 async function findSuite(suiteId: string) {
   const user = await getCurrentUser();
+  if (user?.demo) return { locked: true as const };
   return user ? ownedSuite(user, suiteId) : null;
 }
 
@@ -164,6 +167,7 @@ export async function editFeature(
   if (name.length > 200 || description.length > 5000) return { error: "Feature name or description is too long." };
 
   const suite = await findSuite(suiteId);
+  if (suite && "locked" in suite) return { error: DEMO_LOCKED_ERROR };
   if (!suite) return { error: SUITE_NOT_FOUND };
   const projectId = String(suite.projectId);
   const oldName = String(suite.featureName);
@@ -184,6 +188,7 @@ export async function deleteFeature(
   suiteId: string,
 ): Promise<{ projectId: string; versions: number } | { error: string }> {
   const suite = await findSuite(suiteId);
+  if (suite && "locked" in suite) return { error: DEMO_LOCKED_ERROR };
   if (!suite) return { error: SUITE_NOT_FOUND };
   const projectId = String(suite.projectId);
 
@@ -219,6 +224,7 @@ async function saveCases(
   change: (cases: TestCase[]) => TestCase[] | { error: string },
 ): Promise<{ testCases: TestCase[] } | { error: string }> {
   const suite = await findSuite(suiteId);
+  if (suite && "locked" in suite) return { error: DEMO_LOCKED_ERROR };
   if (!suite) return { error: SUITE_NOT_FOUND };
 
   const next = change(suite.toObject().testCases as TestCase[]);

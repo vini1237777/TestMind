@@ -4,6 +4,7 @@ import { readCredentials } from "@/src/lib/auth/credentials";
 import { hashPassword } from "@/src/lib/auth/password";
 import { signedIn } from "@/src/lib/auth/respond";
 import { connectDB } from "@/src/lib/mongodb";
+import { demoEmail } from "@/src/lib/auth/demo";
 
 const TAKEN = "An account with this email already exists. Sign in instead.";
 
@@ -11,6 +12,10 @@ export async function POST(req: Request) {
   try {
     const input = await readCredentials(req);
     if ("error" in input) return NextResponse.json(input, { status: 400 });
+
+    if (input.email === demoEmail()) {
+      return NextResponse.json({ error: "This email is kept for the demo account. Use Try the demo instead.", field: "email" }, { status: 409 });
+    }
 
     await connectDB();
     if (await UserModel.exists({ email: input.email })) {
