@@ -10,9 +10,10 @@ import { useEffect } from "react";
 export default function TryNow({ signedIn }: { signedIn: boolean }) {
   const router = useRouter();
 
+  // Signed out, /projects only redirects home, so there is nothing worth fetching early.
   useEffect(() => {
-    router.prefetch("/projects");
-  }, [router]);
+    if (signedIn) router.prefetch("/projects");
+  }, [router, signedIn]);
 
   const go = () => {
     // Signed out, the way in is the sign in card next to this button.

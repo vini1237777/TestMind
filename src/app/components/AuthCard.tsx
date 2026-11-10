@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { fieldClass, labelClass } from "./Modal";
 
@@ -22,7 +21,6 @@ export async function signOut() {
 
 /** Sign in and create account in one card. Signed in, it shows who you are and the way in. */
 export default function AuthCard({ email, next }: { email: string | null; next?: string | null }) {
-  const router = useRouter();
   const id = useId();
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
@@ -112,8 +110,9 @@ export default function AuthCard({ email, next }: { email: string | null; next?:
           res.status === 429 ? "Too many tries. Wait a minute, then try again." : data.error || "Something went wrong. Please try again.";
         return fail({ text, field: data.field });
       }
-      router.push(safeNext(next));
-      router.refresh();
+      // A full load, not router.push: the router may hold the signed out redirect it
+      // prefetched for /projects, and the navbar needs the new session too.
+      window.location.assign(safeNext(next));
     } catch {
       fail({ text: "Could not reach TestMind. Check your connection and try again." });
     }
