@@ -11,6 +11,7 @@ import TestSuiteModel from "@/src/app/models/TestSuite";
 import { EXAMPLE } from "@/src/app/lib/example";
 import { refreshPaths } from "@/src/lib/revalidate";
 import { getCurrentUser, ownedProject, SIGN_IN_ERROR } from "@/src/lib/auth/access";
+import { DEMO_LOCKED_ERROR } from "@/src/lib/auth/demo";
 
 const NOT_FOUND = "This project no longer exists.";
 const EXAMPLE_LOCKED = "The example project cannot be changed.";
@@ -89,6 +90,7 @@ export async function updateProject(
   if (name.length > 120 || description.length > 2000) return { error: "Project name or description is too long." };
   const user = await getCurrentUser();
   if (!user) return { error: SIGN_IN_ERROR };
+  if (user.demo) return { error: DEMO_LOCKED_ERROR };
   const current = await ownedProject(user, id);
   if (!current) return { error: NOT_FOUND };
   if (current.name === EXAMPLE.project) return { error: EXAMPLE_LOCKED };
@@ -107,6 +109,7 @@ export async function deleteProject(
 ): Promise<{ deleted: { suites: number; cases: number } } | { error: string }> {
   const user = await getCurrentUser();
   if (!user) return { error: SIGN_IN_ERROR };
+  if (user.demo) return { error: DEMO_LOCKED_ERROR };
   const current = await ownedProject(user, id);
   if (!current) return { error: NOT_FOUND };
   if (current.name === EXAMPLE.project) return { error: EXAMPLE_LOCKED };
