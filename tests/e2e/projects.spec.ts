@@ -1,6 +1,6 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "./fixtures";
 
-async function openNewProject(page: import("@playwright/test").Page) {
+async function openNewProject(page: Page) {
   await page.goto("/projects");
   await page.getByRole("button", { name: /new project/i }).click();
   await expect(page.getByRole("dialog")).toBeVisible();
