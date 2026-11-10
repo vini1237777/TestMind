@@ -401,3 +401,64 @@ describe("projects from before sign in", () => {
     assert.equal(await Project.countDocuments({ ownerId: asha.id }), 1);
   });
 });
+
+describe("the demo account", () => {
+  let demoRoute: typeof import("../../src/app/api/auth/demo/route");
+  before(async () => {
+    demoRoute = await import("../../src/app/api/auth/demo/route");
+  });
+
+  test("opens without a password and is the same account every time", async () => {
+    const first = await demoRoute.POST();
+    const second = await demoRoute.POST();
+    assert.equal(first.status, 200);
+    const a = await session.userFromToken(tokenOf(first));
+    const b = await session.userFromToken(tokenOf(second));
+    assert.equal(a?.email, "admin@gmail.com");
+    assert.equal(a?.demo, true);
+    assert.equal(a?.id, b?.id);
+    assert.equal(await User.countDocuments({ email: "admin@gmail.com" }), 1);
+  });
+
+  test("cannot be taken by signing up or guessed by signing in", async () => {
+    await demoRoute.POST();
+    const signupRes = await signup.POST(json("/api/auth/signup", { email: "Admin@Gmail.com", password: "long enough" }));
+    assert.equal(signupRes.status, 409);
+    const loginRes = await login.POST(json("/api/auth/login", { email: "admin@gmail.com", password: "long enough" }));
+    assert.equal(loginRes.status, 401);
+  });
+
+  test("can add and generate, but not edit or delete", async () => {
+    const token = tokenOf(await demoRoute.POST());
+    const locked = { error: "The demo account cannot edit or delete. Create your own account to do that." };
+    await session.withSessionToken(token, async () => {
+      const project = await projects.createProject({ name: "Shared" });
+      const created = await suites.createSuite({
+        projectId: project.id,
+        featureName: "Pay",
+        description: "",
+        testCases: [{ id: "TC_1", type: "happy", title: "Pays", steps: ["Pay"], expected: "Paid", samplePayload: {} }],
+      });
+      assert.ok("suite" in created);
+      const suiteId = created.suite.id;
+      assert.deepEqual(await projects.updateProject(project.id, { name: "Gone" }), locked);
+      assert.deepEqual(await projects.deleteProject(project.id), locked);
+      assert.deepEqual(await suites.editFeature(suiteId, { name: "Gone", description: "" }), locked);
+      assert.deepEqual(await suites.deleteFeature(suiteId), locked);
+      assert.deepEqual(await suites.deleteTestCase(suiteId, "TC_1"), locked);
+      assert.deepEqual(
+        await suites.updateTestCase(suiteId, "TC_1", { type: "edge", title: "x", steps: ["x"], expected: "x" }),
+        locked,
+      );
+    });
+    assert.equal(await Project.countDocuments({ name: "Shared" }), 1);
+    assert.equal((await Suite.findOne().lean<{ testCases: unknown[] }>())?.testCases.length, 1);
+  });
+
+  test("receives old projects when it is the owner account", async () => {
+    process.env.OWNER_EMAIL = "admin@gmail.com";
+    await Project.create({ name: "Old shop" });
+    const user = await session.userFromToken(tokenOf(await demoRoute.POST()));
+    assert.equal(await Project.countDocuments({ ownerId: user?.id }), 1);
+  });
+});
