@@ -9,6 +9,9 @@ import FeatureModal from "@/src/app/components/FeatureModal";
 import ProjectModal from "@/src/app/components/ProjectModal";
 import ConfirmDelete from "@/src/app/components/ConfirmDelete";
 import { deleteProject } from "@/src/app/actions/projects";
+import { deleteFeature } from "@/src/app/actions/suites";
+import CardActions from "@/src/app/components/CardActions";
+import FeatureEditModal from "@/src/app/components/FeatureEditModal";
 import { EXAMPLE } from "@/src/app/lib/example";
 import Breadcrumbs from "@/src/app/components/Breadcrumbs";
 import TypeBar from "@/src/app/components/TypeBar";
@@ -44,6 +47,28 @@ export default function ProjectPageClient({
     }
   };
   const [localSuites, setLocalSuites] = useState<TestSuite[]>(suites);
+  const [editingFeature, setEditingFeature] = useState<TestSuite | null>(null);
+  const [deletingFeature, setDeletingFeature] = useState<TestSuite | null>(null);
+  const sameFeature = (a: TestSuite, b: TestSuite) => a.featureName.toLowerCase() === b.featureName.toLowerCase();
+
+  const handleDeleteFeature = async () => {
+    const target = deletingFeature;
+    if (!target) return;
+    try {
+      const result = await deleteFeature(target.id);
+      if ("error" in result) {
+        toast.error(result.error);
+        return;
+      }
+      // Every saved version of the feature goes with it.
+      setLocalSuites((prev) => prev.filter((s) => !sameFeature(s, target)));
+      setDeletingFeature(null);
+      toast.success("Feature deleted");
+      router.refresh();
+    } catch {
+      toast.error("Could not delete the feature. Please try again.");
+    }
+  };
 
   const totalCases = localSuites.reduce((n, s) => n + (s.testCases?.length ?? 0), 0);
   const scored = localSuites.filter((s) => typeof s.lastFeedbackScore === "number");
@@ -135,7 +160,7 @@ export default function ProjectPageClient({
         </div>
       ) : (
         <div className="border border-amber-300 dark:border-amber-500/40">
-          <div className="hidden grid-cols-[minmax(0,1fr)_160px_80px_90px_120px] gap-4 bg-amber-300 px-4 py-2 text-xs font-semibold text-black md:grid">
+          <div className={`hidden grid-cols-[minmax(0,1fr)_160px_80px_90px_120px] gap-4 bg-amber-300 py-2 pl-4 text-xs font-semibold text-black md:grid ${canManage ? "pr-[84px]" : "pr-4"}`}>
             <span>Feature</span>
             <span>Case mix</span>
             <span className="text-right">Cases</span>
@@ -144,10 +169,14 @@ export default function ProjectPageClient({
           </div>
           <ul className="divide-y dark:divide-slate-800">
             {localSuites.map((suite, i) => (
-              <li key={suite.id} className="tm-rise" style={{ animationDelay: `${Math.min(i, 12) * 30}ms` }}>
+              <li
+                key={suite.id}
+                className="tm-rise group flex items-center transition-colors hover:bg-amber-50 dark:hover:bg-slate-900"
+                style={{ animationDelay: `${Math.min(i, 12) * 30}ms` }}
+              >
                 <Link
                   href={`/projects/${project.id}/suites/${suite.id}`}
-                  className="grid grid-cols-1 gap-1 px-4 py-3 text-sm transition-colors hover:bg-amber-50 md:grid-cols-[minmax(0,1fr)_160px_80px_90px_120px] md:items-center md:gap-4 dark:hover:bg-slate-900"
+                  className="grid min-w-0 flex-1 grid-cols-1 gap-1 px-4 py-3 text-sm md:grid-cols-[minmax(0,1fr)_160px_80px_90px_120px] md:items-center md:gap-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-amber-500"
                 >
                   <span className="min-w-0">
                     <span className="block truncate font-medium">{suite.featureName}</span>
@@ -163,11 +192,51 @@ export default function ProjectPageClient({
                     {suite.testCases?.length ?? 0} cases{typeof suite.lastFeedbackScore === "number" ? `, score ${suite.lastFeedbackScore}/100` : ""}
                   </span>
                 </Link>
+                {canManage && (
+                  <CardActions
+                    label={suite.featureName}
+                    onEdit={() => setEditingFeature(suite)}
+                    onDelete={() => setDeletingFeature(suite)}
+                    className="shrink-0 pr-3"
+                  />
+                )}
               </li>
             ))}
           </ul>
         </div>
       )}
+
+      <FeatureEditModal
+        feature={editingFeature}
+        onClose={() => setEditingFeature(null)}
+        onSaved={({ name, description }) => {
+          const target = editingFeature!;
+          setLocalSuites((prev) =>
+            prev.map((s) =>
+              sameFeature(s, target)
+                ? { ...s, name, featureName: name, description: s.id === target.id ? description : s.description }
+                : s,
+            ),
+          );
+          router.refresh();
+        }}
+      />
+
+      <ConfirmDelete
+        open={Boolean(deletingFeature)}
+        onClose={() => setDeletingFeature(null)}
+        title="Delete feature"
+        actionLabel="Delete feature"
+        onConfirm={handleDeleteFeature}
+      >
+        <p>
+          This deletes <span className="font-semibold">{deletingFeature?.featureName}</span> and its{" "}
+          {deletingFeature
+            ? localSuites.filter((s) => sameFeature(s, deletingFeature)).reduce((n, s) => n + (s.testCases?.length ?? 0), 0)
+            : 0}{" "}
+          test cases. It cannot be undone.
+        </p>
+      </ConfirmDelete>
 
       <FeatureModal
         projectId={project.id}

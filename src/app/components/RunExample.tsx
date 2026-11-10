@@ -13,7 +13,15 @@ export default function RunExample() {
   const go = async () => {
     setBusy(true);
     try {
-      const { projectId, suiteId, isNew } = await openExample();
+      const opened = await openExample();
+      if ("error" in opened) {
+        // Signed out: send the visitor to the sign in card next to this button.
+        window.dispatchEvent(new CustomEvent("tm:signin"));
+        toast("Sign in to run the example.");
+        setBusy(false);
+        return;
+      }
+      const { projectId, suiteId, isNew } = opened;
       router.push(`/projects/${projectId}/suites/${suiteId}${isNew ? "?run=1" : ""}`);
     } catch (err) {
       console.error(err);

@@ -8,6 +8,7 @@ import mongoose from "mongoose";
 import { NextRequest } from "next/server";
 import type { TestSuite as Suite } from "../../src/app/types/testmind";
 import { versionsOf } from "../../src/lib/suites/versions";
+import { signInAs } from "./helpers/session";
 
 const PORT = 27096;
 const PROJECT = "a".repeat(24);
@@ -19,6 +20,8 @@ let names: typeof import("../../src/lib/suites/names");
 let Model: typeof import("../../src/app/models/TestSuite").default;
 let actions: typeof import("../../src/app/actions/suites");
 let route: typeof import("../../src/app/api/generate-tests/route");
+let owner: Awaited<ReturnType<typeof signInAs>>;
+const asOwner = <T>(work: () => Promise<T>) => owner.as(work);
 
 before(async () => {
   dbPath = fs.mkdtempSync(path.join(os.tmpdir(), "testmind-dup-"));
@@ -42,6 +45,9 @@ before(async () => {
       await new Promise((r) => setTimeout(r, 200));
     }
   }
+  owner = await signInAs("owner@example.com");
+  const Project = (await import("../../src/app/models/Project")).default;
+  await Project.create({ _id: PROJECT, name: "Shop", ownerId: owner.id });
 });
 
 beforeEach(async () => {
@@ -77,7 +83,7 @@ describe("feature names", () => {
 });
 
 describe("creating a feature", () => {
-  test("a repeated name returns a message and saves nothing", async () => {
+  test("a repeated name returns a message and saves nothing", () => asOwner(async () => {
     await save(PROJECT, "Login");
     const result = await actions.createSuite({
       projectId: PROJECT,
@@ -87,7 +93,7 @@ describe("creating a feature", () => {
     });
     assert.deepEqual(result, { error: names.DUPLICATE_FEATURE_ERROR });
     assert.equal(await Model.countDocuments({ projectId: PROJECT }), 1);
-  });
+  }));
 });
 
 describe("starting a generation", () => {
@@ -99,25 +105,25 @@ describe("starting a generation", () => {
       }),
     );
 
-  test("renaming onto another feature is refused before the queue", async () => {
+  test("renaming onto another feature is refused before the queue", () => asOwner(async () => {
     await save(PROJECT, "Login");
     const own = await save(PROJECT, "Sign up");
     const res = await post({ featureName: "login", suiteId: own._id.toString() });
     assert.equal(res.status, 409);
     assert.deepEqual(await res.json(), { error: names.DUPLICATE_FEATURE_ERROR });
-  });
+  }));
 
-  test("a new name with no suite id for an existing one is refused", async () => {
+  test("a new name with no suite id for an existing one is refused", () => asOwner(async () => {
     await save(PROJECT, "Login");
     assert.equal((await post({ featureName: "Login" })).status, 409);
-  });
+  }));
 
-  test("regenerating a suite under its own name goes on to the queue", async () => {
+  test("regenerating a suite under its own name goes on to the queue", () => asOwner(async () => {
     const own = await save(PROJECT, "Login");
     // No Redis here, so reaching the queue answers 503 instead of 409.
     const res = await post({ featureName: "Login", suiteId: own._id.toString() });
     assert.equal(res.status, 503);
-  });
+  }));
 });
 
 describe("versions on the suite page", () => {

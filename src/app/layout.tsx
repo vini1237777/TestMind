@@ -5,12 +5,14 @@ import Navbar from "./Navbar";
 import IntroLoader from "./components/IntroLoader";
 // import NextTopLoader from "nextjs-toploader";
 import HolyLoader from "holy-loader";
+import { getCurrentUser } from "@/src/lib/auth/session";
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const user = await getCurrentUser();
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -30,7 +32,7 @@ export default function RootLayout({
           enableSystem={false}
         >
           <Toaster />
-          <Navbar />
+          <Navbar email={user?.email ?? null} />
           <main className="min-h-screen">{children}</main>
         </ThemeProvider>
       </body>

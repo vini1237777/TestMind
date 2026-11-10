@@ -3,7 +3,8 @@ import SuiteClient from "./SuiteClient";
 import { getSuiteById } from "@/src/app/actions/suites";
 import { getProjectById } from "@/src/app/actions/projects";
 
-export const revalidate = 60;
+// Each visitor sees only their own projects.
+export const dynamic = "force-dynamic";
 
 export default async function SuitePage({ params }: SuitePageProps) {
   const suiteId = (await params).suiteId;

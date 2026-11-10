@@ -14,7 +14,17 @@ const ratelimit = new Ratelimit({
 const JOB_STATUS = /^\/api\/generate-tests\/[^/]+$/;
 
 export default async function proxy(req: NextRequest) {
-  if (req.method === "GET" && JOB_STATUS.test(req.nextUrl.pathname)) {
+  const { pathname, search } = req.nextUrl;
+
+  // A quick check for the cookie only. The workspace layout checks the session itself.
+  if (pathname === "/projects" || pathname.startsWith("/projects/")) {
+    if (req.cookies.has("tm_session")) return NextResponse.next();
+    const home = new URL("/", req.url);
+    home.searchParams.set("next", pathname + search);
+    return NextResponse.redirect(home);
+  }
+
+  if (req.method === "GET" && JOB_STATUS.test(pathname)) {
     return NextResponse.next();
   }
 
@@ -23,7 +33,10 @@ export default async function proxy(req: NextRequest) {
     req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
     "unknown";
 
-  const { success } = await ratelimit.limit(ip);
+  // Sign in attempts get their own allowance, so guessing passwords cannot use up the
+  // generation budget, and a busy workspace cannot lock someone out of signing in.
+  const bucket = pathname.startsWith("/api/auth/") ? `auth:${ip}` : ip;
+  const { success } = await ratelimit.limit(bucket);
 
   if (!success) {
     return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
@@ -33,4 +46,4 @@ export default async function proxy(req: NextRequest) {
 }
 
 // /api/health is excluded so platform health checks never depend on Redis.
-export const config = { matcher: "/api/((?!health).*)" };
+export const config = { matcher: ["/api/((?!health).*)", "/projects", "/projects/:path*"] };
