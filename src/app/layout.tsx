@@ -6,10 +6,11 @@ import IntroLoader from "./components/IntroLoader";
 // import NextTopLoader from "nextjs-toploader";
 import HolyLoader from "holy-loader";
 import { getCurrentUser } from "@/src/lib/auth/session";
-import { IBM_Plex_Sans } from "next/font/google";
-
-// A sans made for technical products: clear at small sizes, with real weights for headings.
-const plex = IBM_Plex_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-plex", display: "swap" });
+// IBM Plex Sans, served with the app so the build never has to download it.
+import "@fontsource/ibm-plex-sans/latin-400.css";
+import "@fontsource/ibm-plex-sans/latin-500.css";
+import "@fontsource/ibm-plex-sans/latin-600.css";
+import "@fontsource/ibm-plex-sans/latin-700.css";
 
 export default async function RootLayout({
   children,
@@ -18,7 +19,7 @@ export default async function RootLayout({
 }>) {
   const user = await getCurrentUser();
   return (
-    <html lang="en" suppressHydrationWarning className={plex.variable}>
+    <html lang="en" suppressHydrationWarning>
       <head>
         {/* Skip the intro before paint for returning visitors and reduced motion users */}
         <script

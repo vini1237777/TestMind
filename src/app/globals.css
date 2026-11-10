@@ -5,7 +5,7 @@
 @layer base {
   body {
     @apply bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-50;
-    font-family: var(--font-plex), ui-sans-serif, system-ui, sans-serif;
+    font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
 }
