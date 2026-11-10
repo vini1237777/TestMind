@@ -100,7 +100,7 @@ export default function Navbar({ email }: { email: string | null }) {
   return (
     <div>
       <FeaturesModal key={openCount} open={featuresOpen} initialTab={featuresTab} onClose={() => setFeaturesOpen(false)} />
-      <nav className="tm-slide w-full bg-amber-300 h-12 flex items-center justify-between px-4">
+      <nav className="tm-slide relative z-40 w-full bg-amber-300 h-12 flex items-center justify-between px-4">
         <Link
           href="/"
           aria-label="TestMind home"
@@ -112,12 +112,12 @@ export default function Navbar({ email }: { email: string | null }) {
           <span className="hidden text-base font-semibold sm:inline">TestMind</span>
         </Link>
 
-        <div className="flex items-center gap-1">
+        <div className="flex min-w-0 items-center gap-0.5 sm:gap-1">
           <VisitorCount />
           <Link
             href="/"
             aria-current={active("/") ? "page" : undefined}
-            className={`text-sm font-medium rounded-md px-2 py-1 text-black transition-colors ${active("/") ? "bg-amber-200" : "hover:bg-amber-200"}`}
+            className={`hidden sm:inline-block text-sm font-medium rounded-md px-2 py-1 text-black transition-colors ${active("/") ? "bg-amber-200" : "hover:bg-amber-200"}`}
           >
             Home
           </Link>
@@ -144,14 +144,14 @@ export default function Navbar({ email }: { email: string | null }) {
                 e.preventDefault();
                 window.dispatchEvent(new CustomEvent("tm:signin"));
               }}
-              className="ml-1 rounded-md bg-black px-3 py-1 text-sm font-medium text-amber-300 hover:bg-gray-800"
+              className="ml-1 whitespace-nowrap rounded-md bg-black px-3 py-1 text-sm font-medium text-amber-300 hover:bg-gray-800"
             >
               Sign in
             </Link>
           )}
           <button
             type="button"
-            className="text-3xl cursor-pointer hover:bg-amber-200 rounded-md p-1"
+            className="hidden sm:block text-3xl cursor-pointer hover:bg-amber-200 rounded-md p-1"
             onClick={handleClickIcon}
             aria-label="Open GitHub repository"
           >
