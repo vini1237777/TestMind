@@ -3,6 +3,7 @@ import OpenFeatures from "./OpenFeatures";
 import RunExample from "./RunExample";
 import HomeActions from "./HomeActions";
 import AuthDialog from "./AuthDialog";
+import PurposeVideo from "./PurposeVideo";
 
 function Words({ text, start = 0 }: { text: string; start?: number }) {
   return (
@@ -76,6 +77,22 @@ export default function Intro({
             <RunExample />
           </figcaption>
         </figure>
+      </section>
+
+      {/* What TestMind is for, as a short video */}
+      <section id="overview" aria-labelledby="overview-title" className="scroll-mt-16">
+        <div className="mx-auto grid max-w-6xl items-center gap-x-[clamp(2.5rem,6vw,4rem)] gap-y-8 px-[clamp(1.25rem,4vw,2rem)] py-[clamp(3rem,8vh,5rem)] lg:grid-cols-[minmax(0,1fr)_minmax(0,40rem)]">
+          <div>
+            <h2 id="overview-title" className="text-xl font-semibold tracking-tight">
+              What TestMind is for
+            </h2>
+            <p className="mt-3 max-w-[40ch] leading-relaxed text-slate-600 dark:text-slate-300">
+              The problem it solves, what it does, how it is built and what it measured, in 19 seconds.
+            </p>
+            <p className="mt-4 text-xs text-slate-500">No sound. Press a part to jump to it.</p>
+          </div>
+          <PurposeVideo />
+        </div>
       </section>
 
       {/* How a run goes, in the order it happens */}

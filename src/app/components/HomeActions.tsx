@@ -74,6 +74,12 @@ export default function HomeActions({ email, next }: { email: string | null; nex
           </span>
         </p>
       )}
+      <p className="mt-2 text-sm text-slate-500">
+        New here?{" "}
+        <a href="#overview" className="font-medium text-slate-900 underline underline-offset-2 hover:text-amber-700 dark:text-white dark:hover:text-amber-300">
+          Watch the 19 second overview
+        </a>
+      </p>
     </div>
   );
 }
