@@ -72,7 +72,7 @@ flowchart LR
 | **JSON mode + Zod** | Bad model output fails the run instead of reaching the UI or the database. | [`schemas/`](src/lib/ai/schemas) |
 | **Deterministic post-processing** | Normalization and dedupe (type + normalized title) are plain code, not prompts: testable and free. | [`utils/test-case.ts`](src/lib/ai/utils/test-case.ts) |
 | **Persist only after a clean run** | Orchestrators throw if any node reported an error, so there are no half-written suites. | [`suite-orchestrator/`](src/lib/ai/services/suite-orchestrator) |
-| **Edge rate limiting** | Upstash fixed window in the Next.js proxy protects the LLM budget. | [`proxy.ts`](src/proxy.ts) |
+| **Edge rate limiting** | Upstash fixed window in the Next.js proxy protects the LLM budget. If Upstash cannot answer, each server counts requests in memory with the same limit, so the API stays up. | [`proxy.ts`](src/proxy.ts), [`memory-rate-limit.ts`](src/lib/memory-rate-limit.ts) |
 | **Background worker for generation** | A model call takes seconds. The API returns a job id immediately, and concurrency stays capped at 3 however many requests arrive. | [`generation-worker.ts`](src/worker/generation-worker.ts) |
 | **Gemini fallback** | If OpenAI fails, times out or returns output that fails the Zod schema, Gemini serves the same prompt. There are no retries before the switch, so an outage costs one attempt. | [`complete-json.ts`](src/lib/ai/llm/complete-json.ts) |
 | **RAG over saved test cases** | Each saved case is one chunk with a 256 dimension embedding. Before writing, Atlas Vector Search finds similar cases inside the same project, filtered in the search itself, and the top 5 above a minimum score go to the model as data, so it can match the project's style and cover new ground. A regenerated suite skips its own cases. If the embedding or search fails, generation runs without context. Turned on with `RAG=on`. | [`rag/`](src/lib/ai/rag) |
@@ -180,6 +180,15 @@ The other specs cover API validation, the rate limiter and project creation. The
 ```bash
 npm run test:e2e
 ```
+
+## Running on free plans
+
+The live demo runs on free plans: Railway, Upstash, MongoDB Atlas and a separate Redis for the queue. Each free plan has a monthly allowance, so the app is built to keep working when one runs out.
+
+- **Rate limit:** if Upstash cannot answer, each server counts requests in memory with the same limit of 10 a minute.
+- **List cache:** if Upstash cannot answer, project and suite lists load straight from MongoDB.
+- **Generation:** if the queue's Redis cannot take a job, the suite page shows a notice above the Generate button saying generation is paused until the allowance resets, and saved projects and suites keep working. The check behind it ([`/api/generation-status`](src/app/api/generation-status/route.ts)) is cached for a minute per server, so page views add at most one Redis command a minute.
+- **Quiet worker:** the worker checks an empty queue and stalled jobs every 5 minutes. Measured on a local Redis, an idle worker used 1,092 commands in 10 minutes on BullMQ's defaults and 30 in 610 seconds with these settings.
 
 ## Production
 
