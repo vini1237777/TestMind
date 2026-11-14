@@ -13,7 +13,7 @@ type Item = { title: string; text: string; img: { src: string; w: number; h: num
 const ITEMS: Item[] = [
   {
     title: "Start with a sentence or two",
-    text: "Name the feature and write what it should do, the way you would explain it to a teammate. Limits and error cases are where the useful tests come from.",
+    text: "Give the feature a name and say what it should do, the way you would explain it to a teammate. Mention limits and error cases, because that is where the useful tests come from.",
     img: { src: "/tour/describe.png", w: 1344, h: 944, alt: "Describing a new feature in TestMind" },
     action: (
       <OpenFeatures tab="tour" className={link}>
@@ -23,9 +23,19 @@ const ITEMS: Item[] = [
   },
   {
     title: "Get a test plan you can read",
-    text: "Every case has steps and an expected result. The bar shows the mix of normal, failure and edge cases, and the review score shows how much of the feature is covered.",
+    text: "Each case has steps and an expected result. The coloured bar shows how many are normal, failure and edge cases. The review score out of 100 shows how much of the feature is covered, and the review lists what is missing.",
     img: { src: "/tour/plan.png", w: 1856, h: 1248, alt: "A generated test plan with its review score" },
     action: <RunExample className={link} label="Run the example for real >" />,
+  },
+  {
+    title: "It learns from your saved cases",
+    text: "This is the RAG part. Every case you save is stored with an embedding. For a new feature, TestMind finds the 5 most similar saved cases in the same project and gives them to the AI, so the new cases follow your project's rules instead of starting from zero. If search fails, it still writes the cases, just without that context.",
+    img: { src: "/tour/projects.png", w: 2496, h: 1120, alt: "Projects, whose saved cases become context for new ones" },
+    action: (
+      <OpenFeatures tab="tech" className={link}>
+        Read how RAG is used &gt;
+      </OpenFeatures>
+    ),
   },
   {
     title: "Take it with you",
@@ -39,7 +49,7 @@ const ITEMS: Item[] = [
   },
   {
     title: "Come back to it later",
-    text: "Features live inside projects. Search with the / key, sort by score, or open a recent suite from the top of the list.",
+    text: "Features are grouped into projects. Press / to search, sort by score, or open a recent one from the top of the list.",
     img: { src: "/tour/projects.png", w: 2496, h: 1120, alt: "The projects list" },
     action: (
       <OpenFeatures tab="tech" className={link}>
