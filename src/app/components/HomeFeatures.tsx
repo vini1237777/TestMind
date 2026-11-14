@@ -88,17 +88,17 @@ export default function HomeFeatures() {
                   />
                 </button>
               </h3>
-              <div id={`feature-${i}`} hidden={!isOpen} className="px-1 pb-8">
+              <div id={`feature-${i}`} hidden={!isOpen} className="tm-fade px-1 pb-8">
                 <p className="mb-4 max-w-[52ch] text-base leading-relaxed text-slate-600 dark:text-slate-300">{item.text}</p>
                 {item.action}
-                <Shot img={item.img} className="mt-5 h-auto w-full lg:hidden" />
+                <Shot img={item.img} className="tm-shot-in mt-5 h-auto w-full lg:hidden" />
               </div>
             </div>
           );
         })}
       </div>
       <div className="sticky top-8 hidden aspect-[1.18] place-items-center overflow-hidden rounded-[20px] bg-stone-100 p-[clamp(20px,4vw,48px)] lg:grid dark:bg-slate-900">
-        <Shot img={ITEMS[open].img} className="h-auto max-h-full w-auto max-w-full" />
+        <Shot key={open} img={ITEMS[open].img} className="tm-shot-in h-auto max-h-full w-auto max-w-full" />
       </div>
     </div>
   );
