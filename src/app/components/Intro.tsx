@@ -13,18 +13,18 @@ const ink = "bg-[#0b0b0c] text-white";
 
 // Each number is measured, and the README has the method and raw results.
 const NUMBERS = [
-  { was: "6%", now: "56%", text: "Project rules covered when saved cases are used as context, on a held out dataset of 20 features." },
-  { was: "5.05 s", now: "10 ms", text: "To start a generation, once the slow part moved to a background worker." },
-  { was: null, now: "100", text: "Lighthouse performance score for the home page, on mobile and desktop." },
+  { was: "6%", now: "56%", text: "Project rules covered by the new cases when RAG adds past cases as context. Held out test set of 20 features." },
+  { was: "5.05 s", now: "10 ms", text: "Wait before a generation starts, after the AI call moved to a background worker." },
+  { was: null, now: "100", text: "Lighthouse performance score of the home page, on mobile and on desktop." },
 ];
 
 // One run, in the order it happens.
 const FLOW = [
-  { title: "Feature", text: "written in plain words" },
-  { title: "Background worker", text: "BullMQ on Redis, 3 jobs at once" },
-  { title: "Vector search", text: "brings in the project's saved cases" },
-  { title: "LangGraph", text: "gpt-4o-mini writes, Zod checks, Gemini as backup" },
-  { title: "Review", text: "a score out of 100 and the missing cases" },
+  { title: "You describe a feature", text: "in plain words, like you would to a teammate" },
+  { title: "It joins a queue", text: "a background worker (BullMQ on Redis) runs up to 3 at once, so the page stays fast" },
+  { title: "RAG finds past cases", text: "Atlas Vector Search picks the 5 saved cases in your project closest to this feature" },
+  { title: "AI writes the cases", text: "a LangGraph flow: gpt-4o-mini writes, Zod checks the format, Gemini takes over if OpenAI fails" },
+  { title: "AI reviews them", text: "a coverage score out of 100 and a list of the cases still missing" },
 ];
 
 function Ribbons() {
@@ -95,7 +95,7 @@ export default function Intro({
           </div>
           <div className="tm-in-up mt-14 lg:mt-0" style={{ animationDelay: "560ms" }}>
             <p className="mb-6 max-w-[40ch] text-[17px] leading-relaxed text-white/85 lg:mb-7 lg:text-[19px]">
-              Describe a feature in a few lines. TestMind writes the cases, scores its own list and names what is still missing.
+              Describe a feature in plain words. TestMind writes its test cases, using your project&apos;s past cases as context (RAG). Then it scores the list and tells you which cases are still missing.
             </p>
             <HomeActions email={email} next={next} place="hero" />
           </div>
@@ -135,7 +135,7 @@ export default function Intro({
               What TestMind is for
             </h2>
             <p className="mt-4 max-w-[40ch] text-[17px] leading-relaxed text-slate-600 dark:text-slate-300">
-              The problem it solves, what it does, how it is built and what it measured, in 19 seconds.
+              A 19 second video: the problem, what TestMind does, how it works and the measured results.
             </p>
             <p className="mt-4 text-sm text-slate-500">With soft music. Press a part to jump to it.</p>
           </Reveal>
@@ -150,7 +150,7 @@ export default function Intro({
         <div className={`${wrap} py-[clamp(72px,9vw,112px)]`}>
           <Reveal>
             <h2 id="features-title" className="mb-8 max-w-[20ch] text-[clamp(36px,4vw,56px)] font-medium leading-[1.08] tracking-[-0.03em] lg:mb-16">
-              From a few lines to a reviewed test suite
+              From a short description to a reviewed list of test cases
             </h2>
           </Reveal>
           <Reveal delay={120}>
@@ -194,7 +194,7 @@ export default function Intro({
       <section id="built" aria-labelledby="built-title" className="scroll-mt-14 bg-stone-100 dark:bg-slate-900">
         <div className={`${wrap} py-[clamp(64px,8vw,96px)]`}>
           <h2 id="built-title" className="mb-10 text-[clamp(30px,3vw,44px)] font-medium tracking-[-0.03em]">
-            How it is built
+            What happens when you press Generate
           </h2>
           <ol className="grid gap-3 lg:grid-cols-5">
             {FLOW.map((step, i) => (

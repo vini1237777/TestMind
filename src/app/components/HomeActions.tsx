@@ -90,7 +90,7 @@ export default function HomeActions({ email, next, place }: { email: string | nu
       ) : (
         place === "hero" && (
           <p className="mt-5 text-sm text-white/70">
-            A proof of concept running on free plans. The demo needs no sign up.{" "}
+            A proof of concept on free plans. The demo opens a shared account, no sign up needed.{" "}
             <span className="whitespace-nowrap">
               Have an account?{" "}
               <button type="button" onClick={() => ask("signin")} className={quietLink}>
