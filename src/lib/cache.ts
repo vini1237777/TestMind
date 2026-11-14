@@ -3,8 +3,15 @@ import { NextResponse } from "next/server";
 
 const redis = Redis.fromEnv();
 
+// The cache only saves time, so when Redis cannot answer the request reads the database.
 export async function getCache(key: string) {
-  const cached = await redis.get<string>(key);
+  let cached: string | null;
+  try {
+    cached = await redis.get<string>(key);
+  } catch (err) {
+    console.error("getCache failed", err);
+    return null;
+  }
   if (!cached) return null;
 
   return new NextResponse(JSON.stringify(cached), {
@@ -18,7 +25,11 @@ export async function getCache(key: string) {
 }
 
 export async function setCache(key: string, data: unknown, ttl = 60) {
-  await redis.set(key, JSON.stringify(data), { ex: ttl });
+  try {
+    await redis.set(key, JSON.stringify(data), { ex: ttl });
+  } catch (err) {
+    console.error("setCache failed", err);
+  }
 }
 
 // Lists of projects and suites are cached for a minute. Call this after any write

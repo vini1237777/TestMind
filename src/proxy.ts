@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
+import { createMemoryLimiter } from "@/src/lib/memory-rate-limit";
 
 const redis = Redis.fromEnv();
 
@@ -8,6 +9,7 @@ const ratelimit = new Ratelimit({
   redis,
   limiter: Ratelimit.fixedWindow(10, "60 s"),
 });
+const memoryLimit = createMemoryLimiter(10, 60_000);
 
 // Polled every couple of seconds while a generation runs. It only reads job state,
 // and the limit exists to protect the LLM budget, so it must not use up the allowance.
@@ -36,7 +38,13 @@ export default async function proxy(req: NextRequest) {
   // Sign in attempts get their own allowance, so guessing passwords cannot use up the
   // generation budget, and a busy workspace cannot lock someone out of signing in.
   const bucket = pathname.startsWith("/api/auth/") ? `auth:${ip}` : ip;
-  const { success } = await ratelimit.limit(bucket);
+  let success: boolean;
+  try {
+    ({ success } = await ratelimit.limit(bucket));
+  } catch (err) {
+    console.error("Rate limit check fell back to memory:", (err as Error).message);
+    success = memoryLimit(bucket);
+  }
 
   if (!success) {
     return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
