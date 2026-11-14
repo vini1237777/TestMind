@@ -78,9 +78,9 @@ export default function HomeActions({ email, next, place }: { email: string | nu
             <span className="group-hover:underline group-hover:underline-offset-4">Watch the 19 second overview</span>
           </a>
         ) : (
-          <button type="button" onClick={() => ask("signup")} className={ghost}>
-            Create an account
-          </button>
+          <a href="https://github.com/vini1237777/TestMind" target="_blank" rel="noreferrer" className={ghost}>
+            View the code
+          </a>
         )}
       </div>
       {error ? (
@@ -90,7 +90,7 @@ export default function HomeActions({ email, next, place }: { email: string | nu
       ) : (
         place === "hero" && (
           <p className="mt-5 text-sm text-white/70">
-            The demo needs no sign up.{" "}
+            A proof of concept running on free plans. The demo needs no sign up.{" "}
             <span className="whitespace-nowrap">
               Have an account?{" "}
               <button type="button" onClick={() => ask("signin")} className={quietLink}>
