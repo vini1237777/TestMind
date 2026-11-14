@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GenerateTestsBodySchema, parseBody } from "@/src/lib/api/request-schemas";
 import { connectDB } from "@/src/lib/mongodb";
-import { enqueueGeneration, QueueBusyError } from "@/src/lib/queue/generation-queue";
+import { enqueueGeneration, GENERATION_PAUSED, QueueBusyError } from "@/src/lib/queue/generation-queue";
 import { DUPLICATE_FEATURE_ERROR, isFeatureNameTaken } from "@/src/lib/suites/names";
 import { apiUser, notFound, ownedProject, ownedSuite } from "@/src/lib/auth/access";
 
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
     }
     console.error("Generation enqueue error:", error);
     return NextResponse.json(
-      { error: "Generation isn't available right now. Please try again in a minute." },
+      { error: GENERATION_PAUSED },
       { status: 503 },
     );
   }

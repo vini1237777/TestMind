@@ -54,4 +54,7 @@ export default async function proxy(req: NextRequest) {
 }
 
 // /api/health is excluded so platform health checks never depend on Redis.
-export const config = { matcher: ["/api/((?!health).*)", "/projects", "/projects/:path*"] };
+// /api/generation-status only reads a cached answer, so it skips the limit too.
+export const config = {
+  matcher: ["/api/((?!health|generation-status).*)", "/projects", "/projects/:path*"],
+};
