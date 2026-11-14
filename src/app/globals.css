@@ -109,3 +109,54 @@
 .tm-bone::after { content: ""; position: absolute; inset: 0; transform: translateX(-100%); background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .7), transparent); animation: tm-shimmer 1.4s ease-in-out infinite; }
 .dark .tm-bone::after { background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .06), transparent); }
 @media (prefers-reduced-motion: reduce) { .tm-bone::after { animation: none; } }
+
+/* Home page: amber to coral to blue words, the colours of the overview video.
+   The gradient repeats every 200%, so the slow drift loops without a jump. */
+@keyframes tm-grad-drift { to { background-position: 200% 0; } }
+.tm-grad {
+  background: linear-gradient(90deg, #f5b72f, #f0845a 25%, #4779da 50%, #f0845a 75%, #f5b72f) 0 0 / 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  animation: tm-grad-drift 9s linear infinite;
+}
+
+/* Home page motion */
+@keyframes tm-in-up { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
+@keyframes tm-in-right { from { opacity: 0; transform: translateX(56px); } to { opacity: 1; transform: none; } }
+@keyframes tm-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+@keyframes tm-drift-a { from { transform: translate(0, 0) rotate(0deg); } to { transform: translate(-24px, 18px) rotate(-3deg); } }
+@keyframes tm-drift-b { from { transform: translate(0, 0) rotate(0deg); } to { transform: translate(28px, -14px) rotate(2deg); } }
+@keyframes tm-shot-in { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: none; } }
+
+.tm-in-up { animation: tm-in-up .8s cubic-bezier(.2,.8,.2,1) both; }
+.tm-in-right { animation: tm-in-right 1s cubic-bezier(.2,.8,.2,1) .35s both; }
+.tm-float { animation: tm-float 7s ease-in-out 1.4s infinite; }
+.tm-drift-a { transform-box: fill-box; transform-origin: center; animation: tm-drift-a 14s ease-in-out infinite alternate; }
+.tm-drift-b { transform-box: fill-box; transform-origin: center; animation: tm-drift-b 17s ease-in-out infinite alternate; }
+.tm-shot-in { animation: tm-shot-in .45s cubic-bezier(.2,.8,.2,1) both; }
+/* While the first visit loader is on screen, hold the hero entrance so it plays as the loader leaves. */
+html:not(.tm-no-intro):not(.tm-intro-done) :is(.tm-in-up, .tm-in-right) { animation-play-state: paused; }
+
+[data-reveal] { opacity: 0; transform: translateY(28px); transition: opacity .8s cubic-bezier(.2,.8,.2,1), transform .8s cubic-bezier(.2,.8,.2,1); }
+[data-reveal][data-in] { opacity: 1; transform: none; }
+[data-words] .tm-rw { display: inline-block; opacity: .12; transform: translateY(.25em); transition: opacity .6s ease, transform .6s cubic-bezier(.2,.8,.2,1); }
+[data-words][data-in] .tm-rw { opacity: 1; transform: none; }
+[data-words] .tm-rw-hl { opacity: .12; transition: opacity .9s ease; }
+[data-words][data-in] .tm-rw-hl { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tm-grad, .tm-float, .tm-drift-a, .tm-drift-b { animation: none; }
+  [data-reveal], [data-words] .tm-rw, [data-words] .tm-rw-hl { opacity: 1; transform: none; transition: none; }
+}
+
+/* Home page tabs: only the open part shows. */
+#landing[data-tab="home"] [data-panel]:not([data-panel="home"]),
+#landing[data-tab="overview"] [data-panel]:not([data-panel="overview"]),
+#landing[data-tab="product"] [data-panel]:not([data-panel="product"]),
+#landing[data-tab="results"] [data-panel]:not([data-panel="results"]),
+#landing[data-tab="built"] [data-panel]:not([data-panel="built"]) {
+  display: none;
+}

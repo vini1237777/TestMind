@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 import { openExample } from "../actions/example";
 
 /** Opens the replayed example in the workspace and starts a live run of it. */
-export default function RunExample() {
+export default function RunExample({ className, label }: { className: string; label: string }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
 
@@ -35,9 +35,9 @@ export default function RunExample() {
       type="button"
       onClick={go}
       disabled={busy}
-      className="tm-press rounded-md border border-amber-400 bg-white px-3 py-1.5 text-xs font-medium hover:bg-amber-50 disabled:opacity-60 dark:border-gray-600 dark:bg-gray-900 dark:hover:bg-gray-800"
+      className={`${className} disabled:opacity-60`}
     >
-      {busy ? "Opening…" : "Run this example for real →"}
+      {busy ? "Opening the example" : label}
     </button>
   );
 }
