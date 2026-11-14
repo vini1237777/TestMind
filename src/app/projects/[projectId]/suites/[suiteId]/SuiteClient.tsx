@@ -18,6 +18,7 @@ import TypeBar from "@/src/app/components/TypeBar";
 import { caseLabel } from "@/src/app/lib/case-label";
 import { timeAgo } from "@/src/app/lib/format";
 import { runGeneration } from "@/src/app/lib/generate-tests";
+import GenerationNotice from "@/src/app/components/GenerationNotice";
 import { useViewer } from "@/src/app/components/Viewer";
 
 const tabs = [
@@ -529,6 +530,8 @@ export default function SuiteCase({ feature, projectName = "Project" }: SuiteCas
             setIsDirty(true);
           }}
         />
+
+        <GenerationNotice />
 
         <div className="mt-2 flex flex-wrap items-center gap-2">
           {((hasLoaded && isFirstGeneration) || isDirty || isGenerating) && (
