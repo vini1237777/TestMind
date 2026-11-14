@@ -39,6 +39,8 @@ export default function IntroLoader() {
       setTimeout(() => {
         setDone(true);
         html.style.overflow = "";
+        // Lets the home page start its entrance as the loader slides away.
+        html.classList.add("tm-intro-done");
       }, (t += 750)),
     );
     timers.push(setTimeout(() => setGone(true), t + 900));
