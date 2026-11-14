@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { Queue } from "bullmq";
+import type Redis from "ioredis";
 import type {
   GenerationInput,
   GenerationResult,
@@ -10,6 +11,10 @@ export const GENERATION_QUEUE = "test-generation";
 // Past this the next visitor would wait too long, so refuse instead of queueing.
 const MAX_WAITING_JOBS = 50;
 const REDIS_TIMEOUT_MS = 3_000;
+
+// Shown by the page notice and by a refused generation, so both say the same thing.
+export const GENERATION_PAUSED =
+  "Generating new test cases is paused right now. This demo runs on free plans, so it can pause until the monthly allowance resets on the 1st. Your projects and saved suites still work.";
 
 export class QueueBusyError extends Error {}
 export class QueueUnavailableError extends Error {}
@@ -67,6 +72,38 @@ async function readyQueue() {
     clearTimeout(timer);
   }
   return queue;
+}
+
+// The answer is kept for a minute per server, so page views add at most one Redis
+// command a minute however many people open the app.
+const AVAILABILITY_TTL_MS = 60_000;
+type AvailabilityGlobal = { queueAvailability?: { ok: boolean; checkedAt: number } };
+const availability = globalThis as unknown as AvailabilityGlobal;
+
+// True when the queue's Redis answers, so a generation can start.
+export async function isQueueAvailable(now = Date.now()): Promise<boolean> {
+  const last = availability.queueAvailability;
+  if (last && now - last.checkedAt < AVAILABILITY_TTL_MS) return last.ok;
+
+  let ok = false;
+  try {
+    const queue = await readyQueue();
+    // BullMQ's client type leaves out ping, but the connection is ioredis.
+    const client = (await queue.client) as unknown as Pick<Redis, "ping">;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const timeout = new Promise<never>((_, reject) => {
+      timer = setTimeout(() => reject(new Error("ping timed out")), REDIS_TIMEOUT_MS);
+    });
+    try {
+      ok = (await Promise.race([client.ping(), timeout])) === "PONG";
+    } finally {
+      clearTimeout(timer);
+    }
+  } catch {
+    ok = false;
+  }
+  availability.queueAvailability = { ok, checkedAt: now };
+  return ok;
 }
 
 export async function enqueueGeneration(input: GenerationInput): Promise<string> {
