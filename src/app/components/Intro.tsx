@@ -104,13 +104,13 @@ export default function Intro({
         <div aria-hidden className="relative h-[300px] overflow-hidden bg-stone-100 lg:h-auto dark:bg-slate-900">
           <Ribbons />
           <div className="tm-float absolute inset-0">
-          <div className="tm-in-right absolute left-5 right-[-40%] top-8 overflow-hidden rounded-[14px] bg-white shadow-[0_40px_80px_-30px_rgba(11,11,12,.35),0_0_0_1px_rgba(11,11,12,.08)] lg:left-[9%] lg:right-[-14%] lg:top-1/2 lg:-translate-y-1/2">
+          <div className="tm-in-right absolute left-5 right-5 top-8 overflow-hidden rounded-[14px] bg-white shadow-[0_40px_80px_-30px_rgba(11,11,12,.35),0_0_0_1px_rgba(11,11,12,.08)] lg:left-[8%] lg:right-[8%] lg:top-1/2 lg:-translate-y-1/2">
             <div className="flex h-[30px] items-center gap-[7px] border-b border-stone-200 px-3">
               <i className="h-2.5 w-2.5 rounded-full bg-stone-300" />
               <i className="h-2.5 w-2.5 rounded-full bg-stone-300" />
               <i className="h-2.5 w-2.5 rounded-full bg-stone-300" />
             </div>
-            <Image src="/tour/plan.png" width={1856} height={1248} alt="" priority sizes="(max-width: 1024px) 140vw, 760px" className="block h-auto w-full" />
+            <Image src="/tour/plan.png" width={1856} height={1248} alt="" priority sizes="(max-width: 1024px) 100vw, 640px" className="block h-auto w-full" />
           </div>
           </div>
         </div>

@@ -39,7 +39,7 @@ export default function HomeSectionNav() {
   };
 
   return (
-    <nav aria-label="On this page" className="sticky top-0 z-30 border-b border-stone-200 bg-white/90 backdrop-blur dark:border-slate-800 dark:bg-slate-950/90">
+    <nav aria-label="On this page" className="sticky top-0 z-30 border-b border-stone-200 bg-white shadow-[0_6px_16px_-12px_rgba(11,11,12,.35)] dark:border-slate-800 dark:bg-slate-950">
       <ul className="mx-auto flex max-w-[1320px] gap-1 overflow-x-auto px-[clamp(12px,5vw,64px)] [scrollbar-width:none]">
         {SECTIONS.map((s) => (
           <li key={s.id} className="shrink-0">
