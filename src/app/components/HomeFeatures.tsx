@@ -89,7 +89,7 @@ export default function HomeFeatures() {
                   aria-expanded={isOpen}
                   aria-controls={`feature-${i}`}
                   onClick={() => setOpen(i)}
-                  className="flex w-full items-center justify-between gap-4 px-1 py-4 text-left text-lg font-medium sm:py-5 sm:text-[19px]"
+                  className="flex w-full items-center justify-between gap-4 px-1 py-3.5 text-left text-lg font-medium sm:py-4 sm:text-[19px]"
                 >
                   {item.title}
                   <span
@@ -98,7 +98,7 @@ export default function HomeFeatures() {
                   />
                 </button>
               </h3>
-              <div id={`feature-${i}`} hidden={!isOpen} className="tm-fade px-1 pb-6">
+              <div id={`feature-${i}`} hidden={!isOpen} className="tm-fade px-1 pb-5">
                 <p className="mb-4 max-w-[52ch] text-base leading-relaxed text-slate-600 dark:text-slate-300">{item.text}</p>
                 {item.action}
                 <Shot img={item.img} className="tm-shot-in mt-5 h-auto w-full lg:hidden" />
@@ -107,7 +107,7 @@ export default function HomeFeatures() {
           );
         })}
       </div>
-      <div className="sticky top-20 hidden max-h-[calc(100svh-7rem)] aspect-[1.18] place-items-center overflow-hidden rounded-[20px] bg-stone-100 p-[clamp(20px,4vw,48px)] lg:grid dark:bg-slate-900">
+      <div className="sticky top-20 hidden max-h-[calc(100svh-17rem)] aspect-[1.18] place-items-center overflow-hidden rounded-[20px] bg-stone-100 p-[clamp(20px,4vw,48px)] lg:grid dark:bg-slate-900">
         <Shot key={open} img={ITEMS[open].img} className="tm-shot-in h-auto max-h-full w-auto max-w-full" />
       </div>
     </div>
