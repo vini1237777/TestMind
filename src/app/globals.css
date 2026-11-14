@@ -109,3 +109,13 @@
 .tm-bone::after { content: ""; position: absolute; inset: 0; transform: translateX(-100%); background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .7), transparent); animation: tm-shimmer 1.4s ease-in-out infinite; }
 .dark .tm-bone::after { background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .06), transparent); }
 @media (prefers-reduced-motion: reduce) { .tm-bone::after { animation: none; } }
+
+/* Home page: amber to coral to blue words, the colours of the overview video */
+.tm-grad {
+  background: linear-gradient(90deg, #f5b72f, #f0845a 45%, #4779da);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
