@@ -29,7 +29,8 @@ function toTop(id: string) {
     id === "home" || !marker
       ? 0
       : marker.getBoundingClientRect().top + window.scrollY;
-  if (window.scrollY > top) window.scrollTo({ top });
+  // Always line the part up under the bar, so it gets the whole screen.
+  window.scrollTo({ top });
 }
 
 /**
