@@ -6,6 +6,7 @@ import AuthDialog from "./AuthDialog";
 import PurposeVideo from "./PurposeVideo";
 import HomeSectionNav from "./HomeSectionNav";
 import { CountUp, Reveal, RevealWords } from "./HomeMotion";
+import { RESULTS, STACK } from "../lib/tech-info";
 
 const gutter = "px-[clamp(20px,5vw,72px)]";
 const wrap = `mx-auto max-w-[1320px] ${gutter}`;
@@ -13,18 +14,39 @@ const ink = "bg-[#0b0b0c] text-white";
 
 // Each number is measured, and the README has the method and raw results.
 const NUMBERS = [
-  { was: "6%", now: "56%", text: "Project rules covered by the new cases when RAG adds past cases as context. Held out test set of 20 features." },
-  { was: "5.05 s", now: "10 ms", text: "Wait before a generation starts, after the AI call moved to a background worker." },
-  { was: null, now: "100", text: "Lighthouse performance score of the home page, on mobile and on desktop." },
+  {
+    tag: "RAG",
+    title: "Follows the project's rules",
+    was: "6%",
+    now: "56%",
+    text: "Project rules covered by the new cases once RAG adds past cases as context.",
+    how: "A/B test on a held out set of 20 features, 3 runs each",
+  },
+  {
+    tag: "Background worker",
+    title: "Answers at once",
+    was: "5.05 s",
+    now: "10 ms",
+    text: "Wait before a generation starts, after the AI call moved to a background worker.",
+    how: "Measured locally with a stubbed 5 second model call",
+  },
+  {
+    tag: "Lighthouse",
+    title: "A fast home page",
+    was: null,
+    now: "100",
+    text: "Lighthouse performance score of this home page on desktop. On mobile, with slow 4G simulated, it scores 97.",
+    how: "Lighthouse 13.6 on the local production build",
+  },
 ];
 
 // One run, in the order it happens.
 const FLOW = [
-  { title: "You describe a feature", text: "in plain words, like you would to a teammate" },
-  { title: "It joins a queue", text: "a background worker (BullMQ on Redis) runs up to 3 at once, so the page stays fast" },
-  { title: "RAG finds past cases", text: "Atlas Vector Search picks the 5 saved cases in your project closest to this feature" },
-  { title: "AI writes the cases", text: "a LangGraph flow: gpt-4o-mini writes, Zod checks the format, Gemini takes over if OpenAI fails" },
-  { title: "AI reviews them", text: "a coverage score out of 100 and a list of the cases still missing" },
+  { title: "You describe a feature", text: "Its name and what it should do, in plain words." },
+  { title: "It joins a queue", text: "The API answers at once. A background worker (BullMQ on Redis) runs up to 3 jobs at a time." },
+  { title: "RAG finds past cases", text: "Atlas Vector Search picks up to 5 similar saved cases from the same project." },
+  { title: "AI writes the cases", text: "gpt-4o-mini writes 1 to 8 cases and Zod checks the format. If OpenAI fails, Gemini answers instead." },
+  { title: "AI reviews them", text: "A second step scores coverage out of 100 and lists the cases still missing." },
 ];
 
 function Ribbons() {
@@ -57,7 +79,7 @@ export default function Intro({
   openAuth: "signin" | "signup" | null;
 }) {
   return (
-    <div id="landing" className="overflow-x-clip">
+    <div id="landing" data-tab="home" className="flex min-h-screen flex-col overflow-x-clip">
       <AuthDialog next={next} openOnLoad={email ? null : openAuth} />
 
       <p className={`${ink} px-4 py-2.5 text-center text-[13px] sm:text-sm`}>
@@ -70,9 +92,9 @@ export default function Intro({
       <HomeSectionNav />
 
       {/* First screen: the promise and the way in on black, the product on the right */}
-      <header className="grid lg:min-h-[max(600px,calc(100svh-8.6rem))] lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
+      <header data-panel="home" className="grid lg:min-h-[max(600px,calc(100svh-8.6rem))] lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
         <div
-          className={`${ink} flex flex-col justify-between py-12 lg:py-[72px] ${gutter} lg:pl-[max(clamp(20px,5vw,72px),calc((100vw-1320px)/2+clamp(20px,5vw,72px)))]`}
+          className={`${ink} flex flex-col justify-between gap-10 py-12 lg:py-[clamp(32px,6svh,72px)] ${gutter} lg:pl-[max(clamp(20px,5vw,72px),calc((100vw-1320px)/2+clamp(20px,5vw,72px)))]`}
         >
           <div>
             <p className="tm-in-up flex items-center gap-3 font-mono text-xs font-medium uppercase tracking-[.06em]">
@@ -81,7 +103,7 @@ export default function Intro({
               </span>
               A proof of concept
             </p>
-            <h1 className="mt-7 text-[clamp(48px,13vw,64px)] font-medium leading-none tracking-[-0.035em] lg:mt-9 lg:text-[clamp(52px,6.4vw,96px)]">
+            <h1 className="mt-7 text-[clamp(48px,13vw,64px)] font-medium leading-none tracking-[-0.035em] lg:mt-[clamp(16px,3svh,36px)] lg:text-[clamp(48px,min(6.4vw,9svh),96px)]">
               <span className="tm-in-up block" style={{ animationDelay: "120ms" }}>
                 Test cases,
               </span>
@@ -93,11 +115,11 @@ export default function Intro({
               </span>
             </h1>
           </div>
-          <div className="tm-in-up mt-14 lg:mt-0" style={{ animationDelay: "560ms" }}>
-            <p className="mb-6 max-w-[40ch] text-[17px] leading-relaxed text-white/85 lg:mb-7 lg:text-[19px]">
+          <div className="tm-in-up" style={{ animationDelay: "560ms" }}>
+            <p className="mb-6 max-w-[40ch] text-[17px] leading-relaxed text-white/85 lg:mb-7 lg:text-[clamp(17px,2.4svh,19px)]">
               Describe a feature in plain words. TestMind writes its test cases, using your project&apos;s past cases as context (RAG). Then it scores the list and tells you which cases are still missing.
             </p>
-            <HomeActions email={email} next={next} place="hero" />
+            <HomeActions email={email} next={next} />
           </div>
         </div>
 
@@ -117,7 +139,7 @@ export default function Intro({
       </header>
 
       {/* The problem, as one line */}
-      <section className={ink}>
+      <section data-panel="home" className={ink}>
         <div className={`${wrap} py-[clamp(72px,10vw,128px)]`}>
           <RevealWords
             text="AI can draft test cases, but nothing tells you"
@@ -128,8 +150,8 @@ export default function Intro({
       </section>
 
       {/* What TestMind is for, as a short video */}
-      <section id="overview" aria-labelledby="overview-title" className="scroll-mt-14 border-b border-stone-200 dark:border-slate-800">
-        <div className={`${wrap} grid items-center gap-x-[clamp(32px,5vw,72px)] gap-y-8 py-[clamp(64px,8vw,104px)] lg:grid-cols-[minmax(0,1fr)_minmax(0,40rem)]`}>
+      <section id="overview" data-panel="overview" aria-labelledby="overview-title" className="scroll-mt-14">
+        <div className={`${wrap} grid items-center gap-x-[clamp(32px,5vw,72px)] gap-y-8 py-[clamp(32px,4vw,56px)] lg:grid-cols-[minmax(0,1fr)_minmax(0,min(40rem,calc((100svh-15rem)*4/3)))]`}>
           <Reveal>
             <h2 id="overview-title" className="text-[clamp(30px,3vw,44px)] font-medium tracking-[-0.03em]">
               What TestMind is for
@@ -146,10 +168,10 @@ export default function Intro({
       </section>
 
       {/* The product, one part at a time */}
-      <section id="product" aria-labelledby="features-title" className="scroll-mt-14">
-        <div className={`${wrap} py-[clamp(72px,9vw,112px)]`}>
+      <section id="product" data-panel="product" aria-labelledby="features-title" className="scroll-mt-14">
+        <div className={`${wrap} py-[clamp(32px,4vw,56px)]`}>
           <Reveal>
-            <h2 id="features-title" className="mb-8 max-w-[20ch] text-[clamp(36px,4vw,56px)] font-medium leading-[1.08] tracking-[-0.03em] lg:mb-16">
+            <h2 id="features-title" className="mb-8 max-w-[20ch] text-[clamp(32px,3.4vw,48px)] font-medium leading-[1.08] tracking-[-0.03em] lg:mb-10">
               From a short description to a reviewed list of test cases
             </h2>
           </Reveal>
@@ -160,90 +182,128 @@ export default function Intro({
       </section>
 
       {/* Measured results */}
-      <section id="results" aria-labelledby="numbers-title" className="scroll-mt-14 border-t border-stone-200 dark:border-slate-800">
-        <div className={`${wrap} py-[clamp(64px,8vw,96px)]`}>
-          <h2 id="numbers-title" className="font-mono text-xs font-medium uppercase tracking-[.06em] text-slate-500">
+      <section id="results" data-panel="results" aria-labelledby="numbers-title" className="scroll-mt-14">
+        <div className={`${wrap} py-[clamp(32px,4vw,56px)]`}>
+          <h2 id="numbers-title" className="text-[clamp(30px,3vw,44px)] font-medium tracking-[-0.03em]">
             Measured results
           </h2>
-          <div className="mt-10 grid gap-8 sm:grid-cols-3 sm:gap-10">
+          <p className="mt-3 max-w-[56ch] text-[17px] leading-relaxed text-slate-600 dark:text-slate-300">
+            Before and after numbers from real runs. Each one has its method and raw data in the README.
+          </p>
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
             {NUMBERS.map((n, i) => (
-              <Reveal key={n.now} delay={i * 120} className="border-t-2 border-black pt-5 dark:border-white">
-                <p className="text-[clamp(44px,4.6vw,68px)] font-medium leading-none tracking-[-0.035em]">
+              <Reveal
+                key={n.now}
+                delay={i * 120}
+                className="tm-lift flex flex-col rounded-[16px] bg-white p-6 ring-1 ring-stone-200 dark:bg-slate-900 dark:ring-slate-800"
+              >
+                <span className="self-start rounded-full bg-amber-100 px-2.5 py-1 font-mono text-[11px] font-medium uppercase tracking-[.06em] text-amber-900 dark:bg-amber-400/15 dark:text-amber-300">
+                  {n.tag}
+                </span>
+                <h3 className="mt-4 text-lg font-semibold">{n.title}</h3>
+                <p className="mt-3 whitespace-nowrap text-[clamp(36px,3.6vw,52px)] font-medium leading-none tracking-[-0.035em]">
                   {n.was && (
                     <>
-                      <s className="font-normal text-slate-400 decoration-[3px]">{n.was}</s>{" "}
+                      <s className="text-[0.6em] font-normal text-slate-400 decoration-2">{n.was}</s>{" "}
                     </>
                   )}
                   <CountUp value={n.now} />
                 </p>
-                <p className="mt-3.5 max-w-[30ch] leading-relaxed text-slate-600 dark:text-slate-300">{n.text}</p>
+                <p className="mt-4 leading-relaxed text-slate-600 dark:text-slate-300">{n.text}</p>
+                <div className="mt-auto pt-5">
+                  <p className="border-t border-stone-200 pt-4 text-sm text-slate-500 dark:border-slate-800">
+                    <span className="font-medium text-slate-700 dark:text-slate-200">How: </span>
+                    {n.how}
+                  </p>
+                </div>
               </Reveal>
             ))}
           </div>
-          <p className="mt-10 text-sm text-slate-500">
-            Measured locally. Methods and raw results are in the{" "}
-            <a href="https://github.com/vini1237777/TestMind#results" target="_blank" rel="noreferrer" className="underline underline-offset-2 hover:text-black dark:hover:text-white">
-              README
-            </a>
-            .
-          </p>
+          <Reveal delay={360} className="mt-4 grid gap-4 rounded-[16px] bg-stone-100 p-6 sm:grid-cols-[auto_1fr_1fr] sm:items-center sm:gap-8 dark:bg-slate-900">
+            <span className="self-start rounded-full bg-white px-2.5 py-1 font-mono text-[11px] font-medium uppercase tracking-[.06em] text-slate-700 sm:self-center dark:bg-slate-800 dark:text-slate-200">
+              Redis cache
+            </span>
+            {RESULTS.slice(0, 2).map((r) => (
+              <p key={r.label} className="text-slate-600 dark:text-slate-300">
+                <s className="text-slate-400">{r.was}</s> <b className="text-xl font-semibold text-black dark:text-white">{r.value}</b>
+                <span className="block text-sm">{r.label}</span>
+              </p>
+            ))}
+          </Reveal>
+          <a
+            href="https://github.com/vini1237777/TestMind#results"
+            target="_blank"
+            rel="noreferrer"
+            className="mt-8 inline-block font-semibold text-blue-600 hover:underline hover:underline-offset-4 dark:text-blue-400"
+          >
+            See the methods and raw results &gt;
+          </a>
         </div>
       </section>
 
       {/* How one run is built */}
-      <section id="built" aria-labelledby="built-title" className="scroll-mt-14 bg-stone-100 dark:bg-slate-900">
-        <div className={`${wrap} py-[clamp(64px,8vw,96px)]`}>
-          <h2 id="built-title" className="mb-10 text-[clamp(30px,3vw,44px)] font-medium tracking-[-0.03em]">
+      <section id="built" data-panel="built" aria-labelledby="built-title" className="scroll-mt-14">
+        <div className={`${wrap} py-[clamp(32px,4vw,56px)]`}>
+          <h2 id="built-title" className="text-[clamp(30px,3vw,44px)] font-medium tracking-[-0.03em]">
             What happens when you press Generate
           </h2>
-          <ol className="grid gap-3 lg:grid-cols-5">
+          <p className="mt-3 max-w-[56ch] text-[17px] leading-relaxed text-slate-600 dark:text-slate-300">
+            Five steps, from your description to a reviewed list of test cases.
+          </p>
+          <ol className="mt-8 grid gap-3 lg:grid-cols-5 lg:gap-0">
             {FLOW.map((step, i) => (
-              <Reveal
-                as="li"
-                key={step.title}
-                delay={i * 90}
-                className="tm-lift grid grid-cols-[40px_1fr] rounded-[14px] bg-white p-4 ring-1 ring-stone-200 lg:block lg:p-5 dark:bg-slate-950 dark:ring-slate-800"
-              >
-                <span className="row-span-2 mt-0.5 font-mono text-xs font-medium text-blue-600 lg:mb-5 lg:block dark:text-blue-400">
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <b className="block text-[17px] font-semibold">{step.title}</b>
-                <span className="mt-1.5 block text-[14.5px] leading-normal text-slate-600 dark:text-slate-300">{step.text}</span>
+              <Reveal as="li" key={step.title} delay={i * 90} className="relative flex lg:block">
+                <div className={`tm-lift h-full w-full rounded-[14px] bg-stone-100 p-5 lg:w-auto dark:bg-slate-900 ${i < FLOW.length - 1 ? "lg:mr-6" : ""}`}>
+                  <span className="grid h-8 w-8 place-items-center rounded-full bg-amber-400 font-mono text-xs font-semibold text-black">
+                    {i + 1}
+                  </span>
+                  <b className="mt-4 block text-[17px] font-semibold">{step.title}</b>
+                  <span className="mt-1.5 block text-[14.5px] leading-normal text-slate-600 dark:text-slate-300">{step.text}</span>
+                </div>
+                {i < FLOW.length - 1 && (
+                  <span aria-hidden className="absolute right-0 top-1/2 hidden w-6 -translate-y-1/2 text-center text-slate-400 lg:block">
+                    →
+                  </span>
+                )}
               </Reveal>
             ))}
           </ol>
-          <OpenFeatures tab="tech" className="mt-8 font-semibold text-blue-600 hover:underline hover:underline-offset-4 dark:text-blue-400">
-            Read how it&apos;s built &gt;
+
+          <h3 className="mt-14 font-mono text-xs font-medium uppercase tracking-[.06em] text-slate-500">Built with</h3>
+          <dl className="mt-4 grid gap-x-8 gap-y-5 border-t border-stone-200 pt-5 sm:grid-cols-2 lg:grid-cols-3 dark:border-slate-800">
+            {STACK.map((g) => (
+              <div key={g.group}>
+                <dt className="font-semibold">{g.group}</dt>
+                <dd className="mt-2 flex flex-wrap gap-1.5">
+                  {g.items.map((item) => (
+                    <span key={item} className="rounded-md bg-stone-100 px-2 py-1 text-[13px] text-slate-700 dark:bg-slate-900 dark:text-slate-300">
+                      {item}
+                    </span>
+                  ))}
+                </dd>
+              </div>
+            ))}
+          </dl>
+          <OpenFeatures tab="tech" className="mt-8 inline-block font-semibold text-blue-600 hover:underline hover:underline-offset-4 dark:text-blue-400">
+            Read every engineering decision &gt;
           </OpenFeatures>
         </div>
       </section>
 
-      {/* The way in again */}
-      <section className={ink}>
-        <div className={`${wrap} pb-14 pt-[clamp(72px,9vw,104px)]`}>
-          <Reveal>
-            <h2 className="text-[clamp(44px,5.6vw,84px)] font-medium leading-[1.02] tracking-[-0.035em]">
-              Try the
-              <br />
-              <span className="tm-grad">proof of concept.</span>
-            </h2>
-          </Reveal>
-          <Reveal delay={150} className="mt-10">
-            <HomeActions email={email} next={next} place="closing" />
-          </Reveal>
-          <footer className="mt-16 flex flex-col justify-between gap-4 border-t border-white/15 pt-6 text-sm text-white/70 sm:flex-row lg:mt-24">
-            <span>Designed and built by Vinisha Yadav.</span>
-            <span className="flex gap-5">
-              <a href="https://github.com/vini1237777/TestMind" target="_blank" rel="noreferrer" className="text-white underline underline-offset-4">
-                GitHub
-              </a>
-              <OpenFeatures tab="tech" className="text-white underline underline-offset-4">
-                How it&apos;s built
-              </OpenFeatures>
-            </span>
-          </footer>
+      {/* A slim footer on every tab */}
+      <footer className={`${ink} mt-auto border-t border-white/10 text-sm`}>
+        <div className={`${wrap} flex flex-col gap-4 py-6 sm:flex-row sm:items-center sm:justify-between`}>
+          <span className="text-white/70">A proof of concept, designed and built by Vinisha Yadav.</span>
+          <span className="flex items-center gap-5">
+            <a href="https://github.com/vini1237777/TestMind" target="_blank" rel="noreferrer" className="text-white underline underline-offset-4">
+              View the code
+            </a>
+            <OpenFeatures tab="tech" className="text-white underline underline-offset-4">
+              How it&apos;s built
+            </OpenFeatures>
+          </span>
         </div>
-      </section>
+      </footer>
     </div>
   );
 }
