@@ -13,11 +13,22 @@ if (!url) throw new Error("REDIS_URL is not set");
 // Limits OpenAI calls at once, whatever the traffic does.
 const concurrency = Number(process.env.GENERATION_CONCURRENCY) || 3;
 
+// Redis bills every command, so an idle worker should ask rarely. A new job wakes the
+// worker at once, so drainDelay only sets how often an empty queue is checked again.
+const IDLE_WAIT_SECONDS = 5 * 60;
+// How often to look for jobs left behind by a crashed worker. They restart within 5 minutes.
+const STALLED_CHECK_MS = 5 * 60 * 1000;
+
 const worker = new Worker<GenerationInput, GenerationResult>(
   GENERATION_QUEUE,
   (job) => generateAndSaveSuite(job.data),
   // Blocking commands need this null, or they error on a Redis reconnect.
-  { connection: { url, maxRetriesPerRequest: null }, concurrency },
+  {
+    connection: { url, maxRetriesPerRequest: null },
+    concurrency,
+    drainDelay: IDLE_WAIT_SECONDS,
+    stalledInterval: STALLED_CHECK_MS,
+  },
 );
 
 worker.on("ready", () => console.log(`Generation worker ready, concurrency ${concurrency}`));
