@@ -4,6 +4,7 @@ import HomeActions from "./HomeActions";
 import HomeFeatures from "./HomeFeatures";
 import AuthDialog from "./AuthDialog";
 import PurposeVideo from "./PurposeVideo";
+import HomeSectionNav from "./HomeSectionNav";
 import { CountUp, Reveal, RevealWords } from "./HomeMotion";
 
 const gutter = "px-[clamp(20px,5vw,72px)]";
@@ -60,14 +61,16 @@ export default function Intro({
       <AuthDialog next={next} openOnLoad={email ? null : openAuth} />
 
       <p className={`${ink} px-4 py-2.5 text-center text-[13px] sm:text-sm`}>
-        New: what TestMind is for, in 19 seconds.{" "}
+        A proof of concept by Vinisha Yadav.{" "}
         <a href="#overview" className="font-semibold text-amber-400 hover:underline hover:underline-offset-4">
-          Watch the overview →
+          See what it does in 19 seconds →
         </a>
       </p>
 
+      <HomeSectionNav />
+
       {/* First screen: the promise and the way in on black, the product on the right */}
-      <header className="grid lg:min-h-[max(640px,calc(100svh-5.5rem))] lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
+      <header className="grid lg:min-h-[max(600px,calc(100svh-8.6rem))] lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
         <div
           className={`${ink} flex flex-col justify-between py-12 lg:py-[72px] ${gutter} lg:pl-[max(clamp(20px,5vw,72px),calc((100vw-1320px)/2+clamp(20px,5vw,72px)))]`}
         >
@@ -76,7 +79,7 @@ export default function Intro({
               <span aria-hidden className="relative block h-[34px] w-[34px] rounded-full bg-[conic-gradient(#f5b72f,#f0845a,#4779da,#f5b72f)]">
                 <span className="absolute inset-[9px] rounded-full bg-[#0b0b0c]" />
               </span>
-              For QA engineers and developers
+              A proof of concept
             </p>
             <h1 className="mt-7 text-[clamp(48px,13vw,64px)] font-medium leading-none tracking-[-0.035em] lg:mt-9 lg:text-[clamp(52px,6.4vw,96px)]">
               <span className="tm-in-up block" style={{ animationDelay: "120ms" }}>
@@ -125,7 +128,7 @@ export default function Intro({
       </section>
 
       {/* What TestMind is for, as a short video */}
-      <section id="overview" aria-labelledby="overview-title" className="scroll-mt-4 border-b border-stone-200 dark:border-slate-800">
+      <section id="overview" aria-labelledby="overview-title" className="scroll-mt-14 border-b border-stone-200 dark:border-slate-800">
         <div className={`${wrap} grid items-center gap-x-[clamp(32px,5vw,72px)] gap-y-8 py-[clamp(64px,8vw,104px)] lg:grid-cols-[minmax(0,1fr)_minmax(0,40rem)]`}>
           <Reveal>
             <h2 id="overview-title" className="text-[clamp(30px,3vw,44px)] font-medium tracking-[-0.03em]">
@@ -134,7 +137,7 @@ export default function Intro({
             <p className="mt-4 max-w-[40ch] text-[17px] leading-relaxed text-slate-600 dark:text-slate-300">
               The problem it solves, what it does, how it is built and what it measured, in 19 seconds.
             </p>
-            <p className="mt-4 text-sm text-slate-500">No sound. Press a part to jump to it.</p>
+            <p className="mt-4 text-sm text-slate-500">With soft music. Press a part to jump to it.</p>
           </Reveal>
           <Reveal delay={150}>
             <PurposeVideo />
@@ -143,7 +146,7 @@ export default function Intro({
       </section>
 
       {/* The product, one part at a time */}
-      <section aria-labelledby="features-title">
+      <section id="product" aria-labelledby="features-title" className="scroll-mt-14">
         <div className={`${wrap} py-[clamp(72px,9vw,112px)]`}>
           <Reveal>
             <h2 id="features-title" className="mb-8 max-w-[20ch] text-[clamp(36px,4vw,56px)] font-medium leading-[1.08] tracking-[-0.03em] lg:mb-16">
@@ -157,10 +160,10 @@ export default function Intro({
       </section>
 
       {/* Measured results */}
-      <section aria-labelledby="numbers-title" className="border-t border-stone-200 dark:border-slate-800">
+      <section id="results" aria-labelledby="numbers-title" className="scroll-mt-14 border-t border-stone-200 dark:border-slate-800">
         <div className={`${wrap} py-[clamp(64px,8vw,96px)]`}>
           <h2 id="numbers-title" className="font-mono text-xs font-medium uppercase tracking-[.06em] text-slate-500">
-            Measured, not guessed
+            Measured results
           </h2>
           <div className="mt-10 grid gap-8 sm:grid-cols-3 sm:gap-10">
             {NUMBERS.map((n, i) => (
@@ -188,7 +191,7 @@ export default function Intro({
       </section>
 
       {/* How one run is built */}
-      <section aria-labelledby="built-title" className="bg-stone-100 dark:bg-slate-900">
+      <section id="built" aria-labelledby="built-title" className="scroll-mt-14 bg-stone-100 dark:bg-slate-900">
         <div className={`${wrap} py-[clamp(64px,8vw,96px)]`}>
           <h2 id="built-title" className="mb-10 text-[clamp(30px,3vw,44px)] font-medium tracking-[-0.03em]">
             How it is built
@@ -220,9 +223,9 @@ export default function Intro({
         <div className={`${wrap} pb-14 pt-[clamp(72px,9vw,104px)]`}>
           <Reveal>
             <h2 className="text-[clamp(44px,5.6vw,84px)] font-medium leading-[1.02] tracking-[-0.035em]">
-              See what your
+              Try the
               <br />
-              <span className="tm-grad">tests miss.</span>
+              <span className="tm-grad">proof of concept.</span>
             </h2>
           </Reveal>
           <Reveal delay={150} className="mt-10">
