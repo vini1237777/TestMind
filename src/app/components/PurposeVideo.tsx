@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 // Start time of each part of the overview video, in seconds.
 const PARTS = [
@@ -10,12 +10,19 @@ const PARTS = [
   { label: "Result", at: 14.6 },
 ];
 
-/** A 19 second overview of what TestMind is for. Loads nothing until someone presses play. */
+/** A 19 second overview of what TestMind is for, with soft music. Loads nothing until someone presses play. */
 export default function PurposeVideo() {
   const video = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
   const [part, setPart] = useState(0);
   const [failed, setFailed] = useState(false);
+  // Pressing play is a click, so browsers allow the music. It can be switched off.
+  const [muted, setMuted] = useState(false);
+
+  // React does not keep the muted attribute in sync, so set the property directly.
+  useEffect(() => {
+    if (video.current) video.current.muted = muted;
+  }, [muted]);
 
   const play = (at?: number) => {
     const v = video.current;
@@ -49,7 +56,14 @@ export default function PurposeVideo() {
       <div className="relative overflow-hidden rounded-lg border bg-white shadow-xl dark:border-gray-700 dark:bg-gray-900">
         <div className="flex items-center justify-between bg-amber-300 px-3 py-1.5 text-xs text-black">
           <span className="font-semibold">TestMind</span>
-          <span className="opacity-70">Overview</span>
+          <button
+            type="button"
+            onClick={() => setMuted((m) => !m)}
+            aria-pressed={!muted}
+            className="rounded px-1.5 py-0.5 font-medium hover:bg-amber-200"
+          >
+            {muted ? "Sound off" : "Sound on"}
+          </button>
         </div>
         <div className="relative aspect-[16/10] bg-white">
           <video
@@ -58,7 +72,6 @@ export default function PurposeVideo() {
             src="/videos/testmind-purpose.mp4"
             poster="/videos/testmind-purpose.jpg"
             preload="none"
-            muted
             playsInline
             onPlay={() => setPlaying(true)}
             onPause={() => setPlaying(false)}
