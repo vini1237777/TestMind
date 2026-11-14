@@ -151,3 +151,12 @@ html:not(.tm-no-intro):not(.tm-intro-done) :is(.tm-in-up, .tm-in-right) { animat
   .tm-grad, .tm-float, .tm-drift-a, .tm-drift-b { animation: none; }
   [data-reveal], [data-words] .tm-rw, [data-words] .tm-rw-hl { opacity: 1; transform: none; transition: none; }
 }
+
+/* Home page tabs: only the open part shows. */
+#landing[data-tab="home"] [data-panel]:not([data-panel="home"]),
+#landing[data-tab="overview"] [data-panel]:not([data-panel="overview"]),
+#landing[data-tab="product"] [data-panel]:not([data-panel="product"]),
+#landing[data-tab="results"] [data-panel]:not([data-panel="results"]),
+#landing[data-tab="built"] [data-panel]:not([data-panel="built"]) {
+  display: none;
+}
