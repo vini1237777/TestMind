@@ -1,6 +1,6 @@
 import Image from "next/image";
 import OpenFeatures from "./OpenFeatures";
-import HomeActions from "./HomeActions";
+import HomeActions, { WayIn } from "./HomeActions";
 import HomeFeatures from "./HomeFeatures";
 import RunExample from "./RunExample";
 import AuthDialog from "./AuthDialog";
@@ -292,15 +292,13 @@ export default function Intro({
 
       {/* A slim footer on every tab */}
       <footer className={`${ink} mt-auto border-t border-white/10 text-sm`}>
-        <div className={`${wrap} flex flex-col gap-4 py-6 sm:flex-row sm:items-center sm:justify-between`}>
+        <div className={`${wrap} flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between`}>
           <span className="text-white/70">A proof of concept, designed and built by Vinisha Yadav.</span>
-          <span className="flex items-center gap-5">
-            <a href="https://github.com/vini1237777/TestMind" target="_blank" rel="noreferrer" className="text-white underline underline-offset-4">
+          <span className="flex flex-wrap items-center gap-x-5 gap-y-3">
+            <a href="https://github.com/vini1237777/TestMind" target="_blank" rel="noreferrer" className="text-white underline underline-offset-4 decoration-white/40 hover:decoration-white">
               View the code
             </a>
-            <OpenFeatures tab="tech" className="text-white underline underline-offset-4">
-              How it&apos;s built
-            </OpenFeatures>
+            <WayIn email={email} next={next} />
           </span>
         </div>
       </footer>
