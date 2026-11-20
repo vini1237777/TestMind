@@ -131,3 +131,65 @@ export default function HomeActions({
     </div>
   );
 }
+
+/**
+ * The way in, kept small enough for a footer or a dialog: the demo and sign in,
+ * or the workspace when signed in. Shown wherever a visitor might stop reading.
+ */
+export function WayIn({
+  email,
+  next = null,
+  tone = "dark",
+  onLeave,
+}: {
+  email: string | null;
+  next?: string | null;
+  tone?: "dark" | "light";
+  /** Called before leaving, for example to close a dialog. */
+  onLeave?: () => void;
+}) {
+  const { opening, error, openDemo } = useOpenDemo(next);
+  const pill =
+    "tm-press inline-flex h-10 items-center justify-center gap-2 whitespace-nowrap rounded-full bg-amber-400 px-5 text-sm font-semibold text-black transition-colors hover:bg-amber-300 disabled:cursor-wait disabled:opacity-70";
+  const quiet =
+    tone === "dark"
+      ? "whitespace-nowrap font-medium text-white underline underline-offset-4 decoration-white/40 hover:decoration-white"
+      : "whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200/70 dark:text-gray-200 dark:hover:bg-gray-800";
+
+  if (email) {
+    return (
+      <Link href={safeNext(next)} onClick={onLeave} className={pill}>
+        Open workspace
+      </Link>
+    );
+  }
+
+  const signIn = () => {
+    onLeave?.();
+    // The sign in dialog lives on the home page; elsewhere, go there with it open.
+    if (window.location.pathname === "/") ask("signin");
+    else window.location.assign(`/?next=${encodeURIComponent(window.location.pathname)}`);
+  };
+
+  return (
+    <span className="inline-flex flex-wrap items-center gap-x-4 gap-y-2">
+      {error && (
+        <span role="alert" className="text-sm text-red-500">
+          {error}
+        </span>
+      )}
+      <button type="button" onClick={signIn} className={quiet}>
+        Sign in
+      </button>
+      <button type="button" onClick={openDemo} disabled={opening} className={pill}>
+        {opening && (
+          <span
+            aria-hidden
+            className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent"
+          />
+        )}
+        {opening ? "Opening the demo" : "Try the demo"}
+      </button>
+    </span>
+  );
+}
