@@ -89,6 +89,14 @@ export default function Navbar({ email }: { email: string | null }) {
   const active = (href: string) =>
     href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(href + "/");
 
+  // On the home page, the logo and Home open the Home tab; the tabs follow the address, so tell them it changed.
+  const toHomeTab = (e: React.MouseEvent) => {
+    if (pathname !== "/") return;
+    e.preventDefault();
+    history.pushState(null, "", "/");
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  };
+
   const handleThemeClick = () => {
     setTheme(isDark ? "light" : "dark");
   };
@@ -103,6 +111,7 @@ export default function Navbar({ email }: { email: string | null }) {
       <nav className="tm-slide relative z-40 w-full bg-amber-300 h-12 flex items-center justify-between px-4">
         <Link
           href="/"
+          onClick={toHomeTab}
           aria-label="TestMind home"
           className="tm-logo flex items-center gap-2 rounded-md px-1.5 py-1 hover:bg-amber-200 dark:text-black"
         >
@@ -116,6 +125,7 @@ export default function Navbar({ email }: { email: string | null }) {
           <VisitorCount />
           <Link
             href="/"
+            onClick={toHomeTab}
             aria-current={active("/") ? "page" : undefined}
             className={`hidden sm:inline-block text-sm font-medium rounded-md px-2 py-1 text-black transition-colors ${active("/") ? "bg-amber-200" : "hover:bg-amber-200"}`}
           >
