@@ -62,7 +62,9 @@
 .tm-caret { display: inline-block; width: 2px; height: 1em; margin-left: 1px; vertical-align: -2px; background: #f59e0b; animation: tm-blink 1s steps(1) infinite; }
 
 /* Buttons sink slightly when pressed */
-.tm-press { display: inline-block; transition: transform .12s ease, background-color .2s ease; }
+/* The display sits in a layer, so a button's own flex classes (to centre its label) win over it */
+@layer components { .tm-press { display: inline-block; } }
+.tm-press { transition: transform .12s ease, background-color .2s ease; }
 .tm-press:active { transform: scale(.96); }
 
 /* Nav links draw an underline on hover */
