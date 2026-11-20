@@ -10,6 +10,7 @@ import { usePathname } from "next/navigation";
 import FeaturesModal, { type FeaturesTab } from "./components/FeaturesModal";
 import VisitorCount from "./components/VisitorCount";
 import { signOut } from "./components/AuthCard";
+import { useOpenDemo } from "./components/HomeActions";
 
 /** Signed in: the first letter of the email, opening a small menu with Sign out. */
 function AccountMenu({ email }: { email: string }) {
@@ -63,6 +64,7 @@ function AccountMenu({ email }: { email: string }) {
 export default function Navbar({ email }: { email: string | null }) {
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const { opening, openDemo } = useOpenDemo("/projects");
   const [featuresOpen, setFeaturesOpen] = useState(false);
   const [featuresTab, setFeaturesTab] = useState<FeaturesTab>("tour");
   const [openCount, setOpenCount] = useState(0);
@@ -89,6 +91,14 @@ export default function Navbar({ email }: { email: string | null }) {
   const active = (href: string) =>
     href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(href + "/");
 
+  // On the home page, the logo and Home open the Home tab; the tabs follow the address, so tell them it changed.
+  const toHomeTab = (e: React.MouseEvent) => {
+    if (pathname !== "/") return;
+    e.preventDefault();
+    history.pushState(null, "", "/");
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  };
+
   const handleThemeClick = () => {
     setTheme(isDark ? "light" : "dark");
   };
@@ -99,10 +109,11 @@ export default function Navbar({ email }: { email: string | null }) {
 
   return (
     <div>
-      <FeaturesModal key={openCount} open={featuresOpen} initialTab={featuresTab} onClose={() => setFeaturesOpen(false)} />
+      <FeaturesModal key={openCount} open={featuresOpen} initialTab={featuresTab} email={email} onClose={() => setFeaturesOpen(false)} />
       <nav className="tm-slide relative z-40 w-full bg-amber-300 h-12 flex items-center justify-between px-4">
         <Link
           href="/"
+          onClick={toHomeTab}
           aria-label="TestMind home"
           className="tm-logo flex items-center gap-2 rounded-md px-1.5 py-1 hover:bg-amber-200 dark:text-black"
         >
@@ -116,6 +127,7 @@ export default function Navbar({ email }: { email: string | null }) {
           <VisitorCount />
           <Link
             href="/"
+            onClick={toHomeTab}
             aria-current={active("/") ? "page" : undefined}
             className={`hidden sm:inline-block text-sm font-medium rounded-md px-2 py-1 text-black transition-colors ${active("/") ? "bg-amber-200" : "hover:bg-amber-200"}`}
           >
@@ -131,6 +143,13 @@ export default function Navbar({ email }: { email: string | null }) {
           </button>
           <Link
             href="/projects"
+            onClick={(e) => {
+              // Signed out, the workspace opens in the shared demo account instead of asking to sign in.
+              if (email) return;
+              e.preventDefault();
+              if (!opening) openDemo();
+            }}
+            aria-busy={opening || undefined}
             aria-current={active("/projects") ? "page" : undefined}
             className={`text-sm font-medium rounded-md px-2 py-1 text-black transition-colors ${active("/projects") ? "bg-amber-200" : "hover:bg-amber-200"}`}
           >

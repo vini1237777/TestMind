@@ -1,6 +1,6 @@
 import Image from "next/image";
 import OpenFeatures from "./OpenFeatures";
-import HomeActions from "./HomeActions";
+import HomeActions, { YourTurn } from "./HomeActions";
 import HomeFeatures from "./HomeFeatures";
 import RunExample from "./RunExample";
 import AuthDialog from "./AuthDialog";
@@ -251,11 +251,11 @@ export default function Intro({
               Every engineering decision &gt;
             </OpenFeatures>
           </div>
-          <ol className="mt-5 grid gap-2.5 min-[600px]:grid-cols-2 min-[900px]:grid-cols-5 min-[900px]:gap-0">
+          <ol className="mt-5 grid gap-2.5 min-[600px]:grid-cols-2 min-[900px]:grid-cols-3 min-[1200px]:grid-cols-6 min-[1200px]:gap-0">
             {FLOW.map((step, i) => (
               <Reveal as="li" key={step.title} delay={i * 90} className="relative flex">
                 <div
-                  className={`tm-lift w-full rounded-[14px] bg-stone-100 p-4 dark:bg-slate-900 ${i < FLOW.length - 1 ? "min-[900px]:mr-5" : ""}`}
+                  className={`tm-lift w-full rounded-[14px] bg-stone-100 p-4 dark:bg-slate-900 min-[1200px]:mr-5`}
                 >
                   <span className="flex items-center gap-2.5">
                     <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-amber-400 font-mono text-[11px] font-semibold text-black">
@@ -265,13 +265,14 @@ export default function Intro({
                   </span>
                   <span className="mt-2 block text-[13.5px] leading-snug text-slate-600 dark:text-slate-300">{step.text}</span>
                 </div>
-                {i < FLOW.length - 1 && (
-                  <span aria-hidden className="absolute right-0 top-1/2 hidden w-5 -translate-y-1/2 text-center text-slate-400 min-[900px]:block">
-                    →
-                  </span>
-                )}
+                <span aria-hidden className="absolute right-0 top-1/2 hidden w-5 -translate-y-1/2 text-center text-slate-400 min-[1200px]:block">
+                  →
+                </span>
               </Reveal>
             ))}
+            <Reveal as="li" delay={FLOW.length * 90} className="flex">
+              <YourTurn email={email} next={next} />
+            </Reveal>
           </ol>
 
           <h3 className="mt-5 font-mono text-xs font-medium uppercase tracking-[.06em] text-slate-500">Built with</h3>
@@ -294,11 +295,11 @@ export default function Intro({
       <footer className={`${ink} mt-auto border-t border-white/10 text-sm`}>
         <div className={`${wrap} flex flex-col gap-4 py-6 sm:flex-row sm:items-center sm:justify-between`}>
           <span className="text-white/70">A proof of concept, designed and built by Vinisha Yadav.</span>
-          <span className="flex items-center gap-5">
-            <a href="https://github.com/vini1237777/TestMind" target="_blank" rel="noreferrer" className="text-white underline underline-offset-4">
+          <span className="flex flex-wrap items-center gap-x-5 gap-y-3">
+            <a href="https://github.com/vini1237777/TestMind" target="_blank" rel="noreferrer" className="text-white underline underline-offset-4 decoration-white/40 hover:decoration-white">
               View the code
             </a>
-            <OpenFeatures tab="tech" className="text-white underline underline-offset-4">
+            <OpenFeatures tab="tech" className="text-white underline underline-offset-4 decoration-white/40 hover:decoration-white">
               How it&apos;s built
             </OpenFeatures>
           </span>

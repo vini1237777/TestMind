@@ -430,7 +430,7 @@ describe("the demo account", () => {
 
   test("can add and generate, but not edit or delete", async () => {
     const token = tokenOf(await demoRoute.POST());
-    const locked = { error: "The demo account cannot edit or delete. Create your own account to do that." };
+    const locked = { error: "The demo account cannot edit or delete." };
     await session.withSessionToken(token, async () => {
       const project = await projects.createProject({ name: "Shared" });
       const created = await suites.createSuite({
