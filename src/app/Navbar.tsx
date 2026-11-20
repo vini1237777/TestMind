@@ -99,7 +99,7 @@ export default function Navbar({ email }: { email: string | null }) {
 
   return (
     <div>
-      <FeaturesModal key={openCount} open={featuresOpen} initialTab={featuresTab} onClose={() => setFeaturesOpen(false)} />
+      <FeaturesModal key={openCount} open={featuresOpen} initialTab={featuresTab} email={email} onClose={() => setFeaturesOpen(false)} />
       <nav className="tm-slide relative z-40 w-full bg-amber-300 h-12 flex items-center justify-between px-4">
         <Link
           href="/"

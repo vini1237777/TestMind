@@ -1,9 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import Modal, { btnGhost, btnPrimary } from "./Modal";
+import { WayIn } from "./HomeActions";
 import { FLOW, OPTIMISATIONS, REPO, RESULTS, STACK } from "../lib/tech-info";
 
 // Real screenshots of the app, each with one short caption.
@@ -118,7 +118,7 @@ function UnderTheHood() {
 export type FeaturesTab = "tour" | "tech";
 
 /** Mount with a key per open so it always starts fresh on the requested tab. */
-export default function FeaturesModal({ open, onClose, initialTab = "tour" }: { open: boolean; onClose: () => void; initialTab?: FeaturesTab }) {
+export default function FeaturesModal({ open, onClose, initialTab = "tour", email = null }: { open: boolean; onClose: () => void; initialTab?: FeaturesTab; email?: string | null }) {
   const [tab, setTab] = useState<FeaturesTab>(initialTab);
   const [i, setI] = useState(0);
   const [dir, setDir] = useState<1 | -1>(1);
@@ -160,9 +160,12 @@ export default function FeaturesModal({ open, onClose, initialTab = "tour" }: { 
               Previous
             </button>
             {last ? (
-              <button type="button" className={btnPrimary} onClick={() => setTab("tech")}>
-                How it&apos;s built
-              </button>
+              <>
+                <button type="button" className={btnGhost} onClick={() => setTab("tech")}>
+                  How it&apos;s built
+                </button>
+                <WayIn email={email} tone="light" onLeave={onClose} />
+              </>
             ) : (
               <button type="button" className={btnPrimary} onClick={() => go(i + 1)}>
                 Next
@@ -174,9 +177,7 @@ export default function FeaturesModal({ open, onClose, initialTab = "tour" }: { 
             <button type="button" className={`${btnGhost} mr-auto`} onClick={() => setTab("tour")}>
               Back to the tour
             </button>
-            <Link href="/projects" onClick={onClose} className={btnPrimary}>
-              Try it
-            </Link>
+            <WayIn email={email} tone="light" onLeave={onClose} />
           </div>
         )
       }
