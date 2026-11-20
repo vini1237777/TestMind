@@ -193,3 +193,51 @@ export function WayIn({
     </span>
   );
 }
+
+/**
+ * The last step of "What happens when you press Generate": the visitor's own turn.
+ * It opens the demo, or the workspace when signed in.
+ */
+export function YourTurn({
+  step,
+  email,
+  next,
+}: {
+  step: number;
+  email: string | null;
+  next: string | null;
+}) {
+  const { opening, error, openDemo } = useOpenDemo(next);
+  const action =
+    "tm-press mt-3 inline-flex items-center gap-2 self-start border-b-2 border-amber-400 pb-0.5 text-[15px] font-semibold text-white transition-colors hover:text-amber-300 disabled:cursor-wait disabled:opacity-70";
+
+  return (
+    <div className="flex w-full flex-col rounded-[14px] bg-[#0b0b0c] p-4 text-white">
+      <span className="flex items-center gap-2.5">
+        <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-amber-400 font-mono text-[11px] font-semibold text-black">
+          {step}
+        </span>
+        <b className="text-[15px] font-semibold leading-tight">Your turn</b>
+      </span>
+      <span className="mt-2 block text-[13.5px] leading-snug text-white/70">
+        {email
+          ? "Describe a feature in your workspace and press Generate."
+          : "Describe a feature and press Generate. The demo needs no sign up."}
+      </span>
+      {email ? (
+        <Link href={safeNext(next)} className={action}>
+          Open workspace →
+        </Link>
+      ) : (
+        <button type="button" onClick={openDemo} disabled={opening} className={action}>
+          {opening ? "Opening the demo" : "Try the demo →"}
+        </button>
+      )}
+      {error && (
+        <span role="alert" className="mt-2 text-[13px] text-red-300">
+          {error}
+        </span>
+      )}
+    </div>
+  );
+}

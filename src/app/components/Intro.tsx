@@ -1,6 +1,6 @@
 import Image from "next/image";
 import OpenFeatures from "./OpenFeatures";
-import HomeActions, { WayIn } from "./HomeActions";
+import HomeActions, { YourTurn } from "./HomeActions";
 import HomeFeatures from "./HomeFeatures";
 import RunExample from "./RunExample";
 import AuthDialog from "./AuthDialog";
@@ -47,21 +47,6 @@ const FLOW = [
   { title: "AI writes the cases", text: "gpt-4o-mini writes 1 to 8 cases and Zod checks the format. If OpenAI fails, Gemini answers instead." },
   { title: "AI reviews them", text: "A second step scores coverage out of 100 and lists the cases still missing." },
 ];
-
-/**
- * One quiet line at the end of a tab: having read this far, the demo is the next step.
- * Signed in, it points to the workspace instead.
- */
-function NextStep({ email, next, text, bare = false }: { email: string | null; next: string | null; text: string; bare?: boolean }) {
-  return (
-    <div className={`flex flex-wrap items-center justify-between gap-x-6 gap-y-3 ${bare ? "mt-8" : "mt-6 border-t border-stone-200 pt-4 dark:border-slate-800"}`}>
-      <p className="text-[15px] text-slate-600 dark:text-slate-300">
-        {email ? "Your workspace is open whenever you are." : text}
-      </p>
-      <WayIn email={email} next={next} tone="light" />
-    </div>
-  );
-}
 
 function Ribbons() {
   return (
@@ -174,7 +159,6 @@ export default function Intro({
               A 19 second video: the problem, what TestMind does, how it works and the measured results.
             </p>
             <p className="mt-4 text-sm text-slate-500">With soft music. Press a part to jump to it.</p>
-            <NextStep bare email={email} next={next} text="Seen the idea? Try it yourself, no sign up needed." />
           </Reveal>
           <Reveal delay={150}>
             <PurposeVideo />
@@ -196,7 +180,6 @@ export default function Intro({
           <Reveal delay={120}>
             <HomeFeatures />
           </Reveal>
-          <NextStep email={email} next={next} text="Try these steps on your own feature. The demo needs no sign up." />
         </div>
       </section>
 
@@ -251,7 +234,6 @@ export default function Intro({
               </p>
             ))}
           </Reveal>
-          <NextStep email={email} next={next} text="Run it yourself and see the review score. The demo needs no sign up." />
         </div>
       </section>
 
@@ -269,11 +251,11 @@ export default function Intro({
               Every engineering decision &gt;
             </OpenFeatures>
           </div>
-          <ol className="mt-5 grid gap-2.5 min-[600px]:grid-cols-2 min-[900px]:grid-cols-5 min-[900px]:gap-0">
+          <ol className="mt-5 grid gap-2.5 min-[600px]:grid-cols-2 min-[900px]:grid-cols-3 min-[1200px]:grid-cols-6 min-[1200px]:gap-0">
             {FLOW.map((step, i) => (
               <Reveal as="li" key={step.title} delay={i * 90} className="relative flex">
                 <div
-                  className={`tm-lift w-full rounded-[14px] bg-stone-100 p-4 dark:bg-slate-900 ${i < FLOW.length - 1 ? "min-[900px]:mr-5" : ""}`}
+                  className={`tm-lift w-full rounded-[14px] bg-stone-100 p-4 dark:bg-slate-900 min-[1200px]:mr-5`}
                 >
                   <span className="flex items-center gap-2.5">
                     <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-amber-400 font-mono text-[11px] font-semibold text-black">
@@ -283,13 +265,14 @@ export default function Intro({
                   </span>
                   <span className="mt-2 block text-[13.5px] leading-snug text-slate-600 dark:text-slate-300">{step.text}</span>
                 </div>
-                {i < FLOW.length - 1 && (
-                  <span aria-hidden className="absolute right-0 top-1/2 hidden w-5 -translate-y-1/2 text-center text-slate-400 min-[900px]:block">
-                    →
-                  </span>
-                )}
+                <span aria-hidden className="absolute right-0 top-1/2 hidden w-5 -translate-y-1/2 text-center text-slate-400 min-[1200px]:block">
+                  →
+                </span>
               </Reveal>
             ))}
+            <Reveal as="li" delay={FLOW.length * 90} className="flex">
+              <YourTurn step={FLOW.length + 1} email={email} next={next} />
+            </Reveal>
           </ol>
 
           <h3 className="mt-5 font-mono text-xs font-medium uppercase tracking-[.06em] text-slate-500">Built with</h3>
@@ -305,7 +288,6 @@ export default function Intro({
               </div>
             ))}
           </dl>
-          <NextStep email={email} next={next} text="See these five steps run on a feature of yours. The demo needs no sign up." />
         </div>
       </section>
 
