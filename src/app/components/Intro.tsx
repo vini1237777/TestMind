@@ -271,7 +271,7 @@ export default function Intro({
               </Reveal>
             ))}
             <Reveal as="li" delay={FLOW.length * 90} className="flex">
-              <YourTurn step={FLOW.length + 1} email={email} next={next} />
+              <YourTurn email={email} next={next} />
             </Reveal>
           </ol>
 
