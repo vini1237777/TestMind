@@ -48,6 +48,21 @@ const FLOW = [
   { title: "AI reviews them", text: "A second step scores coverage out of 100 and lists the cases still missing." },
 ];
 
+/**
+ * One quiet line at the end of a tab: having read this far, the demo is the next step.
+ * Signed in, it points to the workspace instead.
+ */
+function NextStep({ email, next, text, bare = false }: { email: string | null; next: string | null; text: string; bare?: boolean }) {
+  return (
+    <div className={`flex flex-wrap items-center justify-between gap-x-6 gap-y-3 ${bare ? "mt-8" : "mt-6 border-t border-stone-200 pt-4 dark:border-slate-800"}`}>
+      <p className="text-[15px] text-slate-600 dark:text-slate-300">
+        {email ? "Your workspace is open whenever you are." : text}
+      </p>
+      <WayIn email={email} next={next} tone="light" />
+    </div>
+  );
+}
+
 function Ribbons() {
   return (
     <svg aria-hidden className="absolute inset-0 h-full w-full" viewBox="0 0 700 720" preserveAspectRatio="xMidYMid slice">
@@ -159,6 +174,7 @@ export default function Intro({
               A 19 second video: the problem, what TestMind does, how it works and the measured results.
             </p>
             <p className="mt-4 text-sm text-slate-500">With soft music. Press a part to jump to it.</p>
+            <NextStep bare email={email} next={next} text="Seen the idea? Try it yourself, no sign up needed." />
           </Reveal>
           <Reveal delay={150}>
             <PurposeVideo />
@@ -180,6 +196,7 @@ export default function Intro({
           <Reveal delay={120}>
             <HomeFeatures />
           </Reveal>
+          <NextStep email={email} next={next} text="Try these steps on your own feature. The demo needs no sign up." />
         </div>
       </section>
 
@@ -234,6 +251,7 @@ export default function Intro({
               </p>
             ))}
           </Reveal>
+          <NextStep email={email} next={next} text="Run it yourself and see the review score. The demo needs no sign up." />
         </div>
       </section>
 
@@ -287,18 +305,21 @@ export default function Intro({
               </div>
             ))}
           </dl>
+          <NextStep email={email} next={next} text="See these five steps run on a feature of yours. The demo needs no sign up." />
         </div>
       </section>
 
       {/* A slim footer on every tab */}
       <footer className={`${ink} mt-auto border-t border-white/10 text-sm`}>
-        <div className={`${wrap} flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between`}>
+        <div className={`${wrap} flex flex-col gap-4 py-6 sm:flex-row sm:items-center sm:justify-between`}>
           <span className="text-white/70">A proof of concept, designed and built by Vinisha Yadav.</span>
           <span className="flex flex-wrap items-center gap-x-5 gap-y-3">
             <a href="https://github.com/vini1237777/TestMind" target="_blank" rel="noreferrer" className="text-white underline underline-offset-4 decoration-white/40 hover:decoration-white">
               View the code
             </a>
-            <WayIn email={email} next={next} />
+            <OpenFeatures tab="tech" className="text-white underline underline-offset-4 decoration-white/40 hover:decoration-white">
+              How it&apos;s built
+            </OpenFeatures>
           </span>
         </div>
       </footer>
