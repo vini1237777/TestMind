@@ -10,6 +10,7 @@ import { usePathname } from "next/navigation";
 import FeaturesModal, { type FeaturesTab } from "./components/FeaturesModal";
 import VisitorCount from "./components/VisitorCount";
 import { signOut } from "./components/AuthCard";
+import { useOpenDemo } from "./components/HomeActions";
 
 /** Signed in: the first letter of the email, opening a small menu with Sign out. */
 function AccountMenu({ email }: { email: string }) {
@@ -63,6 +64,7 @@ function AccountMenu({ email }: { email: string }) {
 export default function Navbar({ email }: { email: string | null }) {
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const { opening, openDemo } = useOpenDemo("/projects");
   const [featuresOpen, setFeaturesOpen] = useState(false);
   const [featuresTab, setFeaturesTab] = useState<FeaturesTab>("tour");
   const [openCount, setOpenCount] = useState(0);
@@ -141,6 +143,13 @@ export default function Navbar({ email }: { email: string | null }) {
           </button>
           <Link
             href="/projects"
+            onClick={(e) => {
+              // Signed out, the workspace opens in the shared demo account instead of asking to sign in.
+              if (email) return;
+              e.preventDefault();
+              if (!opening) openDemo();
+            }}
+            aria-busy={opening || undefined}
             aria-current={active("/projects") ? "page" : undefined}
             className={`text-sm font-medium rounded-md px-2 py-1 text-black transition-colors ${active("/projects") ? "bg-amber-200" : "hover:bg-amber-200"}`}
           >
